@@ -1,47 +1,182 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.content.Context
+import android.database.Cursor
+import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
-import android.os.Environment
+import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import java.io.File
 
 //This allows access to dere database
-class DereDatabaseHelper() {
-    constructor(context: Context):this()  {
+class DereDatabaseHelper(context: Context) {
+    val manifestFile: File
+    val fumensDBFile: File
+    val fumenFolder : File
+
+    val musicIDToInfo :Map<Int,MusicInfo> = Map()
+    init {
         val datadir = context.getExternalFilesDir(null).parentFile.parentFile
-        val dereFilesDir = File(datadir,"jp.co.bandainamcoent.BNEI0242/files/")
-        val manifestFile = File(dereFilesDir,"manifest/").listFiles()[0]
-        val fumenFolder = File(dereFilesDir,"a/")
+        val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
+        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
+        fumenFolder = File(dereFilesDir, "a/")
         var maxlen = 0L
-        var fumensDBfile: File? = null
-        for (file in fumenFolder.listFiles())
-        {
+        var fumensDBFileTmp: File? = null
+        for (file in fumenFolder.listFiles()) {
             val len = file.length();
-            if(len>maxlen)
-            {
+            if (len > maxlen) {
                 maxlen = len
-                fumensDBfile = file
-                if(maxlen > 10000000)
+                fumensDBFileTmp = file
+                if (maxlen > 10000000)
                     break
             }
         }
-        val fumensDB = SQLiteDatabase.openDatabase(fumensDBfile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+        fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
+    }
 
-        val manifestDB =  SQLiteDatabase.openDatabase(manifestFile.path,null,SQLiteDatabase.OPEN_READONLY)
+    fun parseDatabases(publisher : (Int) -> Unit, onFinish:()->Unit) {
+        val fumensDB =
+            SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
-        val cursorLiveData = fumensDB.query("live_data", arrayOf("music_data_id"),null,null,null,null,null)
+        val manifestDB =
+            SQLiteDatabase.openDatabase(manifestFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
-        val music_data_id_index = cursorLiveData.getColumnIndex("music_data_id")
+        val cursorLiveData =
+            fumensDB.query("live_data", arrayOf("music_data_id"), null, null, null, null, null)
+
+        val musicDataIdIndex = cursorLiveData.getColumnIndex("music_data_id")
 
         while (cursorLiveData.moveToNext()) {
-            val music_data_id = cursorLiveData.getInt(music_data_id_index)
-            val cursorMusicData = fumensDB.query("music_data",arrayOf("id","name","bpm","composer","lyricist","sound_offset","sound_length"),"id=?",arrayOf(music_data_id.toString()),null,null,null)
-            val music_name_index = cursorMusicData.getColumnIndex("name")
-            val name = cursorMusicData.getString(music_name_index)
-            val composer_index = cursorMusicData.getColumnIndex("composer")
-            val composer = cursorMusicData.getString(composer_index)
+            val musicDataId = cursorLiveData.getInt(musicDataIdIndex)
+            val cursorMusicData = fumensDB.query(
+                "music_data",
+                arrayOf(
+                    "id",
+                    "name",
+                    "bpm",
+                    "composer",
+                    "lyricist",
+                    "sound_offset",
+                    "sound_length"
+                ),
+                "id=?",
+                arrayOf(musicDataId.toString()),
+                null,
+                null,
+                null
+            )
+            val musicNameIndex = cursorMusicData.getColumnIndex("name")
+            val name = cursorMusicData.getString(musicNameIndex)
+            val composerIndex = cursorMusicData.getColumnIndex("composer")
+            val composer = cursorMusicData.getString(composerIndex)
 
+            cursorMusicData.close()
         }
+        cursorLiveData.close()
 
+        for (file in fumenFolder.listFiles()) {
+            var cursorFumens : Cursor?= null
+            try {
+                val fumenDB =
+                    SQLiteDatabase.openDatabase(file!!.path, null, SQLiteDatabase.OPEN_READONLY)
+                cursorFumens =
+                    fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
+                val color = arrayOf(0, 0, 0, 0)
+                while (cursorFumens.moveToNext()) {
+                    var name = cursorFumens.getString(0)
+                    if (!name[name.length - 5].isDigit())
+                        continue
+                    name = name.substring(13)
+                    name = name.substringBefore('.')
+                    val musicIndex = Integer.parseInt(name.substringBefore('.'))
+                    val difficulty = Integer.parseInt(name.substringAfter('_'))
+                    val fumenStr = cursorFumens.getBlob(1).toString()
+                    val parsedFumen = csvReader().readAllWithHeader(fumenStr)
+
+                    val prevIDs = HashMap<Int, Int>()
+                    val longnoteIDs = HashMap<Float, Int>()
+                    val notes = ArrayList<Note>()
+                    var prevID = 0
+                    var idd = 0
+                    for (row in parsedFumen) {
+                        prevID = 0
+                        var gid = row["groupId"]!!.toInt()
+                        var mode = row["type"]!!.toInt()
+                        if (mode > 3)
+                            continue
+                        idd++
+                        var twMode = getTWMode(mode)
+                        val endpos = row["finishPos"]!!.toFloat()
+                        val flick = getTW5Flick(row["status"]!!.toInt())
+                        if (gid == 0) {
+                            //...
+                        } else {
+                            if (prevIDs.containsKey(gid)) {
+                                prevID = prevIDs[gid]!!
+                            } else {
+                                //...
+                            }
+                            prevIDs[gid] = idd
+                        }
+                        if (longnoteIDs.containsKey(endpos)) {
+                            //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
+                            prevID = longnoteIDs[endpos]!!
+                            twMode = 1
+                            longnoteIDs.remove(endpos)
+                        } else if (mode == 2) {
+                            //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
+                            prevID = 0
+                            longnoteIDs[endpos] = idd
+                        }
+                        //롱노트 중도 아니었고 자신도 롱노트가 아니다
+                        if ((mode == 1) and (flick == 0)) {
+                            prevID = 0
+                        }
+                        notes.add(
+                            Note(
+                                idd,
+                                0,
+                                color,
+                                twMode,
+                                flick,
+                                row["sec"]!!.toFloat(),
+                                1.0f,
+                                row["startPos"]!!.toFloat(),
+                                endpos,
+                                arrayOf(prevID)
+                            )
+                        )
+                    }
+                }
+            } catch (e: SQLException) {
+                continue
+            } finally {
+                cursorFumens?.close()
+            }
+        }
     }
+
+    //None left right up down
+    private fun getTW5Flick(status: Int): Int {
+        return when (status) {
+            0 -> FlickMode.None
+            1 -> FlickMode.Left
+            2 -> FlickMode.Right
+            100 -> FlickMode.None  // きらりんロボのテーマ
+            101 -> FlickMode.Left  // きらりんロボのテーマ
+            102 -> FlickMode.Right  // きらりんロボのテーマ
+            else -> FlickMode.None
+        }
+    }
+
+    //tap hold slide damage hidden
+    private fun getTWMode(mode: Int): Int {
+        return when (mode) {
+            1 -> TWMode.Tap
+            2 -> TWMode.Hold
+            3 -> TWMode.Slide
+            else -> TWMode.Tap
+        }
+    }
+
+
 }
