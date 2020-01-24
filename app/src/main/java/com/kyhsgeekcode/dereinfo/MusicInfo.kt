@@ -7,5 +7,6 @@ class MusicInfo(
     val composer: String,
     val lyricist: String,
     val soundOffset: Int,
-    val soundLength: Int
+    val soundLength: Int,
+    val circleType: Int = 4
 )

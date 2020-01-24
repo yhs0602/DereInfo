@@ -1,9 +1,8 @@
 package com.kyhsgeekcode.dereinfo
 
-class DereMusicData {
-    var notes: MutableList<Note> = emptyList<Note>().toMutableList()
+class OneDifficulty (val difficulty:Int, val notes: List<Note>){
+    var noteCounts = arrayOf(0,0,0,0)
     fun countNotes(): Array<Int> {
-        notes.clear()
         //Total Normal long flick slide
         val res = arrayOf(0, 0, 0, 0)
         for (note in notes) {

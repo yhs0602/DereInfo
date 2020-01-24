@@ -36,7 +36,7 @@ class DereDatabaseHelper(context: Context) {
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    fun parseDatabases(publisher: (Int,Int) -> Unit, onFinish: () -> Unit) {
+    fun parseDatabases(publisher: (Int, Int) -> Unit, onFinish: () -> Unit) {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
@@ -56,11 +56,12 @@ class DereDatabaseHelper(context: Context) {
 
         val musicDataIdIndex = cursorLiveData.getColumnIndex("music_data_id")
         val liveDataIdIndex = cursorLiveData.getColumnIndex("id")
+        val circleTypeIndex = cursorLiveData.getColumnIndex("circle_type")
         val totalCount = cursorLiveData.count
         var currentCount = 0
         while (cursorLiveData.moveToNext()) {
             currentCount++
-            publisher(currentCount,totalCount)
+            publisher(currentCount, totalCount)
             val musicDataId = cursorLiveData.getInt(musicDataIdIndex)
             val cursorMusicData = fumensDB.query(
                 "music_data",
@@ -92,24 +93,34 @@ class DereDatabaseHelper(context: Context) {
             val soundLengthIndex = cursorMusicData.getColumnIndex("sound_length")
             val soundLength = cursorMusicData.getInt(soundLengthIndex)
             cursorMusicData.close()
-            musicIDToInfo[musicDataId] =
-                MusicInfo(musicDataId, name, bpm, composer, lyricist, soundOffset, soundLength)
             val liveDataId = cursorLiveData.getInt(liveDataIdIndex)
+            val circleType = cursorLiveData.getInt(circleTypeIndex)
             fumenIDToMusicID[liveDataId] = musicDataId
+            musicIDToInfo[musicDataId] =
+                MusicInfo(
+                    musicDataId,
+                    name,
+                    bpm,
+                    composer,
+                    lyricist,
+                    soundOffset,
+                    soundLength,
+                    circleType
+                )
         }
         cursorLiveData.close()
         onFinish()
     }
 
-    val indexToFumenFile : MutableMap<Int,File> =  HashMap()
+    val indexToFumenFile: MutableMap<Int, File> = HashMap()
     fun indexFumens() {
-        var cursorFumens:Cursor? = null
-        for(file in fumenFolder.listFiles()) {
+        var cursorFumens: Cursor? = null
+        for (file in fumenFolder.listFiles()) {
             try {
                 val fumenDB =
                     SQLiteDatabase.openDatabase(file!!.path, null, SQLiteDatabase.OPEN_READONLY)
                 cursorFumens = fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
-                while(cursorFumens.moveToNext()) {
+                while (cursorFumens.moveToNext()) {
                     var name = cursorFumens.getString(0)
                     if (!name[name.length - 5].isDigit())
                         continue
@@ -120,13 +131,108 @@ class DereDatabaseHelper(context: Context) {
                     indexToFumenFile[musicIndex] = file
                     break
                 }
-            } catch(e:SQLException) {
+            } catch (e: SQLException) {
                 continue
             } finally {
                 cursorFumens?.close()
             }
         }
     }
+
+    //5개를 파싱해라.
+    fun parseFumen(musicIndex: Int): OneMusic {
+        val fumenFile = indexToFumenFile[musicIndex]
+        val fumenDB =
+            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+        val cursorFumens =
+            fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
+        val difficulties: MutableMap<Int, OneDifficulty> = HashMap()
+        val info = musicIDToInfo[musicIndex] ?: MusicInfo(
+            0,
+            "Error occurred",
+            192,
+            "System",
+            "Unknown",
+            0,
+            1
+        )
+        while (cursorFumens.moveToNext()) {
+            var name = cursorFumens.getString(0)
+            if (!name[name.length - 5].isDigit())
+                continue
+            name = name.substring(13)
+            name = name.substringBefore('.')
+            val difficulty = Integer.parseInt(name.substringAfter('_'))
+            val fumenStr = cursorFumens.getBlob(1).toString()
+            val notes = parseDereFumen(fumenStr, info)
+            difficulties[difficulty] = OneDifficulty(difficulty, notes)
+        }
+        cursorFumens.close()
+        return OneMusic(difficulties, info)
+    }
+
+    private fun parseDereFumen(
+        fumenStr: String,
+        musicInfo: MusicInfo
+    ): List<Note> {
+        val parsedFumen = csvReader().readAllWithHeader(fumenStr)
+        val prevIDs = HashMap<Int, Int>()
+        val longnoteIDs = HashMap<Float, Int>()
+        val notes = ArrayList<Note>()
+        var prevID = 0
+        var idd = 0
+        for (row in parsedFumen) {
+            prevID = 0
+            var gid = row["groupId"]!!.toInt()
+            var mode = row["type"]!!.toInt()
+            if (mode > 3)
+                continue
+            idd++
+            var twMode = getTWMode(mode)
+            val endpos = row["finishPos"]!!.toFloat()
+            val flick = getTW5Flick(row["status"]!!.toInt())
+            if (gid == 0) {
+                //...
+            } else {
+                if (prevIDs.containsKey(gid)) {
+                    prevID = prevIDs[gid]!!
+                } else {
+                    //...
+                }
+                prevIDs[gid] = idd
+            }
+            if (longnoteIDs.containsKey(endpos)) {
+                //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
+                prevID = longnoteIDs[endpos]!!
+                twMode = 1
+                longnoteIDs.remove(endpos)
+            } else if (mode == 2) {
+                //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
+                prevID = 0
+                longnoteIDs[endpos] = idd
+            }
+            //롱노트 중도 아니었고 자신도 롱노트가 아니다
+            if ((mode == 1) and (flick == 0)) {
+                prevID = 0
+            }
+            notes.add(
+                Note(
+                    idd,
+                    0,
+                    getColor(musicInfo.circleType),
+                    twMode,
+                    flick,
+                    row["sec"]!!.toFloat(),
+                    1.0f,
+                    row["startPos"]!!.toFloat(),
+                    endpos,
+                    arrayOf(prevID)
+                )
+            )
+        }
+        return notes
+    }
+
 
     fun parseFumens() {
         for (file in fumenFolder.listFiles()) {
@@ -138,70 +244,7 @@ class DereDatabaseHelper(context: Context) {
                     fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
                 val color = arrayOf(0, 0, 0, 0)
                 while (cursorFumens.moveToNext()) {
-                    var name = cursorFumens.getString(0)
-                    if (!name[name.length - 5].isDigit())
-                        continue
-                    name = name.substring(13)
-                    name = name.substringBefore('.')
-                    val musicIndex = Integer.parseInt(name.substringBefore('.'))
-                    val difficulty = Integer.parseInt(name.substringAfter('_'))
-                    val fumenStr = cursorFumens.getBlob(1).toString()
-                    val parsedFumen = csvReader().readAllWithHeader(fumenStr)
-
-                    val prevIDs = HashMap<Int, Int>()
-                    val longnoteIDs = HashMap<Float, Int>()
-                    val notes = ArrayList<Note>()
-                    var prevID = 0
-                    var idd = 0
-                    for (row in parsedFumen) {
-                        prevID = 0
-                        var gid = row["groupId"]!!.toInt()
-                        var mode = row["type"]!!.toInt()
-                        if (mode > 3)
-                            continue
-                        idd++
-                        var twMode = getTWMode(mode)
-                        val endpos = row["finishPos"]!!.toFloat()
-                        val flick = getTW5Flick(row["status"]!!.toInt())
-                        if (gid == 0) {
-                            //...
-                        } else {
-                            if (prevIDs.containsKey(gid)) {
-                                prevID = prevIDs[gid]!!
-                            } else {
-                                //...
-                            }
-                            prevIDs[gid] = idd
-                        }
-                        if (longnoteIDs.containsKey(endpos)) {
-                            //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
-                            prevID = longnoteIDs[endpos]!!
-                            twMode = 1
-                            longnoteIDs.remove(endpos)
-                        } else if (mode == 2) {
-                            //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
-                            prevID = 0
-                            longnoteIDs[endpos] = idd
-                        }
-                        //롱노트 중도 아니었고 자신도 롱노트가 아니다
-                        if ((mode == 1) and (flick == 0)) {
-                            prevID = 0
-                        }
-                        notes.add(
-                            Note(
-                                idd,
-                                0,
-                                color,
-                                twMode,
-                                flick,
-                                row["sec"]!!.toFloat(),
-                                1.0f,
-                                row["startPos"]!!.toFloat(),
-                                endpos,
-                                arrayOf(prevID)
-                            )
-                        )
-                    }
+                    parseOne(cursorFumens, color)
                 }
             } catch (e: SQLException) {
                 continue
@@ -211,28 +254,70 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 
-    //None left right up down
-    private fun getTW5Flick(status: Int): Int {
-        return when (status) {
-            0 -> FlickMode.None
-            1 -> FlickMode.Left
-            2 -> FlickMode.Right
-            100 -> FlickMode.None  // きらりんロボのテーマ
-            101 -> FlickMode.Left  // きらりんロボのテーマ
-            102 -> FlickMode.Right  // きらりんロボのテーマ
-            else -> FlickMode.None
+    private fun parseOne(cursorFumens: Cursor, color: Array<Int>) {
+        var name = cursorFumens.getString(0)
+        if (!name[name.length - 5].isDigit())
+            return
+        name = name.substring(13)
+        name = name.substringBefore('.')
+        val musicIndex = Integer.parseInt(name.substringBefore('.'))
+        val difficulty = Integer.parseInt(name.substringAfter('_'))
+        val fumenStr = cursorFumens.getBlob(1).toString()
+        val parsedFumen = csvReader().readAllWithHeader(fumenStr)
+
+        val prevIDs = HashMap<Int, Int>()
+        val longnoteIDs = HashMap<Float, Int>()
+        val notes = ArrayList<Note>()
+        var prevID = 0
+        var idd = 0
+        for (row in parsedFumen) {
+            prevID = 0
+            var gid = row["groupId"]!!.toInt()
+            var mode = row["type"]!!.toInt()
+            if (mode > 3)
+                continue
+            idd++
+            var twMode = getTWMode(mode)
+            val endpos = row["finishPos"]!!.toFloat()
+            val flick = getTW5Flick(row["status"]!!.toInt())
+            if (gid == 0) {
+                //...
+            } else {
+                if (prevIDs.containsKey(gid)) {
+                    prevID = prevIDs[gid]!!
+                } else {
+                    //...
+                }
+                prevIDs[gid] = idd
+            }
+            if (longnoteIDs.containsKey(endpos)) {
+                //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
+                prevID = longnoteIDs[endpos]!!
+                twMode = 1
+                longnoteIDs.remove(endpos)
+            } else if (mode == 2) {
+                //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
+                prevID = 0
+                longnoteIDs[endpos] = idd
+            }
+            //롱노트 중도 아니었고 자신도 롱노트가 아니다
+            if ((mode == 1) and (flick == 0)) {
+                prevID = 0
+            }
+            notes.add(
+                Note(
+                    idd,
+                    0,
+                    color,
+                    twMode,
+                    flick,
+                    row["sec"]!!.toFloat(),
+                    1.0f,
+                    row["startPos"]!!.toFloat(),
+                    endpos,
+                    arrayOf(prevID)
+                )
+            )
         }
     }
-
-    //tap hold slide damage hidden
-    private fun getTWMode(mode: Int): Int {
-        return when (mode) {
-            1 -> TWMode.Tap
-            2 -> TWMode.Hold
-            3 -> TWMode.Slide
-            else -> TWMode.Tap
-        }
-    }
-
-
 }
