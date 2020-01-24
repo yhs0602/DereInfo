@@ -101,6 +101,33 @@ class DereDatabaseHelper(context: Context) {
         onFinish()
     }
 
+    val indexToFumenFile : MutableMap<Int,File> =  HashMap()
+    fun indexFumens() {
+        var cursorFumens:Cursor? = null
+        for(file in fumenFolder.listFiles()) {
+            try {
+                val fumenDB =
+                    SQLiteDatabase.openDatabase(file!!.path, null, SQLiteDatabase.OPEN_READONLY)
+                cursorFumens = fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
+                while(cursorFumens.moveToNext()) {
+                    var name = cursorFumens.getString(0)
+                    if (!name[name.length - 5].isDigit())
+                        continue
+                    name = name.substring(13)
+                    name = name.substringBefore('.')
+                    val musicIndex = Integer.parseInt(name.substringBefore('.'))
+//                val difficulty = Integer.parseInt(name.substringAfter('_'))
+                    indexToFumenFile[musicIndex] = file
+                    break
+                }
+            } catch(e:SQLException) {
+                continue
+            } finally {
+                cursorFumens?.close()
+            }
+        }
+    }
+
     fun parseFumens() {
         for (file in fumenFolder.listFiles()) {
             var cursorFumens: Cursor? = null
