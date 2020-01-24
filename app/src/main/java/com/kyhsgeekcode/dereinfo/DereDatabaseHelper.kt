@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
+import android.util.SparseIntArray
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import java.io.File
 
@@ -11,9 +12,11 @@ import java.io.File
 class DereDatabaseHelper(context: Context) {
     val manifestFile: File
     val fumensDBFile: File
-    val fumenFolder : File
+    val fumenFolder: File
 
-    val musicIDToInfo :Map<Int,MusicInfo> = Map()
+    val musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
+    val fumenIDToMusicID: SparseIntArray = SparseIntArray()
+
     init {
         val datadir = context.getExternalFilesDir(null).parentFile.parentFile
         val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
@@ -33,7 +36,7 @@ class DereDatabaseHelper(context: Context) {
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    fun parseDatabases(publisher : (Int) -> Unit, onFinish:()->Unit) {
+    fun parseDatabases(publisher: (Int,Int) -> Unit, onFinish: () -> Unit) {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
@@ -41,11 +44,23 @@ class DereDatabaseHelper(context: Context) {
             SQLiteDatabase.openDatabase(manifestFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
         val cursorLiveData =
-            fumensDB.query("live_data", arrayOf("music_data_id"), null, null, null, null, null)
+            fumensDB.query(
+                "live_data",
+                arrayOf("id", "music_data_id"),
+                null,
+                null,
+                null,
+                null,
+                null
+            )
 
         val musicDataIdIndex = cursorLiveData.getColumnIndex("music_data_id")
-
+        val liveDataIdIndex = cursorLiveData.getColumnIndex("id")
+        val totalCount = cursorLiveData.count
+        var currentCount = 0
         while (cursorLiveData.moveToNext()) {
+            currentCount++
+            publisher(currentCount,totalCount)
             val musicDataId = cursorLiveData.getInt(musicDataIdIndex)
             val cursorMusicData = fumensDB.query(
                 "music_data",
@@ -68,13 +83,27 @@ class DereDatabaseHelper(context: Context) {
             val name = cursorMusicData.getString(musicNameIndex)
             val composerIndex = cursorMusicData.getColumnIndex("composer")
             val composer = cursorMusicData.getString(composerIndex)
-
+            val bpmIndex = cursorMusicData.getColumnIndex("bpm")
+            val bpm = cursorMusicData.getInt(bpmIndex)
+            val lyricistIndex = cursorMusicData.getColumnIndex("lyricist")
+            val lyricist = cursorMusicData.getString(lyricistIndex)
+            val soundOffsetIndex = cursorMusicData.getColumnIndex("sound_offset")
+            val soundOffset = cursorMusicData.getInt(soundOffsetIndex)
+            val soundLengthIndex = cursorMusicData.getColumnIndex("sound_length")
+            val soundLength = cursorMusicData.getInt(soundLengthIndex)
             cursorMusicData.close()
+            musicIDToInfo[musicDataId] =
+                MusicInfo(musicDataId, name, bpm, composer, lyricist, soundOffset, soundLength)
+            val liveDataId = cursorLiveData.getInt(liveDataIdIndex)
+            fumenIDToMusicID[liveDataId] = musicDataId
         }
         cursorLiveData.close()
+        onFinish()
+    }
 
+    fun parseFumens() {
         for (file in fumenFolder.listFiles()) {
-            var cursorFumens : Cursor?= null
+            var cursorFumens: Cursor? = null
             try {
                 val fumenDB =
                     SQLiteDatabase.openDatabase(file!!.path, null, SQLiteDatabase.OPEN_READONLY)
