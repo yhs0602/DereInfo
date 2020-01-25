@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.model
 
 object FlickMode {
     const val None = 0

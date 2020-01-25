@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.model
 
 //None left right up down
 fun getTW5Flick(status: Int): Int {

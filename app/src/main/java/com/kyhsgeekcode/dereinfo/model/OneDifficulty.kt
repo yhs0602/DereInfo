@@ -1,4 +1,6 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.model
+
+import com.kyhsgeekcode.dereinfo.model.Note
 
 class OneDifficulty (val difficulty:Int, val notes: List<Note>){
     var noteCounts = arrayOf(0,0,0,0)

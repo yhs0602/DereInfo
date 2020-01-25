@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.model
 
 import android.content.Context
 import android.database.Cursor
@@ -165,7 +165,8 @@ class DereDatabaseHelper(context: Context) {
             val difficulty = Integer.parseInt(name.substringAfter('_'))
             val fumenStr = cursorFumens.getBlob(1).toString()
             val notes = parseDereFumen(fumenStr, info)
-            difficulties[difficulty] = OneDifficulty(difficulty, notes)
+            difficulties[difficulty] =
+                OneDifficulty(difficulty, notes)
         }
         cursorFumens.close()
         return OneMusic(difficulties, info)
@@ -190,7 +191,8 @@ class DereDatabaseHelper(context: Context) {
             idd++
             var twMode = getTWMode(mode)
             val endpos = row["finishPos"]!!.toFloat()
-            val flick = getTW5Flick(row["status"]!!.toInt())
+            val flick =
+                getTW5Flick(row["status"]!!.toInt())
             if (gid == 0) {
                 //...
             } else {
@@ -279,7 +281,8 @@ class DereDatabaseHelper(context: Context) {
             idd++
             var twMode = getTWMode(mode)
             val endpos = row["finishPos"]!!.toFloat()
-            val flick = getTW5Flick(row["status"]!!.toInt())
+            val flick =
+                getTW5Flick(row["status"]!!.toInt())
             if (gid == 0) {
                 //...
             } else {

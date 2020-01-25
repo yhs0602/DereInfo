@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.model
 
 import kotlin.math.abs
 
