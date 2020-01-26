@@ -11,9 +11,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 
 import com.kyhsgeekcode.dereinfo.dummy.DummyContent
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list_content.view.*
 import kotlinx.android.synthetic.main.song_list.*
+import kotlinx.coroutines.*
 
 /**
  * An activity representing a list of Pings. This activity
@@ -24,6 +26,7 @@ import kotlinx.android.synthetic.main.song_list.*
  * item details side-by-side using two vertical panes.
  */
 class SongListActivity : AppCompatActivity() {
+    private lateinit var dereDatabaseHelper: DereDatabaseHelper
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -33,13 +36,17 @@ class SongListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        CoroutineScope(Dispatchers.IO).launch {
+            dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
+        }
         setContentView(R.layout.activity_song_list)
+
 
         setSupportActionBar(toolbar)
         toolbar.title = title
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
 
@@ -50,20 +57,24 @@ class SongListActivity : AppCompatActivity() {
             // activity should be in two-pane mode.
             twoPane = true
         }
-
         setupRecyclerView(song_list)
+        CoroutineScope(Dispatchers.IO).launch {
+            dereDatabaseHelper.parseDatabases({ current, total ->
+
+            }) {}
+        }
     }
 
     private fun setupRecyclerView(recyclerView: RecyclerView) {
-        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, twoPane)
+        recyclerView.adapter = SongRecyclerViewAdapter(this, DummyContent.ITEMS, twoPane)
     }
 
-    class SimpleItemRecyclerViewAdapter(
+    class SongRecyclerViewAdapter(
         private val parentActivity: SongListActivity,
         private val values: List<DummyContent.DummyItem>,
         private val twoPane: Boolean
     ) :
-        RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
+        RecyclerView.Adapter<SongRecyclerViewAdapter.ViewHolder>() {
 
         private val onClickListener: View.OnClickListener
 

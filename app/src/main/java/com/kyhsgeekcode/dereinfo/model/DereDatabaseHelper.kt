@@ -4,12 +4,14 @@ import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
+import android.util.Log
 import android.util.SparseIntArray
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import java.io.File
 
 //This allows access to dere database
 class DereDatabaseHelper(context: Context) {
+    val TAG = "DereDBHelper"
     val manifestFile: File
     val fumensDBFile: File
     val fumenFolder: File
@@ -25,18 +27,22 @@ class DereDatabaseHelper(context: Context) {
         var maxlen = 0L
         var fumensDBFileTmp: File? = null
         for (file in fumenFolder.listFiles()) {
-            val len = file.length();
+            Log.d(TAG,file.name)
+            val len = file.length()
             if (len > maxlen) {
-                maxlen = len
-                fumensDBFileTmp = file
-                if (maxlen > 10000000)
+                if (len > 10000000) {
+                    maxlen = len
+                    fumensDBFileTmp = file
                     break
+                }
             }
+            Log.d(TAG, """$len""")
         }
+        Log.d(TAG, "maxlen=${maxlen/1000}")
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    fun parseDatabases(publisher: (Int, Int) -> Unit, onFinish: () -> Unit) {
+    suspend fun parseDatabases(publisher: (Int, Int) -> Unit, onFinish: () -> Unit) {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
@@ -113,7 +119,7 @@ class DereDatabaseHelper(context: Context) {
     }
 
     val indexToFumenFile: MutableMap<Int, File> = HashMap()
-    fun indexFumens() {
+    suspend fun indexFumens() {
         var cursorFumens: Cursor? = null
         for (file in fumenFolder.listFiles()) {
             try {
