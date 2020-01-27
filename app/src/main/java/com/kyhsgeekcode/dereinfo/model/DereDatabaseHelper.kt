@@ -27,7 +27,7 @@ class DereDatabaseHelper(context: Context) {
         var maxlen = 0L
         var fumensDBFileTmp: File? = null
         for (file in fumenFolder.listFiles()) {
-            Log.d(TAG,file.name)
+            //Log.d(TAG, file.name)
             val len = file.length()
             if (len > maxlen) {
                 if (len > 10000000) {
@@ -36,13 +36,13 @@ class DereDatabaseHelper(context: Context) {
                     break
                 }
             }
-            Log.d(TAG, """$len""")
+            //Log.d(TAG, """$len""")
         }
-        Log.d(TAG, "maxlen=${maxlen/1000}")
+        Log.d(TAG, "maxlen=${maxlen / 1000}")
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    suspend fun parseDatabases(publisher: (Int, Int) -> Unit, onFinish: () -> Unit) {
+    suspend fun parseDatabases(publisher: (Int, Int, MusicInfo) -> Unit, onFinish: () -> Unit) {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
@@ -52,7 +52,7 @@ class DereDatabaseHelper(context: Context) {
         val cursorLiveData =
             fumensDB.query(
                 "live_data",
-                arrayOf("id", "music_data_id"),
+                arrayOf("id", "music_data_id","circle_type"),
                 null,
                 null,
                 null,
@@ -66,8 +66,6 @@ class DereDatabaseHelper(context: Context) {
         val totalCount = cursorLiveData.count
         var currentCount = 0
         while (cursorLiveData.moveToNext()) {
-            currentCount++
-            publisher(currentCount, totalCount)
             val musicDataId = cursorLiveData.getInt(musicDataIdIndex)
             val cursorMusicData = fumensDB.query(
                 "music_data",
@@ -86,33 +84,43 @@ class DereDatabaseHelper(context: Context) {
                 null,
                 null
             )
+            cursorMusicData.moveToFirst()
+//            Log.d(TAG, cursorMusicData.getColumnName(0))
+//            Log.d(TAG, cursorMusicData.getColumnName(1))
+//            Log.d(TAG, cursorMusicData.getColumnName(2))
+//            Log.d(TAG, cursorMusicData.getColumnName(3))
+//            Log.d(TAG, cursorMusicData.getColumnName(4))
+//            Log.d(TAG, cursorMusicData.getColumnName(5))
+
             val musicNameIndex = cursorMusicData.getColumnIndex("name")
-            val name = cursorMusicData.getString(musicNameIndex)
+            val name = cursorMusicData.getString(1)
             val composerIndex = cursorMusicData.getColumnIndex("composer")
-            val composer = cursorMusicData.getString(composerIndex)
+            val composer = cursorMusicData.getString(3)
             val bpmIndex = cursorMusicData.getColumnIndex("bpm")
-            val bpm = cursorMusicData.getInt(bpmIndex)
+            val bpm = cursorMusicData.getInt(2)
             val lyricistIndex = cursorMusicData.getColumnIndex("lyricist")
-            val lyricist = cursorMusicData.getString(lyricistIndex)
+            val lyricist = cursorMusicData.getString(4)
             val soundOffsetIndex = cursorMusicData.getColumnIndex("sound_offset")
-            val soundOffset = cursorMusicData.getInt(soundOffsetIndex)
+            val soundOffset = cursorMusicData.getInt(5)
             val soundLengthIndex = cursorMusicData.getColumnIndex("sound_length")
-            val soundLength = cursorMusicData.getInt(soundLengthIndex)
+            val soundLength = cursorMusicData.getInt(6)
             cursorMusicData.close()
             val liveDataId = cursorLiveData.getInt(liveDataIdIndex)
             val circleType = cursorLiveData.getInt(circleTypeIndex)
             fumenIDToMusicID[liveDataId] = musicDataId
-            musicIDToInfo[musicDataId] =
-                MusicInfo(
-                    musicDataId,
-                    name,
-                    bpm,
-                    composer,
-                    lyricist,
-                    soundOffset,
-                    soundLength,
-                    circleType
-                )
+            val musicInfo = MusicInfo(
+                musicDataId,
+                name,
+                bpm,
+                composer,
+                lyricist,
+                soundOffset,
+                soundLength,
+                circleType
+            )
+            musicIDToInfo[musicDataId] = musicInfo
+            currentCount++
+            publisher(currentCount, totalCount, musicInfo)
         }
         cursorLiveData.close()
         onFinish()
