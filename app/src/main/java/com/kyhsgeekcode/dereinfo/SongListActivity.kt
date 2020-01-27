@@ -10,11 +10,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import com.kyhsgeekcode.dereinfo.dummy.DummyContent
+import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
+import com.kyhsgeekcode.dereinfo.model.CircleType.makeRGB
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
-import com.kyhsgeekcode.dereinfo.model.getColor
-import com.kyhsgeekcode.dereinfo.model.makeRGB
+
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import kotlinx.android.synthetic.main.activity_song_list.*
@@ -74,6 +74,7 @@ class SongListActivity : AppCompatActivity() {
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
         CoroutineScope(Dispatchers.IO).launch {
             dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
+            DereDatabaseHelper.theInstance = dereDatabaseHelper
             dereDatabaseHelper.parseDatabases({ current, total, musicInfo ->
                 CoroutineScope(Dispatchers.Main).launch {
                     adapter.addItem(musicInfo)
@@ -114,7 +115,7 @@ class SongListActivity : AppCompatActivity() {
                 if (twoPane) {
                     val fragment = SongDetailFragment().apply {
                         arguments = Bundle().apply {
-                            putString(SongDetailFragment.ARG_ITEM_ID, item.name)
+                            putInt(SongDetailFragment.ARG_ITEM_ID, item.id)
                         }
                     }
                     parentActivity.supportFragmentManager
@@ -123,7 +124,7 @@ class SongListActivity : AppCompatActivity() {
                         .commit()
                 } else {
                     val intent = Intent(v.context, SongDetailActivity::class.java).apply {
-                        putExtra(SongDetailFragment.ARG_ITEM_ID, item.name)
+                        putExtra(SongDetailFragment.ARG_ITEM_ID, item.id)
                     }
                     v.context.startActivity(intent)
                 }
@@ -138,7 +139,7 @@ class SongListActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = values[position]
-            holder.idView.text = item.name.replace("\\n"," ")
+            holder.idView.text = item.name.replace("\\n", " ")
             holder.contentView.text = item.composer
             holder.backgroundLayout.setBackgroundColor(makeRGB(getColor(item.circleType)))
             with(holder.itemView) {
@@ -158,7 +159,7 @@ class SongListActivity : AppCompatActivity() {
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             val idView: TextView = view.id_text
             val contentView: TextView = view.content
-            val backgroundLayout : LinearLayout = view.listitem_background
+            val backgroundLayout: LinearLayout = view.listitem_background
         }
     }
 }

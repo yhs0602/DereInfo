@@ -42,9 +42,9 @@ class SongDetailActivity : AppCompatActivity() {
             // using a fragment transaction.
             val fragment = SongDetailFragment().apply {
                 arguments = Bundle().apply {
-                    putString(
+                    putInt(
                         SongDetailFragment.ARG_ITEM_ID,
-                        intent.getStringExtra(SongDetailFragment.ARG_ITEM_ID)
+                        intent.getIntExtra(SongDetailFragment.ARG_ITEM_ID,-1)
                     )
                 }
             }

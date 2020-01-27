@@ -7,10 +7,14 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import android.util.SparseIntArray
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
 import java.io.File
 
 //This allows access to dere database
 class DereDatabaseHelper(context: Context) {
+    companion object {
+        lateinit var theInstance : DereDatabaseHelper
+    }
     val TAG = "DereDBHelper"
     val manifestFile: File
     val fumensDBFile: File
