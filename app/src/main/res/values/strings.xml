@@ -4,4 +4,5 @@
     <string name="tab_text_2">Tab 2</string>
     <string name="title_song_list">Songs</string>
     <string name="title_song_detail">Song Detail</string>
+    <string name="search_hint">Search hint</string>
 </resources>

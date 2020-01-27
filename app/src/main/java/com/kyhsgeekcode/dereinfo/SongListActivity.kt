@@ -2,11 +2,9 @@ package com.kyhsgeekcode.dereinfo
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.util.Log
+import android.view.*
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -14,7 +12,6 @@ import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
 import com.kyhsgeekcode.dereinfo.model.CircleType.makeRGB
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
-
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import kotlinx.android.synthetic.main.activity_song_list.*
@@ -23,6 +20,7 @@ import kotlinx.android.synthetic.main.song_list_content.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 /**
  * An activity representing a list of Pings. This activity
@@ -33,6 +31,7 @@ import kotlinx.coroutines.launch
  * item details side-by-side using two vertical panes.
  */
 class SongListActivity : AppCompatActivity() {
+    val TAG = "SongListActivity"
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
             mainListLayout,
@@ -44,6 +43,7 @@ class SongListActivity : AppCompatActivity() {
             .setIsIndeterminate(false)
             .setAllowUserInput(true)
     private lateinit var dereDatabaseHelper: DereDatabaseHelper
+    private lateinit var adapter: SongRecyclerViewAdapter
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -70,7 +70,7 @@ class SongListActivity : AppCompatActivity() {
             // activity should be in two-pane mode.
             twoPane = true
         }
-        val adapter = setupRecyclerView(song_list)
+        adapter = setupRecyclerView(song_list)
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
         CoroutineScope(Dispatchers.IO).launch {
             dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
@@ -94,6 +94,35 @@ class SongListActivity : AppCompatActivity() {
         snackProgressBarManager.disable()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean { // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.main_menu, menu)
+        val search_item = menu.findItem(R.id.app_bar_search)
+        val searchView: SearchView = search_item.actionView as SearchView
+        searchView.isFocusable = false
+        searchView.queryHint = "Search"
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(s: String): Boolean {
+                adapter.filter?.filter(s)
+                return false
+            }
+
+            override fun onQueryTextChange(s: String?): Boolean {
+                adapter.filter?.filter(s)
+                return false
+            }
+        })
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle action bar item clicks here. The action bar will
+// automatically handle clicks on the Home/Up button, so long
+// as you specify a parent activity in AndroidManifest.xml.
+        val id: Int = item.getItemId()
+        return super.onOptionsItemSelected(item)
+    }
+
+
     private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
         val adapter = SongRecyclerViewAdapter(this, twoPane)
         recyclerView.adapter = adapter
@@ -101,13 +130,16 @@ class SongListActivity : AppCompatActivity() {
     }
 
     class SongRecyclerViewAdapter(
-        private val parentActivity: SongListActivity,
+        private
+        val parentActivity: SongListActivity,
         private val twoPane: Boolean
     ) :
-        RecyclerView.Adapter<SongRecyclerViewAdapter.ViewHolder>() {
+        RecyclerView.Adapter<SongRecyclerViewAdapter.ViewHolder>(), Filterable {
 
+        private var listFilter: ListFilter? = null
         private val onClickListener: View.OnClickListener
         private val values: MutableList<MusicInfo> = ArrayList()
+        private var filteredItemList: MutableList<MusicInfo> = values
 
         init {
             onClickListener = View.OnClickListener { v ->
@@ -138,8 +170,8 @@ class SongListActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = values[position]
-            holder.idView.text = item.name.replace("\\n", " ")
+            val item = filteredItemList[position]
+            holder.idView.text = """${item.name}(${item.id})""".replace("\\n", " ")
             holder.contentView.text = item.composer
             holder.backgroundLayout.setBackgroundColor(makeRGB(getColor(item.circleType)))
             with(holder.itemView) {
@@ -149,7 +181,7 @@ class SongListActivity : AppCompatActivity() {
         }
 
 
-        override fun getItemCount() = values.size
+        override fun getItemCount() = filteredItemList.size
 
         fun addItem(item: MusicInfo) {
             values.add(item)
@@ -160,6 +192,52 @@ class SongListActivity : AppCompatActivity() {
             val idView: TextView = view.id_text
             val contentView: TextView = view.content
             val backgroundLayout: LinearLayout = view.listitem_background
+        }
+
+        override fun getFilter(): Filter? {
+            if (listFilter == null) {
+                listFilter = ListFilter()
+            }
+            return listFilter
+        }
+
+        inner class ListFilter : Filter() {
+            val TAG="ListFilter"
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val TAG = "ListFilter"
+                Log.d(TAG, "Filter called$constraint")
+                val results = FilterResults()
+                if (constraint == null || constraint.isEmpty()) {
+                    results.values = values
+                    results.count = values.size
+                } else {
+                    val itemList: ArrayList<MusicInfo> = ArrayList()
+                    for (item in values) {
+                        val name = """${item.name}(${item.id})"""
+                        if (name.toUpperCase().contains(constraint.toString().toUpperCase())) {
+                            itemList.add(item)
+                        }
+                    }
+                    results.values = itemList
+                    results.count = itemList.size
+                }
+                return results
+            }
+
+            override fun publishResults(
+                constraint: CharSequence,
+                results: FilterResults
+            ) { // update listview by filtered data list.
+                filteredItemList = results.values as ArrayList<MusicInfo>
+                Log.d(TAG, """filtered:${filteredItemList.size}, original:${values.size}""")
+
+                // notify
+                if (results.count > 0) {
+                    notifyDataSetChanged()
+                } else {
+                    notifyDataSetChanged()
+                }
+            }
         }
     }
 }

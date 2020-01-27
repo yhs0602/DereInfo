@@ -12,10 +12,12 @@ class MusicInfo(
 ) {
     override fun toString(): String {
         val lineSeparator = System.lineSeparator()
-        return StringBuilder("name:").append(name).append(lineSeparator)
+        return StringBuilder("id:").append(id).append(lineSeparator)
+            .append("name:").append(name).append(lineSeparator)
             .append("bpm:").append(bpm).append(lineSeparator)
             .append("composer:").append(composer).append(lineSeparator)
             .append("lyricist:").append(lyricist).append(lineSeparator)
+            .append("offset:").append(soundOffset).append(lineSeparator)
             .append("duration:").append(soundLength).append(lineSeparator)
             .append("type:").append(CircleType.getDesc(circleType)).toString()
     }
