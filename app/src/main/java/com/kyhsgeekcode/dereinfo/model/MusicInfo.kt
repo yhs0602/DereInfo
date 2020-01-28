@@ -1,5 +1,7 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import java.io.Serializable
+
 class MusicInfo(
     val id: Int,
     val name: String,
@@ -9,7 +11,7 @@ class MusicInfo(
     val soundOffset: Int,
     val soundLength: Int,
     val circleType: Int = 4
-) {
+) : Serializable {
     override fun toString(): String {
         val lineSeparator = System.lineSeparator()
         return StringBuilder("id:").append(id).append(lineSeparator)
@@ -21,4 +23,5 @@ class MusicInfo(
             .append("duration:").append(soundLength).append(lineSeparator)
             .append("type:").append(CircleType.getDesc(circleType)).toString()
     }
+    fun getColor() : Int = CircleType.makeRGB(CircleType.getColor(circleType))
 }

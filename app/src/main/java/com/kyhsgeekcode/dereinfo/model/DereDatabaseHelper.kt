@@ -7,20 +7,24 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import android.util.SparseIntArray
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.kyhsgeekcode.dereinfo.loadObject
 import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
+import com.kyhsgeekcode.dereinfo.saveObject
 import java.io.File
+
 
 //This allows access to dere database
 class DereDatabaseHelper(context: Context) {
     companion object {
-        lateinit var theInstance : DereDatabaseHelper
+        lateinit var theInstance: DereDatabaseHelper
     }
+
     val TAG = "DereDBHelper"
     val manifestFile: File
-    val fumensDBFile: File
+    var fumensDBFile: File = File("")
     val fumenFolder: File
 
-    val musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
+    var musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
     val fumenIDToMusicID: SparseIntArray = SparseIntArray()
 
     init {
@@ -28,6 +32,14 @@ class DereDatabaseHelper(context: Context) {
         val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
         manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
         fumenFolder = File(dereFilesDir, "a/")
+        try {
+            loadFumenDBFileFromCache()
+        } catch (e:Exception){
+            searchMainDB()
+        }
+    }
+
+    private fun searchMainDB() {
         var maxlen = 0L
         var fumensDBFileTmp: File? = null
         for (file in fumenFolder.listFiles()) {
@@ -46,7 +58,7 @@ class DereDatabaseHelper(context: Context) {
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    suspend fun parseDatabases(publisher: (Int, Int, MusicInfo) -> Unit, onFinish: () -> Unit) {
+    suspend fun parseDatabases(publisher: (Int, Int, MusicInfo) -> Unit) {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
@@ -56,7 +68,7 @@ class DereDatabaseHelper(context: Context) {
         val cursorLiveData =
             fumensDB.query(
                 "live_data",
-                arrayOf("id", "music_data_id","circle_type"),
+                arrayOf("id", "music_data_id", "circle_type"),
                 null,
                 null,
                 null,
@@ -127,14 +139,22 @@ class DereDatabaseHelper(context: Context) {
             publisher(currentCount, totalCount, musicInfo)
         }
         cursorLiveData.close()
-        onFinish()
+        fumensDB.close()
     }
 
-    val indexToFumenFile: MutableMap<Int, File> = HashMap()
-    suspend fun indexFumens() {
+    var indexToFumenFile: MutableMap<Int, File> = HashMap()
+    suspend fun indexFumens(publisher: (Int, Int, MusicInfo?) -> Unit) {
         var cursorFumens: Cursor? = null
-        for (file in fumenFolder.listFiles()) {
+        val fileList = fumenFolder.listFiles()
+        for (fileWithIndex in fileList.withIndex()) {
+            val file = fileWithIndex.value
+            publisher(fileList.size, fileWithIndex.index, null)
+            if (!checkIfDatabase(file)) {
+                //Log.d(TAG, "Skip file")
+                continue
+            }
             try {
+                //Log.d(TAG, "Oh file")
                 val fumenDB =
                     SQLiteDatabase.openDatabase(file!!.path, null, SQLiteDatabase.OPEN_READONLY)
                 cursorFumens = fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
@@ -144,17 +164,113 @@ class DereDatabaseHelper(context: Context) {
                         continue
                     name = name.substring(13)
                     name = name.substringBefore('.')
-                    val musicIndex = Integer.parseInt(name.substringBefore('.'))
+                    val musicIndex = Integer.parseInt(name.split('/')[0])
 //                val difficulty = Integer.parseInt(name.substringAfter('_'))
                     indexToFumenFile[musicIndex] = file
                     break
                 }
+                fumenDB.close()
             } catch (e: SQLException) {
                 continue
             } finally {
                 cursorFumens?.close()
             }
         }
+    }
+
+    val sqliteHeader = byteArrayOf(
+        'S'.toByte(),
+        'Q'.toByte(),
+        'L'.toByte(),
+        'i'.toByte(),
+        't'.toByte(),
+        'e'.toByte(),
+        ' '.toByte(),
+        'f'.toByte(),
+        'o'.toByte(),
+        'r'.toByte(),
+        'm'.toByte(),
+        'a'.toByte(),
+        't'.toByte(),
+        ' '.toByte(),
+        '3'.toByte(),
+        0
+    )
+
+    private fun checkIfDatabase(file: File): Boolean {
+        val byteArray = ByteArray(16)
+        file.inputStream().read(byteArray, 0, 16)
+        return byteArray contentEquals sqliteHeader
+    }
+
+    val mainDBFileCachename = "maindb.dat"
+    val mainDBFileCacheFile = File(context.filesDir, mainDBFileCachename)
+    val musicInfoFilename = "musicIDToInfo.dat"
+    val indexToFumenFileFilename = "indexToFumenFile.dat"
+    val musicInfoFile = File(context.filesDir, musicInfoFilename)
+    val indexToFumenFileFile = File(context.filesDir, indexToFumenFileFilename)
+
+    private fun saveToCache(context: Context) {
+//        searchMainDB()
+//        parseDatabases()
+        saveObject(mainDBFileCacheFile, fumensDBFile)
+        saveObject(musicInfoFile, musicIDToInfo)
+        saveObject(indexToFumenFileFile, indexToFumenFile)
+    }
+
+    private fun loadFromCache(context: Context): Boolean {
+        try {
+            loadFromCache_(context)
+            if (musicIDToInfo.isEmpty())
+                return false
+            if (indexToFumenFile.isEmpty())
+                return false
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    private fun loadFromCache_(context: Context) {
+        loadFumenDBFileFromCache()
+        musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicInfo>
+        indexToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
+    }
+
+    private fun loadFumenDBFileFromCache() {
+        fumensDBFile = loadObject(mainDBFileCacheFile) as File
+    }
+
+    suspend fun refreshCache(
+        context: Context,
+        publisher: (Int, Int, MusicInfo?) -> Unit,
+        onFinish: () -> Unit
+    ): Boolean = load(context, true, publisher, onFinish)
+
+    suspend fun load(
+        context: Context,
+        refresh: Boolean = false,
+        publisher: (Int, Int, MusicInfo?) -> Unit,
+        onFinish: () -> Unit
+    ): Boolean {
+        try {
+            if (loadFromCache(context) && !refresh) {
+                for (musicInfo in musicIDToInfo.values.withIndex()) {
+                    publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value)
+                }
+            } else {
+                parseDatabases(publisher)
+                indexFumens(publisher)
+                saveToCache(context)
+            }
+            Log.d(TAG, "size of databases:${musicIDToInfo.size}")
+            Log.d(TAG, "Number of fumens:${indexToFumenFile.size}")
+            onFinish()
+        } catch (e: java.lang.Exception) {
+            Log.e(TAG, "Error load", e)
+            return false
+        }
+        return true
     }
 
     //5개를 파싱해라.

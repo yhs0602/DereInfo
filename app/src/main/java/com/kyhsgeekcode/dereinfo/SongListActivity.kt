@@ -1,6 +1,8 @@
 package com.kyhsgeekcode.dereinfo
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -41,7 +43,7 @@ class SongListActivity : AppCompatActivity() {
     val circularType =
         SnackProgressBar(SnackProgressBar.TYPE_CIRCULAR, "Loading...")
             .setIsIndeterminate(false)
-            .setAllowUserInput(true)
+            .setAllowUserInput(false)
     private lateinit var dereDatabaseHelper: DereDatabaseHelper
     private lateinit var adapter: SongRecyclerViewAdapter
     /**
@@ -54,13 +56,37 @@ class SongListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_song_list)
 
-
         setSupportActionBar(toolbar)
         toolbar.title = title
 
         fab.setOnClickListener { view ->
             Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
+        }
+        val publisher: (Int, Int, MusicInfo?) -> Unit = { total, progress, info ->
+            CoroutineScope(Dispatchers.Main).launch {
+                circularType.setProgressMax(total)
+                if (info != null)
+                    adapter.addItem(info)
+                snackProgressBarManager.setProgress(progress)
+            }
+        }
+        val onFinish: () -> Unit = {
+            snackProgressBarManager.dismiss()
+        }
+        pullToRefresh.setOnRefreshListener {
+            snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
+            CoroutineScope(Dispatchers.IO).launch {
+                if (!dereDatabaseHelper.refreshCache(
+                        this@SongListActivity,
+                        publisher,
+                        onFinish
+                    )
+                ) {
+                    onFailedLoadDatabase()
+                }
+                pullToRefresh.isRefreshing = false
+            }
         }
 
         if (song_detail_container != null) {
@@ -72,20 +98,46 @@ class SongListActivity : AppCompatActivity() {
         }
         adapter = setupRecyclerView(song_list)
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
+        dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
+        DereDatabaseHelper.theInstance = dereDatabaseHelper
         CoroutineScope(Dispatchers.IO).launch {
-            dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
-            DereDatabaseHelper.theInstance = dereDatabaseHelper
-            dereDatabaseHelper.parseDatabases({ current, total, musicInfo ->
-                CoroutineScope(Dispatchers.Main).launch {
-                    adapter.addItem(musicInfo)
-                }
-                circularType.setProgressMax(total)
-                CoroutineScope(Dispatchers.Main).launch {
-                    snackProgressBarManager.setProgress(current)
-                }
-            }) {
-                snackProgressBarManager.dismiss()
+            if (!dereDatabaseHelper.load(this@SongListActivity, false, publisher, onFinish)) {
+                onFailedLoadDatabase()
             }
+        }
+    }
+
+    private fun onFailedLoadDatabase() {
+        runOnUiThread {
+            Snackbar.make(
+                mainListLayout,
+                "Please install deresute first and download resources.",
+                Snackbar.LENGTH_LONG
+            )
+                .setAction("Play store") {
+                    guideInstallDeresute()
+                }
+                .show()
+        }
+    }
+
+
+    private fun guideInstallDeresute() {
+        val appPackageName = "jp.co.bandainamcoent.BNEI0242"
+        try {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=$appPackageName")
+                )
+            )
+        } catch (anfe: ActivityNotFoundException) {
+            startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
+                )
+            )
         }
     }
 
@@ -202,7 +254,7 @@ class SongListActivity : AppCompatActivity() {
         }
 
         inner class ListFilter : Filter() {
-            val TAG="ListFilter"
+            val TAG = "ListFilter"
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val TAG = "ListFilter"
                 Log.d(TAG, "Filter called$constraint")

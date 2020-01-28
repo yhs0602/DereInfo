@@ -33,6 +33,7 @@ class SongDetailFragment : Fragment() {
                 // to load content from a content provider.
                 item = DereDatabaseHelper.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
                 activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
+                activity?.toolbar_layout?.setBackgroundColor(item?.getColor()?: 0xFFDDDDDD.toInt())
             }
         }
     }
