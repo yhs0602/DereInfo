@@ -1,13 +1,11 @@
 package com.kyhsgeekcode.dereinfo.model
 
-import com.kyhsgeekcode.dereinfo.model.Note
-
-class OneDifficulty (val difficulty:Int, val notes: List<Note>){
-    var noteCounts = arrayOf(0,0,0,0)
+class OneDifficulty(val difficulty: TW5Difficulty, val notes: List<Note>?) {
+    var noteCounts = arrayOf(0, 0, 0, 0)
     fun countNotes(): Array<Int> {
         //Total Normal long flick slide
         val res = arrayOf(0, 0, 0, 0)
-        for (note in notes) {
+        for (note in notes!!) {
             var isNormal = true
             if (note.isFlick()) {
                 isNormal = false

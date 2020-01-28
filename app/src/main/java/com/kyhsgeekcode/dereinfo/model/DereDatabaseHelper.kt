@@ -25,7 +25,8 @@ class DereDatabaseHelper(context: Context) {
     val fumenFolder: File
 
     var musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
-    val fumenIDToMusicID: SparseIntArray = SparseIntArray()
+    val musicNumberToMusicID: SparseIntArray = SparseIntArray()
+    val musicIDTomusicNumber = SparseIntArray()
 
     init {
         val datadir = context.getExternalFilesDir(null).parentFile.parentFile
@@ -34,7 +35,7 @@ class DereDatabaseHelper(context: Context) {
         fumenFolder = File(dereFilesDir, "a/")
         try {
             loadFumenDBFileFromCache()
-        } catch (e:Exception){
+        } catch (e: Exception) {
             searchMainDB()
         }
     }
@@ -123,7 +124,8 @@ class DereDatabaseHelper(context: Context) {
             cursorMusicData.close()
             val liveDataId = cursorLiveData.getInt(liveDataIdIndex)
             val circleType = cursorLiveData.getInt(circleTypeIndex)
-            fumenIDToMusicID[liveDataId] = musicDataId
+            musicNumberToMusicID[liveDataId] = musicDataId
+            musicIDTomusicNumber[musicDataId] = liveDataId
             val musicInfo = MusicInfo(
                 musicDataId,
                 name,
@@ -142,7 +144,7 @@ class DereDatabaseHelper(context: Context) {
         fumensDB.close()
     }
 
-    var indexToFumenFile: MutableMap<Int, File> = HashMap()
+    var musicNumberToFumenFile: MutableMap<Int, File> = HashMap()
     suspend fun indexFumens(publisher: (Int, Int, MusicInfo?) -> Unit) {
         var cursorFumens: Cursor? = null
         val fileList = fumenFolder.listFiles()
@@ -165,8 +167,9 @@ class DereDatabaseHelper(context: Context) {
                     name = name.substring(13)
                     name = name.substringBefore('.')
                     val musicIndex = Integer.parseInt(name.split('/')[0])
+                    //Log.d(TAG, "musicIndex ${musicIndex}")
 //                val difficulty = Integer.parseInt(name.substringAfter('_'))
-                    indexToFumenFile[musicIndex] = file
+                    musicNumberToFumenFile[musicIndex] = file
                     break
                 }
                 fumenDB.close()
@@ -215,7 +218,7 @@ class DereDatabaseHelper(context: Context) {
 //        parseDatabases()
         saveObject(mainDBFileCacheFile, fumensDBFile)
         saveObject(musicInfoFile, musicIDToInfo)
-        saveObject(indexToFumenFileFile, indexToFumenFile)
+        saveObject(indexToFumenFileFile, musicNumberToFumenFile)
     }
 
     private fun loadFromCache(context: Context): Boolean {
@@ -223,7 +226,7 @@ class DereDatabaseHelper(context: Context) {
             loadFromCache_(context)
             if (musicIDToInfo.isEmpty())
                 return false
-            if (indexToFumenFile.isEmpty())
+            if (musicNumberToFumenFile.isEmpty())
                 return false
             return true
         } catch (e: Exception) {
@@ -234,7 +237,7 @@ class DereDatabaseHelper(context: Context) {
     private fun loadFromCache_(context: Context) {
         loadFumenDBFileFromCache()
         musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicInfo>
-        indexToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
+        musicNumberToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
     }
 
     private fun loadFumenDBFileFromCache() {
@@ -264,7 +267,7 @@ class DereDatabaseHelper(context: Context) {
                 saveToCache(context)
             }
             Log.d(TAG, "size of databases:${musicIDToInfo.size}")
-            Log.d(TAG, "Number of fumens:${indexToFumenFile.size}")
+            Log.d(TAG, "Number of fumens:${musicNumberToFumenFile.size}")
             onFinish()
         } catch (e: java.lang.Exception) {
             Log.e(TAG, "Error load", e)
@@ -273,15 +276,19 @@ class DereDatabaseHelper(context: Context) {
         return true
     }
 
+
     //5개를 파싱해라.
-    fun parseFumen(musicIndex: Int): OneMusic {
-        val fumenFile = indexToFumenFile[musicIndex]
+
+    fun peekFumens(musicNumber: Int): OneMusic {
+//        Log.d(TAG, "musicIndex : ${musicNumber},indexToFumenFile size:${musicNumberToFumenFile.size}")
+        val fumenFile = musicNumberToFumenFile[musicNumber]
+        Log.d(TAG, "fumenFile:${fumenFile?.name}")
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
-            fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
-        val difficulties: MutableMap<Int, OneDifficulty> = HashMap()
-        val info = musicIDToInfo[musicIndex] ?: MusicInfo(
+            fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
+        val difficulties: MutableMap<TW5Difficulty, OneDifficulty> = HashMap()
+        val info = musicIDToInfo[musicNumber] ?: MusicInfo(
             0,
             "Error occurred",
             192,
@@ -294,13 +301,40 @@ class DereDatabaseHelper(context: Context) {
             var name = cursorFumens.getString(0)
             if (!name[name.length - 5].isDigit())
                 continue
+            Log.d(TAG,"name:${name}")
+            name = name.substring(13)
+            name = name.substringBefore('.')
+//            Log.d(TAG,"name:${name}")
+            val difficulty = Integer.parseInt(name.substringAfter('_'))
+            Log.d(TAG, "difficulty:${difficulty}")
+            val twDifficulty = TW5Difficulty.valueOf(difficulty)
+            difficulties[twDifficulty] = OneDifficulty(twDifficulty, null)
+        }
+        cursorFumens.close()
+        return OneMusic(difficulties, info)
+    }
+
+    fun parseFumen(music: OneMusic, wantedDifficulty: TW5Difficulty): OneMusic {
+        val fumenFile = musicNumberToFumenFile[music.musicInfo.id]
+        val fumenDB =
+            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+        val cursorFumens =
+            fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
+        val difficulties: MutableMap<TW5Difficulty, OneDifficulty> = HashMap()
+        val info = music.musicInfo
+        while (cursorFumens.moveToNext()) {
+            var name = cursorFumens.getString(0)
+            if (!name[name.length - 5].isDigit())
+                continue
             name = name.substring(13)
             name = name.substringBefore('.')
             val difficulty = Integer.parseInt(name.substringAfter('_'))
+            val twDifficulty = TW5Difficulty.valueOf(difficulty)
+            if(wantedDifficulty!=twDifficulty)
+                continue
             val fumenStr = cursorFumens.getBlob(1).toString()
             val notes = parseDereFumen(fumenStr, info)
-            difficulties[difficulty] =
-                OneDifficulty(difficulty, notes)
+            difficulties[twDifficulty] = OneDifficulty(twDifficulty, notes)
         }
         cursorFumens.close()
         return OneMusic(difficulties, info)

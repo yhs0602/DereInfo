@@ -1,10 +1,267 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/song_detail"
-    style="?android:attr/textAppearanceLarge"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp"
-    android:textIsSelectable="true"
-    tools:context=".SongDetailFragment" />
+    android:layout_height="match_parent">
+
+    <TextView xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/song_detail"
+        style="?android:attr/textAppearanceLarge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textIsSelectable="true"
+        app:layout_constraintBottom_toTopOf="@+id/layoutDifficulties"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:context=".SongDetailFragment" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutDifficulties"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/song_detail"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/buttonDebut"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Debut"
+            app:layout_constraintEnd_toStartOf="@id/buttonRegular"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonRegular"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Regular"
+            app:layout_constraintEnd_toStartOf="@id/buttonPro"
+            app:layout_constraintStart_toEndOf="@id/buttonDebut"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonPro"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Pro"
+            app:layout_constraintEnd_toStartOf="@id/buttonMaster"
+            app:layout_constraintStart_toEndOf="@id/buttonRegular"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonMaster"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Master"
+            app:layout_constraintEnd_toStartOf="@id/buttonMasterPlus"
+            app:layout_constraintStart_toEndOf="@id/buttonPro"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonMasterPlus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Master+"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/buttonMaster"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonLight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Light"
+            app:layout_constraintEnd_toStartOf="@id/buttonTrick"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonRegular" />
+
+        <Button
+            android:id="@+id/buttonTrick"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trick"
+            app:layout_constraintEnd_toStartOf="@id/buttonPiano"
+            app:layout_constraintStart_toEndOf="@id/buttonLight"
+            app:layout_constraintTop_toBottomOf="@+id/buttonRegular" />
+
+        <Button
+            android:id="@+id/buttonPiano"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Piano"
+            app:layout_constraintEnd_toStartOf="@id/buttonForte"
+            app:layout_constraintStart_toEndOf="@id/buttonTrick"
+            app:layout_constraintTop_toBottomOf="@+id/buttonRegular" />
+
+        <Button
+            android:id="@+id/buttonForte"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forte"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/buttonPiano"
+            app:layout_constraintTop_toBottomOf="@+id/buttonRegular" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/detailedLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layoutDifficulties">
+
+
+        <TextView
+            android:id="@+id/textViewStatistics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Note Statistics"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textViewTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Total notes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewStatistics" />
+
+        <TextView
+            android:id="@+id/textViewTotalCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="1"
+            app:layout_constraintStart_toEndOf="@id/textViewTotal"
+            app:layout_constraintTop_toBottomOf="@id/textViewStatistics" />
+
+        <TextView
+            android:id="@+id/textViewTotalPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewStatistics" />
+
+        <TextView
+            android:id="@+id/textViewNormal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Normal notes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewTotal" />
+
+        <TextView
+            android:id="@+id/textViewNormalCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="2"
+            app:layout_constraintStart_toEndOf="@id/textViewNormal"
+            app:layout_constraintTop_toBottomOf="@id/textViewTotalCount" />
+
+        <TextView
+            android:id="@+id/textViewNormalPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalPercent" />
+
+        <TextView
+            android:id="@+id/textViewLong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Long notes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewNormal" />
+
+        <TextView
+            android:id="@+id/textViewLongCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="3"
+            app:layout_constraintStart_toEndOf="@id/textViewLong"
+            app:layout_constraintTop_toBottomOf="@id/textViewNormalCount" />
+
+        <TextView
+            android:id="@+id/textViewLongPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewNormalPercent" />
+
+        <TextView
+            android:id="@+id/textViewFlick"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Flick notes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewLong" />
+
+        <TextView
+            android:id="@+id/textViewFlickCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="4"
+            app:layout_constraintStart_toEndOf="@id/textViewFlick"
+            app:layout_constraintTop_toBottomOf="@id/textViewLongCount" />
+
+        <TextView
+            android:id="@+id/textViewFlickPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewLongPercent" />
+
+        <TextView
+            android:id="@+id/textViewSlide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Slide notes"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textViewFlick" />
+
+        <TextView
+            android:id="@+id/textViewSlideCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="5"
+            app:layout_constraintStart_toEndOf="@id/textViewSlide"
+            app:layout_constraintTop_toBottomOf="@id/textViewFlickCount" />
+
+        <TextView
+            android:id="@+id/textViewSlidePercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
