@@ -5,8 +5,9 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import android.util.SparseIntArray
+import androidx.core.util.set
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.kyhsgeekcode.dereinfo.SerializableSparseIntArray
 import com.kyhsgeekcode.dereinfo.checkIfDatabase
 import com.kyhsgeekcode.dereinfo.loadObject
 import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
@@ -26,8 +27,8 @@ class DereDatabaseHelper(context: Context) {
     val fumenFolder: File
 
     var musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
-    val musicNumberToMusicID: SparseIntArray = SparseIntArray()
-    val musicIDTomusicNumber = SparseIntArray()
+    var musicNumberToMusicID = HashMap<Int,Int>()  //SerializableSparseIntArray = SerializableSparseIntArray()
+    var musicIDTomusicNumber = HashMap<Int,Int>() //  = SerializableSparseIntArray()
 
     init {
         val datadir = context.getExternalFilesDir(null).parentFile.parentFile
@@ -71,8 +72,8 @@ class DereDatabaseHelper(context: Context) {
             fumensDB.query(
                 "live_data",
                 arrayOf("id", "music_data_id", "circle_type"),
-                null,
-                null,
+                "end_date=?",
+                arrayOf(""),
                 null,
                 null,
                 null
@@ -127,6 +128,7 @@ class DereDatabaseHelper(context: Context) {
             val circleType = cursorLiveData.getInt(circleTypeIndex)
             musicNumberToMusicID[liveDataId] = musicDataId
             musicIDTomusicNumber[musicDataId] = liveDataId
+            //Log.w(TAG, "musicIDToMusicNumber[${musicDataId}]=${liveDataId}")
             val musicInfo = MusicInfo(
                 musicDataId,
                 name,
@@ -168,18 +170,28 @@ class DereDatabaseHelper(context: Context) {
                     name = name.substring(13)
                     name = name.substringBefore('.')
                     val musicIndex = Integer.parseInt(name.split('/')[0])
-                    //Log.d(TAG, "musicIndex ${musicIndex}")
+                   // Log.d(TAG, "musicIndex ${musicIndex}, ${file.name}")
 //                val difficulty = Integer.parseInt(name.substringAfter('_'))
                     musicNumberToFumenFile[musicIndex] = file
                     break
                 }
                 fumenDB.close()
             } catch (e: SQLException) {
+                Log.e(TAG, "indexFumen",e)
                 continue
             } finally {
                 cursorFumens?.close()
             }
         }
+
+        //check validity(debug)
+//        for(item in musicIDToInfo.values) {
+//            val musicNumber = musicIDTomusicNumber[item.id]
+//            //Log.w(TAG, "Item.id:${item.id}, musicNumber:${musicNumber}")
+//            val file = musicNumberToFumenFile[musicNumber]
+//            if(file != null)
+//                Log.w(TAG,"id:${item.id},name:${item.name},file:${file?.name}")
+//        }
     }
 
 
@@ -189,6 +201,11 @@ class DereDatabaseHelper(context: Context) {
     val indexToFumenFileFilename = "indexToFumenFile.dat"
     val musicInfoFile = File(context.filesDir, musicInfoFilename)
     val indexToFumenFileFile = File(context.filesDir, indexToFumenFileFilename)
+    val musicNumberToMusicIDFileName = "musicNumberToMusicID.dat"
+    val musicNumberToMusicIDFile = File(context.filesDir, musicNumberToMusicIDFileName)
+    val musicIDToMusicNumberFileName = "musicIDToMusicNumber.dat"
+    val musicIDToMusicNumberFile = File(context.filesDir, musicIDToMusicNumberFileName)
+
 
     private fun saveToCache(context: Context) {
 //        searchMainDB()
@@ -196,6 +213,8 @@ class DereDatabaseHelper(context: Context) {
         saveObject(mainDBFileCacheFile, fumensDBFile)
         saveObject(musicInfoFile, musicIDToInfo)
         saveObject(indexToFumenFileFile, musicNumberToFumenFile)
+        saveObject(musicNumberToMusicIDFile, musicNumberToMusicID)
+        saveObject(musicIDToMusicNumberFile, musicIDTomusicNumber)
     }
 
     private fun loadFromCache(context: Context): Boolean {
@@ -207,6 +226,7 @@ class DereDatabaseHelper(context: Context) {
                 return false
             return true
         } catch (e: Exception) {
+            Log.e(TAG, "error loading", e)
             return false
         }
     }
@@ -215,6 +235,8 @@ class DereDatabaseHelper(context: Context) {
         loadFumenDBFileFromCache()
         musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicInfo>
         musicNumberToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
+        musicNumberToMusicID = loadObject(musicNumberToMusicIDFile) as HashMap<Int,Int> //as SerializableSparseIntArray
+        musicIDTomusicNumber = loadObject(musicIDToMusicNumberFile) as HashMap<Int, Int> //SerializableSparseIntArray
     }
 
     private fun loadFumenDBFileFromCache() {
@@ -260,9 +282,14 @@ class DereDatabaseHelper(context: Context) {
     //5개를 파싱해라.
 
     fun peekFumens(musicNumber: Int): OneMusic {
-//        Log.d(TAG, "musicIndex : ${musicNumber},indexToFumenFile size:${musicNumberToFumenFile.size}")
+        Log.d(
+            TAG,
+            "musicIndex : ${musicNumber},indexToFumenFile size:${musicNumberToFumenFile.size}"
+        )
         val fumenFile = musicNumberToFumenFile[musicNumber]
         Log.d(TAG, "fumenFile:${fumenFile?.name}")
+        if(fumenFile==null)
+            throw java.lang.RuntimeException()
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
@@ -281,12 +308,12 @@ class DereDatabaseHelper(context: Context) {
             var name = cursorFumens.getString(0)
             if (!name[name.length - 5].isDigit())
                 continue
-            Log.d(TAG, "name:${name}")
+            //Log.d(TAG, "name:${name}")
             name = name.substring(13)
             name = name.substringBefore('.')
 //            Log.d(TAG,"name:${name}")
             val difficulty = Integer.parseInt(name.substringAfter('_'))
-            Log.d(TAG, "difficulty:${difficulty}")
+            //Log.d(TAG, "difficulty:${difficulty}")
             val twDifficulty = TW5Difficulty.valueOf(difficulty)
             difficulties[twDifficulty] = OneDifficulty(twDifficulty, null)
         }

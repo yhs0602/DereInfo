@@ -43,7 +43,8 @@ class SongDetailFragment : Fragment() {
                 activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
                 activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
                 val musicNumber = DereDatabaseHelper.theInstance.musicIDTomusicNumber[item!!.id]
-                oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber)
+                Log.w(TAG, "Item.id:${item!!.id}, musicNumber:${musicNumber}")
+                oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
         }
     }

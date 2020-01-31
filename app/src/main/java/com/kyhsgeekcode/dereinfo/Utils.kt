@@ -45,7 +45,13 @@ val sqliteHeader = byteArrayOf(
 )
 
 fun checkIfDatabase(file: File): Boolean {
+    if(file==null)
+        return false
+    if(file.isDirectory)
+        return false
     val byteArray = ByteArray(16)
-    file.inputStream().read(byteArray, 0, 16)
+    val fi =  file.inputStream()
+    fi.read(byteArray, 0, 16)
+    fi.close()
     return byteArray contentEquals sqliteHeader
 }
