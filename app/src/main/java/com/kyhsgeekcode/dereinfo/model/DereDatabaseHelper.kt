@@ -138,14 +138,14 @@ class DereDatabaseHelper(context: Context) {
             )
             musicIDToInfo[musicDataId] = musicInfo
             currentCount++
-            publisher(currentCount, totalCount, musicInfo)
+            publisher(totalCount, currentCount, musicInfo)
         }
         cursorLiveData.close()
         fumensDB.close()
     }
 
     var musicNumberToFumenFile: MutableMap<Int, File> = HashMap()
-    suspend fun indexFumens(publisher: (Int, Int, MusicInfo?) -> Unit) {
+    fun indexFumens(publisher: (Int, Int, MusicInfo?) -> Unit) {
         var cursorFumens: Cursor? = null
         val fileList = fumenFolder.listFiles()
         for (fileWithIndex in fileList.withIndex()) {
@@ -262,9 +262,12 @@ class DereDatabaseHelper(context: Context) {
                     publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value)
                 }
             } else {
+                //publisher(100,0,null)
                 parseDatabases(publisher)
                 indexFumens(publisher)
+                publisher(100,50,null)
                 saveToCache(context)
+                publisher(100,100,null)
             }
             Log.d(TAG, "size of databases:${musicIDToInfo.size}")
             Log.d(TAG, "Number of fumens:${musicNumberToFumenFile.size}")

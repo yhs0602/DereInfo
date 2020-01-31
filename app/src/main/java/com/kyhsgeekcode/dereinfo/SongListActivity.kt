@@ -65,10 +65,11 @@ class SongListActivity : AppCompatActivity() {
         }
         val publisher: (Int, Int, MusicInfo?) -> Unit = { total, progress, info ->
             CoroutineScope(Dispatchers.Main).launch {
-                circularType.setProgressMax(total)
+                val progress100 = progress.toDouble()/total.toDouble() * 100.0
+                circularType.setProgressMax(100)
                 if (info != null)
                     adapter.addItem(info)
-                snackProgressBarManager.setProgress(progress)
+                snackProgressBarManager.setProgress(progress100.toInt())
             }
         }
         val onFinish: () -> Unit = {
