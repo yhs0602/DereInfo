@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import android.util.SparseIntArray
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.kyhsgeekcode.dereinfo.checkIfDatabase
 import com.kyhsgeekcode.dereinfo.loadObject
 import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
 import com.kyhsgeekcode.dereinfo.saveObject
@@ -181,30 +182,6 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 
-    val sqliteHeader = byteArrayOf(
-        'S'.toByte(),
-        'Q'.toByte(),
-        'L'.toByte(),
-        'i'.toByte(),
-        't'.toByte(),
-        'e'.toByte(),
-        ' '.toByte(),
-        'f'.toByte(),
-        'o'.toByte(),
-        'r'.toByte(),
-        'm'.toByte(),
-        'a'.toByte(),
-        't'.toByte(),
-        ' '.toByte(),
-        '3'.toByte(),
-        0
-    )
-
-    private fun checkIfDatabase(file: File): Boolean {
-        val byteArray = ByteArray(16)
-        file.inputStream().read(byteArray, 0, 16)
-        return byteArray contentEquals sqliteHeader
-    }
 
     val mainDBFileCachename = "maindb.dat"
     val mainDBFileCacheFile = File(context.filesDir, mainDBFileCachename)
@@ -265,9 +242,9 @@ class DereDatabaseHelper(context: Context) {
                 //publisher(100,0,null)
                 parseDatabases(publisher)
                 indexFumens(publisher)
-                publisher(100,50,null)
+                publisher(100, 50, null)
                 saveToCache(context)
-                publisher(100,100,null)
+                publisher(100, 100, null)
             }
             Log.d(TAG, "size of databases:${musicIDToInfo.size}")
             Log.d(TAG, "Number of fumens:${musicNumberToFumenFile.size}")
@@ -304,7 +281,7 @@ class DereDatabaseHelper(context: Context) {
             var name = cursorFumens.getString(0)
             if (!name[name.length - 5].isDigit())
                 continue
-            Log.d(TAG,"name:${name}")
+            Log.d(TAG, "name:${name}")
             name = name.substring(13)
             name = name.substringBefore('.')
 //            Log.d(TAG,"name:${name}")
@@ -333,7 +310,7 @@ class DereDatabaseHelper(context: Context) {
             name = name.substringBefore('.')
             val difficulty = Integer.parseInt(name.substringAfter('_'))
             val twDifficulty = TW5Difficulty.valueOf(difficulty)
-            if(wantedDifficulty!=twDifficulty)
+            if (wantedDifficulty != twDifficulty)
                 continue
             val fumenStr = cursorFumens.getBlob(1).toString()
             val notes = parseDereFumen(fumenStr, info)
