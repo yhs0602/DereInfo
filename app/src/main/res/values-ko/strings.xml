@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DereInfo</string>
+    <string name="sort">정렬</string>
+    <string name="search_hint">검색 힌트</string>
+    <string name="title_song_detail">곡 상세 정보</string>
+    <string name="title_song_list">곡 목록</string>
+    <string name="filter">필터</string>
+</resources>

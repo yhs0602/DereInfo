@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string-array name="sort_conditions">
+        <item>Data</item>
+        <item>Alphabetical</item>
+        <item>Total notes</item>
+        <item>Long note percentage</item>
+        <item>Flick note percentage</item>
+        <item>Slide note percenage</item>
+    </string-array>
+</resources>
