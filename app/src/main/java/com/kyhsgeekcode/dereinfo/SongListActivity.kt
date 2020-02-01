@@ -330,6 +330,12 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
             return true
         }
 
+        fun sortBy(sortType: SortType) {
+            filteredItemList.sortBy{
+                sortType.condition(it) as Comparable<Any>
+            }
+            notifyDataSetChanged()
+        }
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
@@ -339,7 +345,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
 
     private fun sortList(sortType: SortType) {
         Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
+        adapter.sortBy(sortType)
     }
-
 
 }
