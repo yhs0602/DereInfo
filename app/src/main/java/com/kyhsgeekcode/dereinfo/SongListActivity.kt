@@ -25,6 +25,7 @@ import kotlinx.android.synthetic.main.song_list_content.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.crizin.KoreanRomanizer
 
 
 /**
@@ -279,11 +280,21 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
                 } else {
                     val itemList: ArrayList<MusicInfo> = ArrayList()
                     for (item in values) {
-                        val name = """${item.name}(${item.id})"""
-                        if ((name.toUpperCase().contains(constraint.toString().toUpperCase()) ||
-                                item.nameKana.toUpperCase().contains(constraint.toString().toUpperCase()) ||
-                                    WanaKanaJava.toRomaji(item.nameKana)?.toUpperCase()?.contains(constraint.toString().toUpperCase()) == true) &&
-                                userFilterPass(item)) {
+                        val name = """${item.name}(${item.id})""".toUpperCase()
+                        val constraintStringUpper = constraint.toString().toUpperCase()
+                        val nameKanaUpper = item.nameKana.toUpperCase()
+                        val romanjiNameUpper = WanaKanaJava.toRomaji(nameKanaUpper)
+                            ?.toUpperCase()
+                        if ((name.contains(constraintStringUpper) ||
+                                    nameKanaUpper.contains(constraintStringUpper) ||
+                                    romanjiNameUpper?.contains(constraintStringUpper) == true ||
+                                    romanjiNameUpper?.contains(
+                                        KoreanRomanizer.romanize(
+                                            constraintStringUpper
+                                        )
+                                    ) == true) &&
+                            userFilterPass(item)
+                        ) {
                             itemList.add(item)
                         }
                     }
@@ -308,7 +319,8 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
                 }
             }
         }
-        fun userFilterPass(item:MusicInfo):Boolean {
+
+        fun userFilterPass(item: MusicInfo): Boolean {
             return true
         }
 

@@ -1,5 +1,6 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import com.wanakanajava.WanaKanaJava
 import java.io.Serializable
 
 class MusicInfo(
@@ -17,6 +18,7 @@ class MusicInfo(
         val lineSeparator = System.lineSeparator()
         return StringBuilder("id:").append(id).append(lineSeparator)
             .append("name:").append(name).append(lineSeparator)
+            .append("romanji name:").append(WanaKanaJava.toRomaji(nameKana)).append(lineSeparator)
             .append("bpm:").append(bpm).append(lineSeparator)
             .append("composer:").append(composer).append(lineSeparator)
             .append("lyricist:").append(lyricist).append(lineSeparator)
