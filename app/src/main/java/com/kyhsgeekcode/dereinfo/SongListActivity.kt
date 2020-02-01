@@ -15,6 +15,7 @@ import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
 import com.kyhsgeekcode.dereinfo.model.CircleType.makeRGB
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
+import com.kyhsgeekcode.dereinfo.model.SortType
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import kotlinx.android.synthetic.main.activity_song_list.*
@@ -33,7 +34,7 @@ import kotlinx.coroutines.launch
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class SongListActivity : AppCompatActivity() , DialogInterface.OnClickListener{
+class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
     val TAG = "SongListActivity"
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
@@ -170,8 +171,8 @@ class SongListActivity : AppCompatActivity() , DialogInterface.OnClickListener{
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
-// automatically handle clicks on the Home/Up button, so long
-// as you specify a parent activity in AndroidManifest.xml.
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
         val id: Int = item.itemId
         when (id) {
             R.id.app_bar_sort -> {
@@ -180,7 +181,7 @@ class SongListActivity : AppCompatActivity() , DialogInterface.OnClickListener{
             }
             R.id.app_bar_filter -> {
                 val filterAlertDialogFragment = FilterAlertDialogFragment()
-                filterAlertDialogFragment.show(supportFragmentManager,"filterFragment")
+                filterAlertDialogFragment.show(supportFragmentManager, "filterFragment")
             }
         }
         return super.onOptionsItemSelected(item)
@@ -306,8 +307,11 @@ class SongListActivity : AppCompatActivity() , DialogInterface.OnClickListener{
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
-        when(which) {
-            0-> Toast.makeText(this,"Data",Toast.LENGTH_SHORT).show()
-        }
+        val sortType = SortType.getByValue(which)
+        sortList(sortType ?: SortType.Data)
+    }
+
+    private fun sortList(sortType: SortType) {
+        Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
     }
 }

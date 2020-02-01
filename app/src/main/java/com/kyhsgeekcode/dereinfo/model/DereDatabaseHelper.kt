@@ -5,14 +5,18 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
-import androidx.core.util.set
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
-import com.kyhsgeekcode.dereinfo.SerializableSparseIntArray
 import com.kyhsgeekcode.dereinfo.checkIfDatabase
 import com.kyhsgeekcode.dereinfo.loadObject
 import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
 import com.kyhsgeekcode.dereinfo.saveObject
 import java.io.File
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.List
+import kotlin.collections.MutableMap
+import kotlin.collections.set
+import kotlin.collections.withIndex
 
 
 //This allows access to dere database
@@ -62,6 +66,10 @@ class DereDatabaseHelper(context: Context) {
     }
 
     suspend fun parseDatabases(publisher: (Int, Int, MusicInfo) -> Unit) {
+        musicNumberToMusicID.clear()
+        musicIDTomusicNumber.clear()
+        musicIDToInfo.clear()
+
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
@@ -69,15 +77,17 @@ class DereDatabaseHelper(context: Context) {
             SQLiteDatabase.openDatabase(manifestFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
         val cursorLiveData =
-            fumensDB.query(
-                "live_data",
-                arrayOf("id", "music_data_id", "circle_type"),
-                "end_date=?",
-                arrayOf(""),
-                null,
-                null,
-                null
-            )
+            fumensDB.rawQuery("SELECT id,music_data_id,circle_type FROM live_data WHERE end_date='' AND prp_flag=1",null)
+
+//            fumensDB.query(
+//                "live_data",
+//                arrayOf("id", "music_data_id", "circle_type"),
+//                "end_date=? AND prp_flag=?",
+//                arrayOf("''", "1"),
+//                null,
+//                null,
+//                null
+//            )
 
         val musicDataIdIndex = cursorLiveData.getColumnIndex("music_data_id")
         val liveDataIdIndex = cursorLiveData.getColumnIndex("id")
@@ -149,6 +159,7 @@ class DereDatabaseHelper(context: Context) {
 
     var musicNumberToFumenFile: MutableMap<Int, File> = HashMap()
     fun indexFumens(publisher: (Int, Int, MusicInfo?) -> Unit) {
+        musicNumberToFumenFile.clear()
         var cursorFumens: Cursor? = null
         val fileList = fumenFolder.listFiles()
         for (fileWithIndex in fileList.withIndex()) {
@@ -210,6 +221,11 @@ class DereDatabaseHelper(context: Context) {
     private fun saveToCache(context: Context) {
 //        searchMainDB()
 //        parseDatabases()
+        fumensDBFile.delete()
+        musicInfoFile.delete()
+        indexToFumenFileFile.delete()
+        musicNumberToMusicIDFile.delete()
+        musicIDToMusicNumberFile.delete()
         saveObject(mainDBFileCacheFile, fumensDBFile)
         saveObject(musicInfoFile, musicIDToInfo)
         saveObject(indexToFumenFileFile, musicNumberToFumenFile)
@@ -262,6 +278,7 @@ class DereDatabaseHelper(context: Context) {
                 }
             } else {
                 //publisher(100,0,null)
+
                 parseDatabases(publisher)
                 indexFumens(publisher)
                 publisher(100, 50, null)
@@ -308,7 +325,7 @@ class DereDatabaseHelper(context: Context) {
             var name = cursorFumens.getString(0)
             if (!name[name.length - 5].isDigit())
                 continue
-            //Log.d(TAG, "name:${name}")
+            Log.d(TAG, "name:${name}")
             name = name.substring(13)
             name = name.substringBefore('.')
 //            Log.d(TAG,"name:${name}")
