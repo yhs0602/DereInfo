@@ -300,9 +300,6 @@ class DereDatabaseHelper(context: Context) {
         return true
     }
 
-
-    //5개를 파싱해라.
-
     fun peekFumens(musicNumber: Int): OneMusic {
         Log.d(
             TAG,
@@ -347,6 +344,73 @@ class DereDatabaseHelper(context: Context) {
         return OneMusic(difficulties, info)
     }
 
+    fun countFumen(musicInfo: MusicInfo): FumenStatistic {
+        val fumenFile = musicNumberToFumenFile[musicInfo.id]
+        val fumenDB =
+            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+        val cursorFumens =
+            fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
+        val result: MutableMap<TW5Difficulty, OneStatistic> = HashMap()
+        while (cursorFumens.moveToNext()) {
+            val name = cursorFumens.getString(0)
+            val parsedName = parseFumenName(name) ?: continue
+            val musicNumber = parsedName.first
+            val difficulty = parsedName.second
+            val fumenStr = cursorFumens.getBlob(1).toString()
+            val rawNotes = csvReader().readAllWithHeader(fumenStr)
+            val resultOne = HashMap<StatisticIndex,Float>()
+            val counter = HashMap<StatisticIndex,Int>()
+            for (rawNote in rawNotes) {
+                val modeAndFlick = getModeAndFlick(rawNote["type"]!!.toInt(),rawNote["status"]!!.toInt())
+                val mode = modeAndFlick.first
+                val flick = modeAndFlick.second
+                counter[StatisticIndex.Total] = counter[StatisticIndex.Total]?:0+1
+                //시간도 계산?
+                //7초 11초 9초 나오겠지. 6/7 9/11 7.5/9
+                val index =  StatisticIndex.makeIndex(mode,flick)
+                counter[index] = counter[index] ?:0 + 1
+                val actIndex = StatisticIndex.makeIndex(index, rawNote["sec"]!!.toFloat())
+                if(actIndex != null) {
+                    counter[actIndex] = counter[actIndex]?:0 + 1
+                }
+            }
+            resultOne[StatisticIndex.Total] = (counter[StatisticIndex.Total]?:0).toFloat()
+            for(index in StatisticIndex.values()) {
+                if(index == StatisticIndex.Total) continue
+                resultOne[index] = ((counter[index]?:0)/(counter[StatisticIndex.Total]?:1)).toFloat()
+            }
+            result[difficulty] = resultOne
+        }
+        cursorFumens.close()
+        fumenDB.close()
+        return result
+    }
+
+    fun parseFumenName(name: String): Pair<Int, TW5Difficulty>? {
+        if (!name[name.length - 5].isDigit())
+            return null
+        var subname = name.substring(13)
+        subname = subname.substringBefore('.')
+        val maybeDifficulty = subname.substringAfter('_')
+        if (!maybeDifficulty.isDigitsOnly()) {
+            Log.d(TAG, "name:${name} continue")
+            return null
+        }
+        val twDifficulty = TW5Difficulty.valueOf(Integer.parseInt(maybeDifficulty))
+        val musicIndex = Integer.parseInt(subname.split('/')[0])
+        return Pair(musicIndex, twDifficulty)
+    }
+
+    fun getModeAndFlick(type: Int, status: Int): Pair<TWMode, FlickMode> = when (type) {
+        4 -> Pair(TWMode.Tap, FlickMode.None)
+        5 -> Pair(TWMode.Slide, FlickMode.None)
+        6 -> Pair(TWMode.Tap, FlickMode.Left)
+        7 -> Pair(TWMode.Tap, FlickMode.Right)
+        else -> Pair(TWMode.fromType(type), FlickMode.fromStatus(status))
+    }
+
+
+    //5개를 파싱해라.
     fun parseFumen(music: OneMusic, wantedDifficulty: TW5Difficulty): OneMusic {
         val fumenFile = musicNumberToFumenFile[music.musicInfo.id]
         val fumenDB =
@@ -407,7 +471,7 @@ class DereDatabaseHelper(context: Context) {
             if (longnoteIDs.containsKey(endpos)) {
                 //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
                 prevID = longnoteIDs[endpos]!!
-                twMode = 1
+                twMode = TWMode.Tap
                 longnoteIDs.remove(endpos)
             } else if (mode == 2) {
                 //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
@@ -415,7 +479,7 @@ class DereDatabaseHelper(context: Context) {
                 longnoteIDs[endpos] = idd
             }
             //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            if ((mode == 1) and (flick == 0)) {
+            if ((mode == 1) and (flick==FlickMode.None)) {
                 prevID = 0
             }
             notes.add(
@@ -435,7 +499,6 @@ class DereDatabaseHelper(context: Context) {
         }
         return notes
     }
-
 
     fun parseFumens() {
         for (file in fumenFolder.listFiles()) {
@@ -496,7 +559,7 @@ class DereDatabaseHelper(context: Context) {
             if (longnoteIDs.containsKey(endpos)) {
                 //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
                 prevID = longnoteIDs[endpos]!!
-                twMode = 1
+                twMode = TWMode.Tap
                 longnoteIDs.remove(endpos)
             } else if (mode == 2) {
                 //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
@@ -504,7 +567,7 @@ class DereDatabaseHelper(context: Context) {
                 longnoteIDs[endpos] = idd
             }
             //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            if ((mode == 1) and (flick == 0)) {
+            if ((mode == 1) and (flick==FlickMode.None)) {
                 prevID = 0
             }
             notes.add(

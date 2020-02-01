@@ -1,7 +1,7 @@
 package com.kyhsgeekcode.dereinfo.model
 
 //None left right up down
-fun getTW5Flick(status: Int): Int {
+fun getTW5Flick(status: Int): FlickMode {
     return when (status) {
         0 -> FlickMode.None
         1 -> FlickMode.Left
@@ -14,7 +14,7 @@ fun getTW5Flick(status: Int): Int {
 }
 
 //tap hold slide damage hidden
-fun getTWMode(mode: Int): Int {
+fun getTWMode(mode: Int): TWMode {
     return when (mode) {
         1 -> TWMode.Tap
         2 -> TWMode.Hold
