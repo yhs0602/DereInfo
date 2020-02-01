@@ -6,12 +6,15 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.*
-import android.widget.*
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.SearchView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.kyhsgeekcode.dereinfo.R.id.*
 import com.kyhsgeekcode.dereinfo.model.CircleType
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
@@ -19,11 +22,11 @@ import com.kyhsgeekcode.dereinfo.model.SortType
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import kotlinx.android.synthetic.main.activity_song_list.*
-import kotlinx.android.synthetic.main.dialog_filter.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.Serializable
 
 
 /**
@@ -34,7 +37,8 @@ import kotlinx.coroutines.launch
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, FilterAlertDialogFragment.FilterDialogListener {
+class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
+    FilterAlertDialogFragment.FilterDialogListener {
     val TAG = "SongListActivity"
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
@@ -158,7 +162,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, F
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean { // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main_menu, menu)
-        val search_item = menu.findItem(R.id.app_bar_search)
+        val search_item = menu.findItem(app_bar_search)
         val searchView: SearchView = search_item.actionView as SearchView
         searchView.isFocusable = false
         searchView.queryHint = "Search"
@@ -170,7 +174,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, F
             }
 
             override fun onQueryTextChange(s: String?): Boolean {
-                constraint = s?:""
+                constraint = s ?: ""
                 adapter.filter?.filter(constraint)
                 return false
             }
@@ -184,12 +188,12 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, F
         // as you specify a parent activity in AndroidManifest.xml.
         val id: Int = item.itemId
         when (id) {
-            R.id.app_bar_sort -> {
+            app_bar_sort -> {
                 val sortAlertDialogFragment = SortAlertDialogFragment()
                 sortAlertDialogFragment.show(supportFragmentManager, "sortFragment")
             }
-            R.id.app_bar_filter -> {
-                val filterAlertDialogFragment = FilterAlertDialogFragment()
+            app_bar_filter -> {
+                val filterAlertDialogFragment = FilterAlertDialogFragment(checkedFilters)
                 filterAlertDialogFragment.show(supportFragmentManager, "filterFragment")
             }
         }
@@ -200,6 +204,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, F
     private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
         val adapter =
             SongRecyclerViewAdapter(this, twoPane)
+        adapter.userFilter.addFilter(CircleType.All,CircleType.Cute,CircleType.Cool,CircleType.Passion)
         recyclerView.adapter = adapter
         return adapter
     }
@@ -214,26 +219,67 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, F
         adapter.sortBy(sortType)
     }
 
-    override fun onDialogPositiveClick(dialog: DialogFragment, checked: Map<Int,Boolean>) {
-        Log.d(TAG,"Permitted:${checked.toList().joinToString()}" )
+    override fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>) {
+        Log.d(TAG, "Permitted:${checked.toList().joinToString()}")
+        checkedFilters = HashMap()
+        checkedFilters!!.putAll(checked)
         val permittedType: MutableList<CircleType> = ArrayList()
-        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBAllType]!!) {
+        if (checked[filterCBTypeAllCheck]!! || checked[filterCBAllType]!!) {
             permittedType.add(CircleType.All)
         }
-        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBCute]!!) {
+        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCute]!!) {
             permittedType.add(CircleType.Cute)
         }
-        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBCool]!!) {
+        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCool]!!) {
             permittedType.add(CircleType.Cool)
         }
-        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBPassion]!!) {
+        if (checked[filterCBTypeAllCheck]!! || checked[filterCBPassion]!!) {
             permittedType.add(CircleType.Passion)
         }
-        Log.d(TAG,"Permitted2:${permittedType.toTypedArray().joinToString()}")
+        Log.d(TAG, "Permitted2:${permittedType.toTypedArray().joinToString()}")
         adapter.userFilter.addFilter(*permittedType.toTypedArray())
         adapter.filter?.filter(constraint)
         //sortList()
     }
-    private var sortType : SortType = SortType.Data
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(SortType_KEY, sortType.value)
+        outState.putString(Constraint_KEY, constraint)
+        if (checkedFilters != null)
+            outState.putSerializable(Checked_KEY, checkedFilters as Serializable)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        sortType = SortType.getByValue(savedInstanceState.getInt(SortType_KEY, 0))
+        constraint = savedInstanceState.getString(Constraint_KEY, "")
+        try {
+            checkedFilters =
+                savedInstanceState.getSerializable(Checked_KEY) as HashMap<Int, Boolean>
+            if (checkedFilters == null)
+                checkedFilters = HashMap()
+            if (checkedFilters?.isEmpty() == true) {
+                checkedFilters!![filterCBTypeAllCheck] = true
+                checkedFilters!![filterCBCute] = true
+                checkedFilters!![filterCBCool] = true
+                checkedFilters!![filterCBPassion] = true
+                checkedFilters!![filterCBAllType] = true
+                checkedFilters!![filterCBMasterPlus] = true
+            }
+            onDialogPositiveClick(null,checkedFilters!!)
+            adapter.filter?.filter(constraint)
+        } catch (e: Exception) {
+            Log.e(TAG, "", e)
+        }
+    }
+
+    private var sortType: SortType = SortType.Data
     private var constraint: String = ""
+    private var checkedFilters: HashMap<Int, Boolean>? = null
+
 }
+
+const val SortType_KEY = "SortType"
+const val Constraint_KEY = "Constraint"
+const val Checked_KEY = "Checked"

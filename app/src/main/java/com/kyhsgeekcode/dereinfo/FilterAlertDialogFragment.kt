@@ -8,12 +8,15 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.dialog_filter.view.*
 
-class FilterAlertDialogFragment : DialogFragment() {
+
+class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragment() {
     lateinit var filterDialogListener: FilterDialogListener
     var inflated: View? = null
-    val checkedMap = HashMap<Int,Boolean>()
+    val checkedMap = initMap ?: HashMap()
+    val CHECKED_KEY = "Checkeds"
+
     interface FilterDialogListener {
-        fun onDialogPositiveClick(dialog: DialogFragment,checked: Map<Int, Boolean>)
+        fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>)
         fun onDialogNegativeClick(dialog: DialogFragment) {}
     }
 
@@ -31,7 +34,8 @@ class FilterAlertDialogFragment : DialogFragment() {
                 .setPositiveButton(
                     android.R.string.ok
                 ) { _, _ ->
-                    checkedMap[R.id.filterCBTypeAllCheck] = inflated!!.filterCBTypeAllCheck.isChecked
+                    checkedMap[R.id.filterCBTypeAllCheck] =
+                        inflated!!.filterCBTypeAllCheck.isChecked
                     checkedMap[R.id.filterCBCute] = inflated!!.filterCBCute.isChecked
                     checkedMap[R.id.filterCBCool] = inflated!!.filterCBCool.isChecked
                     checkedMap[R.id.filterCBPassion] = inflated!!.filterCBPassion.isChecked
@@ -54,6 +58,12 @@ class FilterAlertDialogFragment : DialogFragment() {
                 inflated!!.filterCBAllType.isChecked = isChecked
                 checkedMap[R.id.filterCBTypeAllCheck] = isChecked
             }
+            inflated!!.filterCBCute.isChecked = checkedMap[R.id.filterCBCute] ?: true
+            inflated!!.filterCBCool.isChecked = checkedMap[R.id.filterCBCool] ?: true
+            inflated!!.filterCBPassion.isChecked = checkedMap[R.id.filterCBPassion] ?: true
+            inflated!!.filterCBAllType.isChecked = checkedMap[R.id.filterCBAllType] ?: true
+            inflated!!.filterCBTypeAllCheck.isChecked = checkedMap[R.id.filterCBTypeAllCheck] ?: true
+
             result
         } ?: throw IllegalStateException("Activity cannot be null")
     }
@@ -71,6 +81,18 @@ class FilterAlertDialogFragment : DialogFragment() {
                 (context.toString() +
                         " must implement NoticeDialogListener")
             )
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable(CHECKED_KEY, checkedMap)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState != null) {
+            checkedMap.putAll(savedInstanceState.getSerializable(CHECKED_KEY) as HashMap<Int, Boolean>)
         }
     }
 }
