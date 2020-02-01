@@ -5,6 +5,7 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
+import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.kyhsgeekcode.dereinfo.checkIfDatabase
 import com.kyhsgeekcode.dereinfo.loadObject
@@ -328,8 +329,12 @@ class DereDatabaseHelper(context: Context) {
             Log.d(TAG, "name:${name}")
             name = name.substring(13)
             name = name.substringBefore('.')
-//            Log.d(TAG,"name:${name}")
-            val difficulty = Integer.parseInt(name.substringAfter('_'))
+            val maybeDifficulty = name.substringAfter('_')
+            if(!maybeDifficulty.isDigitsOnly()) {
+                Log.d(TAG,"name:${name} continue")
+                continue
+            }
+            val difficulty = Integer.parseInt(maybeDifficulty)
             //Log.d(TAG, "difficulty:${difficulty}")
             val twDifficulty = TW5Difficulty.valueOf(difficulty)
             difficulties[twDifficulty] = OneDifficulty(twDifficulty, null)
