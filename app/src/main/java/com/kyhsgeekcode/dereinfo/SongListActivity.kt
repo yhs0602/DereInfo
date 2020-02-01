@@ -18,6 +18,7 @@ import com.kyhsgeekcode.dereinfo.model.MusicInfo
 import com.kyhsgeekcode.dereinfo.model.SortType
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
+import com.wanakanajava.WanaKanaJava
 import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.android.synthetic.main.song_list_content.view.*
@@ -280,7 +281,8 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
                     for (item in values) {
                         val name = """${item.name}(${item.id})"""
                         if ((name.toUpperCase().contains(constraint.toString().toUpperCase()) ||
-                                item.nameKana.toUpperCase().contains(constraint.toString().toUpperCase())) &&
+                                item.nameKana.toUpperCase().contains(constraint.toString().toUpperCase()) ||
+                                    WanaKanaJava.toRomaji(item.nameKana)?.toUpperCase()?.contains(constraint.toString().toUpperCase()) == true) &&
                                 userFilterPass(item)) {
                             itemList.add(item)
                         }
