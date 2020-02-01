@@ -80,18 +80,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
             snackProgressBarManager.dismiss()
         }
         pullToRefresh.setOnRefreshListener {
-            snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
-            CoroutineScope(Dispatchers.IO).launch {
-                if (!dereDatabaseHelper.refreshCache(
-                        this@SongListActivity,
-                        publisher,
-                        onFinish
-                    )
-                ) {
-                    onFailedLoadDatabase()
-                }
-                pullToRefresh.isRefreshing = false
-            }
+            refreshCache(publisher, onFinish)
         }
 
         if (song_detail_container != null) {
@@ -109,6 +98,24 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
             if (!dereDatabaseHelper.load(this@SongListActivity, false, publisher, onFinish)) {
                 onFailedLoadDatabase()
             }
+        }
+    }
+
+    private fun refreshCache(
+        publisher: (Int, Int, MusicInfo?) -> Unit,
+        onFinish: () -> Unit
+    ) {
+        snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
+        CoroutineScope(Dispatchers.IO).launch {
+            if (!dereDatabaseHelper.refreshCache(
+                    this@SongListActivity,
+                    publisher,
+                    onFinish
+                )
+            ) {
+                onFailedLoadDatabase()
+            }
+            pullToRefresh.isRefreshing = false
         }
     }
 
@@ -271,9 +278,11 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
         inner class ListFilter : Filter() {
             val TAG = "ListFilter"
             override fun performFiltering(constraint: CharSequence?): FilterResults {
-                val TAG = "ListFilter"
                 Log.d(TAG, "Filter called$constraint")
                 val results = FilterResults()
+                val constraintStringUpper = constraint.toString().toUpperCase()
+                val romanizedConstraint = KoreanRomanizer.romanize(constraintStringUpper).toUpperCase()
+                Log.d(TAG,"Romanized:${romanizedConstraint}")
                 if (constraint == null || constraint.isEmpty()) {
                     results.values = values
                     results.count = values.size
@@ -281,18 +290,15 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
                     val itemList: ArrayList<MusicInfo> = ArrayList()
                     for (item in values) {
                         val name = """${item.name}(${item.id})""".toUpperCase()
-                        val constraintStringUpper = constraint.toString().toUpperCase()
                         val nameKanaUpper = item.nameKana.toUpperCase()
                         val romanjiNameUpper = WanaKanaJava.toRomaji(nameKanaUpper)
                             ?.toUpperCase()
+                        Log.d(TAG, "")
                         if ((name.contains(constraintStringUpper) ||
                                     nameKanaUpper.contains(constraintStringUpper) ||
                                     romanjiNameUpper?.contains(constraintStringUpper) == true ||
-                                    romanjiNameUpper?.contains(
-                                        KoreanRomanizer.romanize(
-                                            constraintStringUpper
-                                        )
-                                    ) == true) &&
+                                    romanjiNameUpper?.contains(romanizedConstraint) == true ||
+                                    name.contains(romanizedConstraint)) &&
                             userFilterPass(item)
                         ) {
                             itemList.add(item)
