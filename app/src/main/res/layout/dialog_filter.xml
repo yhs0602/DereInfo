@@ -1,6 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp">
 
-</ConstraintLayout>
+
+    <TextView
+        android:id="@+id/filterTVType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Type"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <CheckBox
+        android:id="@+id/filterCBAllType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AllType"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/filterTVType" />
+
+    <CheckBox
+        android:id="@+id/filterCBCute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cute"
+        app:layout_constraintStart_toEndOf="@id/filterCBAllType"
+        app:layout_constraintTop_toBottomOf="@+id/filterTVType" />
+
+    <CheckBox
+        android:id="@+id/filterCBCool"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cool"
+        app:layout_constraintStart_toEndOf="@+id/filterCBCute"
+        app:layout_constraintTop_toBottomOf="@+id/filterTVType" />
+
+    <CheckBox
+        android:id="@+id/filterCBPassion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Passion"
+        app:layout_constraintStart_toEndOf="@+id/filterCBCool"
+        app:layout_constraintTop_toBottomOf="@+id/filterTVType" />
+
+    <CheckBox
+        android:id="@+id/filterCBTypeAllCheck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select all"
+        app:layout_constraintStart_toEndOf="@+id/filterCBPassion"
+        app:layout_constraintTop_toBottomOf="@+id/filterTVType" />
+
+    <TextView
+        android:id="@+id/filterTVMasterPlus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Master+"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filterCBTypeAllCheck"
+        tools:layout_editor_absoluteX="10dp"
+        tools:layout_editor_absoluteY="10dp" />
+
+    <CheckBox
+        android:id="@+id/filterCBMasterPlus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Master+ 있음"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/filterTVMasterPlus"
+        tools:layout_editor_absoluteX="10dp"
+        tools:layout_editor_absoluteY="10dp" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

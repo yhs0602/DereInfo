@@ -9,15 +9,10 @@ import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.kyhsgeekcode.dereinfo.checkIfDatabase
 import com.kyhsgeekcode.dereinfo.loadObject
-import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
+import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
 import com.kyhsgeekcode.dereinfo.saveObject
 import java.io.File
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.List
-import kotlin.collections.MutableMap
 import kotlin.collections.set
-import kotlin.collections.withIndex
 
 
 //This allows access to dere database
@@ -32,8 +27,9 @@ class DereDatabaseHelper(context: Context) {
     val fumenFolder: File
 
     var musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
-    var musicNumberToMusicID = HashMap<Int,Int>()  //SerializableSparseIntArray = SerializableSparseIntArray()
-    var musicIDTomusicNumber = HashMap<Int,Int>() //  = SerializableSparseIntArray()
+    var musicNumberToMusicID =
+        HashMap<Int, Int>()  //SerializableSparseIntArray = SerializableSparseIntArray()
+    var musicIDTomusicNumber = HashMap<Int, Int>() //  = SerializableSparseIntArray()
 
     init {
         val datadir = context.getExternalFilesDir(null).parentFile.parentFile
@@ -78,7 +74,10 @@ class DereDatabaseHelper(context: Context) {
             SQLiteDatabase.openDatabase(manifestFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
         val cursorLiveData =
-            fumensDB.rawQuery("SELECT id,music_data_id,circle_type FROM live_data WHERE end_date='' AND prp_flag=1",null)
+            fumensDB.rawQuery(
+                "SELECT id,music_data_id,circle_type FROM live_data WHERE end_date='' AND prp_flag=1",
+                null
+            )
 
 //            fumensDB.query(
 //                "live_data",
@@ -185,14 +184,14 @@ class DereDatabaseHelper(context: Context) {
                     name = name.substring(13)
                     name = name.substringBefore('.')
                     val musicIndex = Integer.parseInt(name.split('/')[0])
-                   // Log.d(TAG, "musicIndex ${musicIndex}, ${file.name}")
+                    // Log.d(TAG, "musicIndex ${musicIndex}, ${file.name}")
 //                val difficulty = Integer.parseInt(name.substringAfter('_'))
                     musicNumberToFumenFile[musicIndex] = file
                     break
                 }
                 fumenDB.close()
             } catch (e: SQLException) {
-                Log.e(TAG, "indexFumen",e)
+                Log.e(TAG, "indexFumen", e)
                 continue
             } finally {
                 cursorFumens?.close()
@@ -255,8 +254,10 @@ class DereDatabaseHelper(context: Context) {
         loadFumenDBFileFromCache()
         musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicInfo>
         musicNumberToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
-        musicNumberToMusicID = loadObject(musicNumberToMusicIDFile) as HashMap<Int,Int> //as SerializableSparseIntArray
-        musicIDTomusicNumber = loadObject(musicIDToMusicNumberFile) as HashMap<Int, Int> //SerializableSparseIntArray
+        musicNumberToMusicID =
+            loadObject(musicNumberToMusicIDFile) as HashMap<Int, Int> //as SerializableSparseIntArray
+        musicIDTomusicNumber =
+            loadObject(musicIDToMusicNumberFile) as HashMap<Int, Int> //SerializableSparseIntArray
     }
 
     private fun loadFumenDBFileFromCache() {
@@ -309,7 +310,7 @@ class DereDatabaseHelper(context: Context) {
         )
         val fumenFile = musicNumberToFumenFile[musicNumber]
         Log.d(TAG, "fumenFile:${fumenFile?.name}")
-        if(fumenFile==null)
+        if (fumenFile == null)
             throw java.lang.RuntimeException()
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
@@ -333,8 +334,8 @@ class DereDatabaseHelper(context: Context) {
             name = name.substring(13)
             name = name.substringBefore('.')
             val maybeDifficulty = name.substringAfter('_')
-            if(!maybeDifficulty.isDigitsOnly()) {
-                Log.d(TAG,"name:${name} continue")
+            if (!maybeDifficulty.isDigitsOnly()) {
+                Log.d(TAG, "name:${name} continue")
                 continue
             }
             val difficulty = Integer.parseInt(maybeDifficulty)
@@ -481,8 +482,7 @@ class DereDatabaseHelper(context: Context) {
             idd++
             var twMode = getTWMode(mode)
             val endpos = row["finishPos"]!!.toFloat()
-            val flick =
-                getTW5Flick(row["status"]!!.toInt())
+            val flick = getTW5Flick(row["status"]!!.toInt())
             if (gid == 0) {
                 //...
             } else {

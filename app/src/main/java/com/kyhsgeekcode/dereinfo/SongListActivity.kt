@@ -9,23 +9,21 @@ import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import com.kyhsgeekcode.dereinfo.model.CircleType.getColor
-import com.kyhsgeekcode.dereinfo.model.CircleType.makeRGB
+import com.kyhsgeekcode.dereinfo.model.CircleType
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
 import com.kyhsgeekcode.dereinfo.model.SortType
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
-import com.wanakanajava.WanaKanaJava
 import kotlinx.android.synthetic.main.activity_song_list.*
+import kotlinx.android.synthetic.main.dialog_filter.*
 import kotlinx.android.synthetic.main.song_list.*
-import kotlinx.android.synthetic.main.song_list_content.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.crizin.KoreanRomanizer
 
 
 /**
@@ -36,7 +34,7 @@ import net.crizin.KoreanRomanizer
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
+class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener, FilterAlertDialogFragment.FilterDialogListener {
     val TAG = "SongListActivity"
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
@@ -166,12 +164,14 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
         searchView.queryHint = "Search"
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(s: String): Boolean {
-                adapter.filter?.filter(s)
+                constraint = s
+                adapter.filter?.filter(constraint)
                 return false
             }
 
             override fun onQueryTextChange(s: String?): Boolean {
-                adapter.filter?.filter(s)
+                constraint = s?:""
+                adapter.filter?.filter(constraint)
                 return false
             }
         })
@@ -198,154 +198,42 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
 
 
     private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
-        val adapter = SongRecyclerViewAdapter(this, twoPane)
+        val adapter =
+            SongRecyclerViewAdapter(this, twoPane)
         recyclerView.adapter = adapter
         return adapter
     }
 
-    class SongRecyclerViewAdapter(
-        private
-        val parentActivity: SongListActivity,
-        private val twoPane: Boolean
-    ) :
-        RecyclerView.Adapter<SongRecyclerViewAdapter.ViewHolder>(), Filterable {
-
-        private var listFilter: ListFilter? = null
-        private val onClickListener: View.OnClickListener
-        private val values: MutableList<MusicInfo> = ArrayList()
-        private var filteredItemList: MutableList<MusicInfo> = values
-
-        init {
-            onClickListener = View.OnClickListener { v ->
-                val item = v.tag as MusicInfo
-                if (twoPane) {
-                    val fragment = SongDetailFragment().apply {
-                        arguments = Bundle().apply {
-                            putInt(SongDetailFragment.ARG_ITEM_ID, item.id)
-                        }
-                    }
-                    parentActivity.supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.song_detail_container, fragment)
-                        .commit()
-                } else {
-                    val intent = Intent(v.context, SongDetailActivity::class.java).apply {
-                        putExtra(SongDetailFragment.ARG_ITEM_ID, item.id)
-                    }
-                    v.context.startActivity(intent)
-                }
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.song_list_content, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = filteredItemList[position]
-            holder.idView.text = """${item.name}(${item.id})""".replace("\\n", " ")
-            holder.contentView.text = item.composer
-            holder.backgroundLayout.setBackgroundColor(makeRGB(getColor(item.circleType)))
-            with(holder.itemView) {
-                tag = item
-                setOnClickListener(onClickListener)
-            }
-        }
-
-
-        override fun getItemCount() = filteredItemList.size
-
-        fun addItem(item: MusicInfo) {
-            values.add(item)
-            notifyDataSetChanged()
-        }
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val idView: TextView = view.id_text
-            val contentView: TextView = view.content
-            val backgroundLayout: LinearLayout = view.listitem_background
-        }
-
-        override fun getFilter(): Filter? {
-            if (listFilter == null) {
-                listFilter = ListFilter()
-            }
-            return listFilter
-        }
-
-        inner class ListFilter : Filter() {
-            val TAG = "ListFilter"
-            override fun performFiltering(constraint: CharSequence?): FilterResults {
-                Log.d(TAG, "Filter called$constraint")
-                val results = FilterResults()
-                val constraintStringUpper = constraint.toString().toUpperCase()
-                val romanizedConstraint = KoreanRomanizer.romanize(constraintStringUpper).toUpperCase()
-                Log.d(TAG,"Romanized:${romanizedConstraint}")
-                if (constraint == null || constraint.isEmpty()) {
-                    results.values = values
-                    results.count = values.size
-                } else {
-                    val itemList: ArrayList<MusicInfo> = ArrayList()
-                    for (item in values) {
-                        val name = """${item.name}(${item.id})""".toUpperCase()
-                        val nameKanaUpper = item.nameKana.toUpperCase()
-                        val romanjiNameUpper = WanaKanaJava.toRomaji(nameKanaUpper)
-                            ?.toUpperCase()
-                        Log.d(TAG, "")
-                        if ((name.contains(constraintStringUpper) ||
-                                    nameKanaUpper.contains(constraintStringUpper) ||
-                                    romanjiNameUpper?.contains(constraintStringUpper) == true ||
-                                    romanjiNameUpper?.contains(romanizedConstraint) == true ||
-                                    name.contains(romanizedConstraint)) &&
-                            userFilterPass(item)
-                        ) {
-                            itemList.add(item)
-                        }
-                    }
-                    results.values = itemList
-                    results.count = itemList.size
-                }
-                return results
-            }
-
-            override fun publishResults(
-                constraint: CharSequence,
-                results: FilterResults
-            ) { // update listview by filtered data list.
-                filteredItemList = results.values as ArrayList<MusicInfo>
-                Log.d(TAG, """filtered:${filteredItemList.size}, original:${values.size}""")
-
-                // notify
-                if (results.count > 0) {
-                    notifyDataSetChanged()
-                } else {
-                    notifyDataSetChanged()
-                }
-            }
-        }
-
-        fun userFilterPass(item: MusicInfo): Boolean {
-            return true
-        }
-
-        fun sortBy(sortType: SortType) {
-            filteredItemList.sortBy{
-                sortType.condition(it) as Comparable<Any>
-            }
-            notifyDataSetChanged()
-        }
-    }
-
     override fun onClick(dialog: DialogInterface?, which: Int) {
-        val sortType = SortType.getByValue(which)
-        sortList(sortType ?: SortType.Data)
+        sortType = SortType.getByValue(which)
+        sortList()
     }
 
-    private fun sortList(sortType: SortType) {
+    private fun sortList() {
         Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
         adapter.sortBy(sortType)
     }
 
+    override fun onDialogPositiveClick(dialog: DialogFragment, checked: Map<Int,Boolean>) {
+        Log.d(TAG,"Permitted:${checked.toList().joinToString()}" )
+        val permittedType: MutableList<CircleType> = ArrayList()
+        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBAllType]!!) {
+            permittedType.add(CircleType.All)
+        }
+        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBCute]!!) {
+            permittedType.add(CircleType.Cute)
+        }
+        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBCool]!!) {
+            permittedType.add(CircleType.Cool)
+        }
+        if(checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBPassion]!!) {
+            permittedType.add(CircleType.Passion)
+        }
+        Log.d(TAG,"Permitted2:${permittedType.toTypedArray().joinToString()}")
+        adapter.userFilter.addFilter(*permittedType.toTypedArray())
+        adapter.filter?.filter(constraint)
+        //sortList()
+    }
+    private var sortType : SortType = SortType.Data
+    private var constraint: String = ""
 }
