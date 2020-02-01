@@ -10,7 +10,8 @@ class MusicInfo(
     val lyricist: String,
     val soundOffset: Int,
     val soundLength: Int,
-    val circleType: Int = 4
+    val circleType: Int = 4,
+    val nameKana : String = ""
 ) : Serializable {
     override fun toString(): String {
         val lineSeparator = System.lineSeparator()

@@ -106,7 +106,8 @@ class DereDatabaseHelper(context: Context) {
                     "composer",
                     "lyricist",
                     "sound_offset",
-                    "sound_length"
+                    "sound_length",
+                    "name_kana"
                 ),
                 "id=?",
                 arrayOf(musicDataId.toString()),
@@ -134,6 +135,7 @@ class DereDatabaseHelper(context: Context) {
             val soundOffset = cursorMusicData.getInt(5)
             val soundLengthIndex = cursorMusicData.getColumnIndex("sound_length")
             val soundLength = cursorMusicData.getInt(6)
+            val nameKana = cursorMusicData.getString(7)
             cursorMusicData.close()
             val liveDataId = cursorLiveData.getInt(liveDataIdIndex)
             val circleType = cursorLiveData.getInt(circleTypeIndex)
@@ -148,7 +150,8 @@ class DereDatabaseHelper(context: Context) {
                 lyricist,
                 soundOffset,
                 soundLength,
-                circleType
+                circleType,
+                nameKana
             )
             musicIDToInfo[musicDataId] = musicInfo
             currentCount++

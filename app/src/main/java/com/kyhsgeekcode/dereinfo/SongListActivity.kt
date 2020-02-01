@@ -279,7 +279,9 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
                     val itemList: ArrayList<MusicInfo> = ArrayList()
                     for (item in values) {
                         val name = """${item.name}(${item.id})"""
-                        if (name.toUpperCase().contains(constraint.toString().toUpperCase())) {
+                        if ((name.toUpperCase().contains(constraint.toString().toUpperCase()) ||
+                                item.nameKana.toUpperCase().contains(constraint.toString().toUpperCase())) &&
+                                userFilterPass(item)) {
                             itemList.add(item)
                         }
                     }
@@ -304,6 +306,10 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
                 }
             }
         }
+        fun userFilterPass(item:MusicInfo):Boolean {
+            return true
+        }
+
     }
 
     override fun onClick(dialog: DialogInterface?, which: Int) {
@@ -314,4 +320,6 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener {
     private fun sortList(sortType: SortType) {
         Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
     }
+
+
 }
