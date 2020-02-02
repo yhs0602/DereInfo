@@ -176,7 +176,7 @@ class SongRecyclerViewAdapter(
                     }
                 }
                 itemList.sortBy {
-                    sortType.condition(it) as Comparable<Any>
+                    sortType.condition(it, currentDifficulty) as Comparable<Any>
                 }
                 results.values = itemList
                 results.count = itemList.size
@@ -206,7 +206,7 @@ class SongRecyclerViewAdapter(
     fun sortBy(sortType: SortType) {
         this.sortType = sortType
         filteredItemList.sortBy {
-            sortType.condition(it) as Comparable<Any>
+            sortType.condition(it,currentDifficulty) as Comparable<Any>
         }
         notifyDataSetChanged()
     }

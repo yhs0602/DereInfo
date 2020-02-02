@@ -9,18 +9,20 @@ enum class SortType(val value: Int) {
     SlideRatio(5)
     ;
 
-    fun condition(musicInfo: MusicInfo) :Any {
+    fun condition(musicInfo: MusicInfo, difficulty: TW5Difficulty): Any {
+        val statistic =
+            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(difficulty)
         return when (this) {
             Data -> musicInfo.id
             Alphabetical -> if (musicInfo.nameKana.isBlank()) musicInfo.nameKana else musicInfo.name
-            TotalNote -> musicInfo.bpm
-            LongRatio -> musicInfo.composer
-            FlickRatio -> musicInfo.lyricist
-            SlideRatio -> musicInfo.soundLength
+            TotalNote -> statistic?.get(StatisticIndex.Total) ?: 0.0f
+            LongRatio -> statistic?.get(StatisticIndex.Long) ?: 0.0f
+            FlickRatio -> statistic?.get(StatisticIndex.Flick) ?:0.0f
+            SlideRatio -> statistic?.get(StatisticIndex.Slide) ?:0.0f
         }
     }
 
-    fun hasStatisticCondition() : Boolean = when(this) {
+    fun hasStatisticCondition(): Boolean = when (this) {
         Data -> false
         Alphabetical -> false
         TotalNote -> true
@@ -29,7 +31,7 @@ enum class SortType(val value: Int) {
         SlideRatio -> true
     }
 
-    fun getStatisticIndex() : StatisticIndex = when(this) {
+    fun getStatisticIndex(): StatisticIndex = when (this) {
         Data -> StatisticIndex.Total
         Alphabetical -> StatisticIndex.Total
         TotalNote -> StatisticIndex.Total
@@ -40,6 +42,6 @@ enum class SortType(val value: Int) {
 
     companion object {
         private val values = values();
-        fun getByValue(value: Int) = values.firstOrNull { it.value == value }?:Data
+        fun getByValue(value: Int) = values.firstOrNull { it.value == value } ?: Data
     }
 }
