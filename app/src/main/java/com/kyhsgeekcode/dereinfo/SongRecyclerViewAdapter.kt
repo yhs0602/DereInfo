@@ -31,6 +31,7 @@ class SongRecyclerViewAdapter(
     private val values: MutableList<MusicInfo> = ArrayList()
     private var filteredItemList: MutableList<MusicInfo> = values
     var currentDifficulty: TW5Difficulty = TW5Difficulty.Master
+    var listView: RecyclerView? = null
 
     init {
         onClickListener = View.OnClickListener { v ->
@@ -60,6 +61,7 @@ class SongRecyclerViewAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.song_list_content, parent, false)
+        listView = parent as RecyclerView
         return ViewHolder(view)
     }
 
@@ -78,28 +80,41 @@ class SongRecyclerViewAdapter(
         }
         val statistic = DereDatabaseHelper.theInstance.musicInfoIDToStatistic[item.id]
         val currentStatistic = statistic?.get(currentDifficulty)
-        Log.d(TAG,"statistic:${currentStatistic.toString()}")
+        Log.d(TAG, "statistic:${currentStatistic.toString()}")
         with(holder) {
             if (currentStatistic != null) {
                 tvLevel.text = """lv.${currentStatistic[StatisticIndex.Level]?.toInt() ?: "??"}"""
-                tvConditionValue.text = currentStatistic[sortType.getStatisticIndex()]?.formatCleanPercent(2)
+                tvConditionValue.text =
+                    currentStatistic[sortType.getStatisticIndex()]?.formatCleanPercent(2)
             } else {
                 tvLevel.text = "-"
                 tvConditionValue.text = "-"
             }
             for (button in layoutDifficulties.children) {
                 if (button is Button) {
+                    val btnDifficulty = TW5Difficulty.fromString(button.text.toString())
                     button.isEnabled =
-                        statistic?.containsKey(TW5Difficulty.fromString(button.text.toString())) == true
-                    button.setOnClickListener{
-                        if(twoPaneInTablet) {
+                        statistic?.containsKey(btnDifficulty) == true
+                    button.setOnClickListener {
+                        currentMusicIDIndex = item.id
+                        if (twoPaneInTablet) {
                             //display
                         } else {
-                            currentDifficulty = TW5Difficulty.fromString(button.text.toString())
+                            currentDifficulty = btnDifficulty
                         }
                         sortBy(sortType)
                         notifyDataSetChanged()
+                        scrollToIndex()
                     }
+                    if (button.isEnabled) {
+                        if (currentDifficulty == btnDifficulty) {
+                            button.setBackgroundResource(R.drawable.shape_gradient_selected)
+                        } else {
+                            button.setBackgroundResource(R.drawable.shape_gradient_round)
+                        }
+                    } else
+                        button.setBackgroundResource(R.drawable.shape_gradient_disabled)
+
                 }
             }
         }
@@ -108,6 +123,14 @@ class SongRecyclerViewAdapter(
 
 
     override fun getItemCount() = filteredItemList.size
+
+    fun scrollToIndex() {
+        val realIndex = filteredItemList.indexOfFirst {
+            it.id == currentMusicIDIndex
+        }
+        if (realIndex in 0..filteredItemList.size)
+            listView?.scrollToPosition(realIndex)
+    }
 
     fun clear() {
         values.clear()
@@ -208,11 +231,13 @@ class SongRecyclerViewAdapter(
     fun sortBy(sortType: SortType) {
         this.sortType = sortType
         filteredItemList.sortByDescending {
-            sortType.condition(it,currentDifficulty) as Comparable<Any>
+            sortType.condition(it, currentDifficulty) as Comparable<Any>
         }
         notifyDataSetChanged()
+        scrollToIndex()
     }
 
     var userFilter: SongFilter = SongFilter()
     var sortType: SortType = SortType.Alphabetical
+    var currentMusicIDIndex : Int = 0
 }
