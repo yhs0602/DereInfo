@@ -40,3 +40,6 @@ Maybe can be used as a reference when you hesitate whom with which `Act skill` t
 
 1. Filtering does not work. 
 
+# Open Source
+ 1. [snackprogressbar](https://github.com/tingyik90/snackprogressbar) by tingyik90
+
