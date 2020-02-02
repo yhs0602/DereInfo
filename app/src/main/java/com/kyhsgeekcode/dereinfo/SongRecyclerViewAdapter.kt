@@ -25,7 +25,7 @@ class SongRecyclerViewAdapter(
 ) :
     RecyclerView.Adapter<SongRecyclerViewAdapter.ViewHolder>(),
     Filterable {
-
+    val TAG = "Adapter"
     private var listFilter: ListFilter? = null
     private val onClickListener: View.OnClickListener
     private val values: MutableList<MusicInfo> = ArrayList()
@@ -78,6 +78,7 @@ class SongRecyclerViewAdapter(
         }
         val statistic = DereDatabaseHelper.theInstance.musicInfoIDToStatistic[item.id]
         val currentStatistic = statistic?.get(currentDifficulty)
+        Log.d(TAG,"statistic:${currentStatistic.toString()}")
         with(holder) {
             if (currentStatistic != null) {
                 tvLevel.text = """lv.${currentStatistic[StatisticIndex.Level]?.toInt() ?: "??"}"""

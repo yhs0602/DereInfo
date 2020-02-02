@@ -30,7 +30,7 @@ enum class TW5Difficulty(val value: Int) {
         }
 
         fun valueOf(value: Int): TW5Difficulty {
-            Log.d(TAG, "valueOf Int:${value}")
+            //Log.d(TAG, "valueOf Int:${value}")
             return when (value) {
                 1 -> Debut
                 2 -> Regular

@@ -271,27 +271,27 @@ class DereDatabaseHelper(context: Context) {
 
     suspend fun refreshCache(
         context: Context,
-        publisher: (Int, Int, MusicInfo?,String?) -> Unit,
+        publisher: (Int, Int, MusicInfo?, String?) -> Unit,
         onFinish: () -> Unit
     ): Boolean = load(context, true, publisher, onFinish)
 
     suspend fun load(
         context: Context,
         refresh: Boolean = false,
-        publisher: (Int, Int, MusicInfo?,String?) -> Unit,
+        publisher: (Int, Int, MusicInfo?, String?) -> Unit,
         onFinish: () -> Unit
     ): Boolean {
         try {
             if (loadFromCache(context) && !refresh) {
                 for (musicInfo in musicIDToInfo.values.withIndex()) {
-                    publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value,null)
+                    publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value, null)
                 }
             } else {
-                publisher(100,0,null,"Parsing main database...")
+                publisher(100, 0, null, "Parsing main database...")
                 parseDatabases(publisher)
-                publisher(100,0,null, "Selecting fumens...")
+                publisher(100, 0, null, "Selecting fumens...")
                 indexFumens(publisher)
-                publisher(100,0, null, "Counting notes...")
+                publisher(100, 0, null, "Counting notes...")
                 countFumens(publisher)
                 publisher(100, 50, null, "Saving")
                 saveToCache()
@@ -389,8 +389,10 @@ class DereDatabaseHelper(context: Context) {
                 null,
                 null
             )
-            val fumenStr = cursorFumens.getBlob(1).toString()
+            val fumenStr = cursorFumens.getBlob(1).toString(Charsets.UTF_8)
             val rawNotes = csvReader().readAllWithHeader(fumenStr)
+            //Log.d(TAG, "len:${fumenStr.length}")
+            //Log.d(TAG, "rawNotes:${rawNotes.size}")
             val resultOne = HashMap<StatisticIndex, Float>()
             if (cursorLiveData.moveToNext()) {
                 val density = cursorLiveData.getInt(0)
@@ -401,31 +403,37 @@ class DereDatabaseHelper(context: Context) {
             cursorLiveData.close()
             val counter = HashMap<StatisticIndex, Int>()
             for (rawNote in rawNotes) {
-                val modeAndFlick =
-                    getModeAndFlick(rawNote["type"]!!.toInt(), rawNote["status"]!!.toInt())
+                val type = rawNote["type"]!!.toInt()
+                if (type > 7)
+                    continue
+                val status = rawNote["status"]!!.toInt()
+                val modeAndFlick = getModeAndFlick(type, status)
                 val mode = modeAndFlick.first
                 val flick = modeAndFlick.second
-                counter[StatisticIndex.Total] = counter[StatisticIndex.Total] ?: 0 + 1
+                counter[StatisticIndex.Total] = (counter[StatisticIndex.Total] ?: 0) + 1
                 //시간도 계산?
                 //7초 11초 9초 나오겠지. 6/7 9/11 7.5/9
                 val index = StatisticIndex.makeIndex(mode, flick)
-                counter[index] = counter[index] ?: 0 + 1
+                counter[index] = (counter[index] ?: 0) + 1
                 val actIndex = StatisticIndex.makeIndex(index, rawNote["sec"]!!.toFloat())
                 if (actIndex != null) {
-                    counter[actIndex] = counter[actIndex] ?: 0 + 1
+                    counter[actIndex] = (counter[actIndex] ?: 0) + 1
                 }
             }
+            Log.d(TAG, "Counter:${counter}")
             resultOne[StatisticIndex.Total] = (counter[StatisticIndex.Total] ?: 0).toFloat()
             for (index in StatisticIndex.values()) {
                 if (index == StatisticIndex.Total) continue
                 if (index == StatisticIndex.Level) continue
                 resultOne[index] =
-                    ((counter[index] ?: 0) / (counter[StatisticIndex.Total] ?: 1)).toFloat()
+                    ((counter[index] ?: 0).toFloat() / (counter[StatisticIndex.Total]
+                        ?: 1).toFloat()) * 100.0f
             }
             result[difficulty] = resultOne
         }
         cursorFumens.close()
         fumenDB.close()
+        Log.d(TAG, "Result:$result")
         return result
     }
 
