@@ -84,6 +84,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
                 snackProgressBarManager.setProgress(progress100.toInt())
                 if(message!=null) {
                     circularType.setMessage(message)
+                    snackProgressBarManager.show(circularType,SnackProgressBarManager.LENGTH_INDEFINITE)
                 }
             }
         }
