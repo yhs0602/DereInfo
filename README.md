@@ -2,6 +2,8 @@
 
 Deresute songs information
 
+Maybe can be used as a reference when you hesitate whom with which `Act skill` to scout using normal scout tickets. 
+
 [Release](https://github.com/KYHSGeekCode/DereInfo/releases)
 
 
@@ -35,3 +37,4 @@ Deresute songs information
 # Known bugs 
 
 1. Filtering does not work. 
+
