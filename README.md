@@ -1,4 +1,4 @@
-# DereInfo
+# DereInfo(デレステアクト曲 情報-데레스테 액트 곡 목록)
 
 Deresute songs information
 
