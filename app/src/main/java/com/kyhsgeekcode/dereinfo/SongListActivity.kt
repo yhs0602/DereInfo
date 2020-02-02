@@ -77,15 +77,14 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
         }
         val publisher: (Int, Int, MusicInfo?, String?) -> Unit = { total, progress, info, message ->
             CoroutineScope(Dispatchers.Main).launch {
-                val progress100 = progress.toDouble() / total.toDouble() * 100.0
-                circularType.setProgressMax(100)
+                circularType.setProgressMax(total)
                 if (info != null)
                     adapter.addItem(info)
-                snackProgressBarManager.setProgress(progress100.toInt())
+                snackProgressBarManager.setProgress(progress)
                 if(message!=null) {
                     circularType.setMessage(message)
-                    snackProgressBarManager.show(circularType,SnackProgressBarManager.LENGTH_INDEFINITE)
                 }
+                snackProgressBarManager.updateTo(circularType)
             }
         }
         val onFinish: () -> Unit = {
