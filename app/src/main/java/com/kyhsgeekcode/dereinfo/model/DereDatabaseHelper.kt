@@ -420,7 +420,7 @@ class DereDatabaseHelper(context: Context) {
                     counter[actIndex] = (counter[actIndex] ?: 0) + 1
                 }
             }
-            Log.d(TAG, "Counter:${counter}")
+            //Log.d(TAG, "Counter:${counter}")
             resultOne[StatisticIndex.Total] = (counter[StatisticIndex.Total] ?: 0).toFloat()
             for (index in StatisticIndex.values()) {
                 if (index == StatisticIndex.Total) continue
@@ -433,7 +433,7 @@ class DereDatabaseHelper(context: Context) {
         }
         cursorFumens.close()
         fumenDB.close()
-        Log.d(TAG, "Result:$result")
+        //Log.d(TAG, "Result:$result")
         return result
     }
 

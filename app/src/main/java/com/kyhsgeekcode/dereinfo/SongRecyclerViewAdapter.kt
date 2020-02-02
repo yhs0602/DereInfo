@@ -82,7 +82,7 @@ class SongRecyclerViewAdapter(
         with(holder) {
             if (currentStatistic != null) {
                 tvLevel.text = """lv.${currentStatistic[StatisticIndex.Level]?.toInt() ?: "??"}"""
-                tvConditionValue.text = currentStatistic[sortType.getStatisticIndex()]?.toString()
+                tvConditionValue.text = currentStatistic[sortType.getStatisticIndex()]?.formatCleanPercent(2)
             } else {
                 tvLevel.text = "-"
                 tvConditionValue.text = "-"
@@ -97,6 +97,7 @@ class SongRecyclerViewAdapter(
                         } else {
                             currentDifficulty = TW5Difficulty.fromString(button.text.toString())
                         }
+                        sortBy(sortType)
                         notifyDataSetChanged()
                     }
                 }
@@ -176,7 +177,7 @@ class SongRecyclerViewAdapter(
                         itemList.add(item)
                     }
                 }
-                itemList.sortBy {
+                itemList.sortByDescending {
                     sortType.condition(it, currentDifficulty) as Comparable<Any>
                 }
                 results.values = itemList
@@ -206,7 +207,7 @@ class SongRecyclerViewAdapter(
 
     fun sortBy(sortType: SortType) {
         this.sortType = sortType
-        filteredItemList.sortBy {
+        filteredItemList.sortByDescending {
             sortType.condition(it,currentDifficulty) as Comparable<Any>
         }
         notifyDataSetChanged()
