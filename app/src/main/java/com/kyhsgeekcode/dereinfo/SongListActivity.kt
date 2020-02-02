@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -69,16 +70,25 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
             Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
-        val publisher: (Int, Int, MusicInfo?) -> Unit = { total, progress, info ->
+        if(twoPane){
+            fab.hide()
+        } else {
+            fab.show()
+        }
+        val publisher: (Int, Int, MusicInfo?, String?) -> Unit = { total, progress, info, message ->
             CoroutineScope(Dispatchers.Main).launch {
                 val progress100 = progress.toDouble() / total.toDouble() * 100.0
                 circularType.setProgressMax(100)
                 if (info != null)
                     adapter.addItem(info)
                 snackProgressBarManager.setProgress(progress100.toInt())
+                if(message!=null) {
+                    circularType.setMessage(message)
+                }
             }
         }
         val onFinish: () -> Unit = {
+            adapter.notifyDataSetChanged()
             snackProgressBarManager.dismiss()
         }
         pullToRefresh.setOnRefreshListener {
@@ -104,7 +114,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
     }
 
     private fun refreshCache(
-        publisher: (Int, Int, MusicInfo?) -> Unit,
+        publisher: (Int, Int, MusicInfo?,String?) -> Unit,
         onFinish: () -> Unit
     ) {
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)

@@ -20,6 +20,24 @@ enum class SortType(val value: Int) {
         }
     }
 
+    fun hasStatisticCondition() : Boolean = when(this) {
+        Data -> false
+        Alphabetical -> false
+        TotalNote -> true
+        LongRatio -> true
+        FlickRatio -> true
+        SlideRatio -> true
+    }
+
+    fun getStatisticIndex() : StatisticIndex = when(this) {
+        Data -> StatisticIndex.Total
+        Alphabetical -> StatisticIndex.Total
+        TotalNote -> StatisticIndex.Total
+        LongRatio -> StatisticIndex.Long
+        FlickRatio -> StatisticIndex.Flick
+        SlideRatio -> StatisticIndex.Slide
+    }
+
     companion object {
         private val values = values();
         fun getByValue(value: Int) = values.firstOrNull { it.value == value }?:Data

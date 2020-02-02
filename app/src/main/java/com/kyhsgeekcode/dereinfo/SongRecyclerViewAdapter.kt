@@ -6,15 +6,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Filter
 import android.widget.Filterable
-import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.children
 import androidx.recyclerview.widget.RecyclerView
-import com.kyhsgeekcode.dereinfo.model.CircleType
-import com.kyhsgeekcode.dereinfo.model.MusicInfo
-import com.kyhsgeekcode.dereinfo.model.SongFilter
-import com.kyhsgeekcode.dereinfo.model.SortType
+import com.kyhsgeekcode.dereinfo.model.*
 import com.wanakanajava.WanaKanaJava
 import kotlinx.android.synthetic.main.song_list_content.view.*
 import net.crizin.KoreanRomanizer
@@ -22,7 +21,7 @@ import net.crizin.KoreanRomanizer
 class SongRecyclerViewAdapter(
     private
     val parentActivity: SongListActivity,
-    private val twoPane: Boolean
+    private val twoPaneInTablet: Boolean
 ) :
     RecyclerView.Adapter<SongRecyclerViewAdapter.ViewHolder>(),
     Filterable {
@@ -31,11 +30,12 @@ class SongRecyclerViewAdapter(
     private val onClickListener: View.OnClickListener
     private val values: MutableList<MusicInfo> = ArrayList()
     private var filteredItemList: MutableList<MusicInfo> = values
+    var currentDifficulty: TW5Difficulty = TW5Difficulty.Master
 
     init {
         onClickListener = View.OnClickListener { v ->
             val item = v.tag as MusicInfo
-            if (twoPane) {
+            if (twoPaneInTablet) {
                 val fragment = SongDetailFragment().apply {
                     arguments = Bundle().apply {
                         putInt(SongDetailFragment.ARG_ITEM_ID, item.id)
@@ -66,7 +66,7 @@ class SongRecyclerViewAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = filteredItemList[position]
         holder.idView.text = """${item.name}(${item.id})""".replace("\\n", " ")
-        holder.contentView.text = item.composer
+        holder.textViewComposer.text = item.composer
         holder.backgroundLayout.setBackgroundColor(
             CircleType.makeRGB(
                 CircleType.getColor(item.circleType)
@@ -76,6 +76,31 @@ class SongRecyclerViewAdapter(
             tag = item
             setOnClickListener(onClickListener)
         }
+        val statistic = DereDatabaseHelper.theInstance.musicInfoIDToStatistic[item.id]
+        val currentStatistic = statistic?.get(currentDifficulty)
+        with(holder) {
+            if (currentStatistic != null) {
+                tvLevel.text = currentStatistic[StatisticIndex.Level]?.toString()
+                tvConditionValue.text = currentStatistic[sortType.getStatisticIndex()]?.toString()
+            } else {
+                tvLevel.text = "-"
+                tvConditionValue.text = "-"
+            }
+            for (button in layoutDifficulties.children) {
+                if (button is Button) {
+                    button.isEnabled =
+                        statistic?.containsKey(TW5Difficulty.fromString(button.text.toString())) == true
+                    button.setOnClickListener{
+                        if(twoPaneInTablet) {
+                            //display
+                        } else {
+                            currentDifficulty = TW5Difficulty.fromString(button.text.toString())
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
 
@@ -93,8 +118,20 @@ class SongRecyclerViewAdapter(
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val idView: TextView = view.id_text
-        val contentView: TextView = view.content
-        val backgroundLayout: LinearLayout = view.listitem_background
+        val textViewComposer: TextView = view.textViewComposer
+        val backgroundLayout: ConstraintLayout = view.listitem_background
+        val tvLevel: TextView = view.textViewLevel
+        val tvConditionValue = view.textViewConditionValue
+        val buttonDebut = view.buttonDebut
+        val buttonRegular = view.buttonRegular
+        val buttonPro = view.buttonPro
+        val buttonMaster = view.buttonMaster
+        val buttonMasterPlus = view.buttonMasterPlus
+        val buttonLight = view.buttonLight
+        val buttonTrick = view.buttonTrick
+        val buttonPiano = view.buttonPiano
+        val buttonForte = view.buttonForte
+        val layoutDifficulties = view.layoutDifficulties
     }
 
     override fun getFilter(): Filter? {
@@ -137,7 +174,7 @@ class SongRecyclerViewAdapter(
                         itemList.add(item)
                     }
                 }
-                itemList.sortBy{
+                itemList.sortBy {
                     sortType.condition(it) as Comparable<Any>
                 }
                 results.values = itemList
@@ -174,5 +211,5 @@ class SongRecyclerViewAdapter(
     }
 
     var userFilter: SongFilter = SongFilter()
-    var sortType : SortType = SortType.Alphabetical
+    var sortType: SortType = SortType.Alphabetical
 }

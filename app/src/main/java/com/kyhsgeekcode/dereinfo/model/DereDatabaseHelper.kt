@@ -62,7 +62,7 @@ class DereDatabaseHelper(context: Context) {
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    suspend fun parseDatabases(publisher: (Int, Int, MusicInfo) -> Unit) {
+    fun parseDatabases(publisher: (Int, Int, MusicInfo, String?) -> Unit) {
         musicNumberToMusicID.clear()
         musicIDTomusicNumber.clear()
         musicIDToInfo.clear()
@@ -154,20 +154,20 @@ class DereDatabaseHelper(context: Context) {
             )
             musicIDToInfo[musicDataId] = musicInfo
             currentCount++
-            publisher(totalCount, currentCount, musicInfo)
+            publisher(totalCount, currentCount, musicInfo, null)
         }
         cursorLiveData.close()
         fumensDB.close()
     }
 
     var musicNumberToFumenFile: MutableMap<Int, File> = HashMap()
-    fun indexFumens(publisher: (Int, Int, MusicInfo?) -> Unit) {
+    fun indexFumens(publisher: (Int, Int, MusicInfo?, String?) -> Unit) {
         musicNumberToFumenFile.clear()
         var cursorFumens: Cursor? = null
         val fileList = fumenFolder.listFiles()
         for (fileWithIndex in fileList.withIndex()) {
             val file = fileWithIndex.value
-            publisher(fileList.size, fileWithIndex.index, null)
+            publisher(fileList.size, fileWithIndex.index, null, null)
             if (!checkIfDatabase(file)) {
                 //Log.d(TAG, "Skip file")
                 continue
@@ -219,9 +219,10 @@ class DereDatabaseHelper(context: Context) {
     val musicNumberToMusicIDFile = File(context.filesDir, musicNumberToMusicIDFileName)
     val musicIDToMusicNumberFileName = "musicIDToMusicNumber.dat"
     val musicIDToMusicNumberFile = File(context.filesDir, musicIDToMusicNumberFileName)
+    val musicInfoIDToStatisticFileName = "musicInfoIDToStatistic.dat"
+    val musicInfoIDToStatisticFile = File(context.filesDir, musicInfoIDToStatisticFileName)
 
-
-    private fun saveToCache(context: Context) {
+    private fun saveToCache() {
 //        searchMainDB()
 //        parseDatabases()
         fumensDBFile.delete()
@@ -229,11 +230,13 @@ class DereDatabaseHelper(context: Context) {
         indexToFumenFileFile.delete()
         musicNumberToMusicIDFile.delete()
         musicIDToMusicNumberFile.delete()
+        musicInfoIDToStatisticFile.delete()
         saveObject(mainDBFileCacheFile, fumensDBFile)
         saveObject(musicInfoFile, musicIDToInfo)
         saveObject(indexToFumenFileFile, musicNumberToFumenFile)
         saveObject(musicNumberToMusicIDFile, musicNumberToMusicID)
         saveObject(musicIDToMusicNumberFile, musicIDTomusicNumber)
+        saveObject(musicInfoIDToStatisticFile, musicInfoIDToStatistic)
     }
 
     private fun loadFromCache(context: Context): Boolean {
@@ -258,6 +261,8 @@ class DereDatabaseHelper(context: Context) {
             loadObject(musicNumberToMusicIDFile) as HashMap<Int, Int> //as SerializableSparseIntArray
         musicIDTomusicNumber =
             loadObject(musicIDToMusicNumberFile) as HashMap<Int, Int> //SerializableSparseIntArray
+        musicInfoIDToStatistic =
+            loadObject(musicInfoIDToStatisticFile) as HashMap<Int, FumenStatistic>
     }
 
     private fun loadFumenDBFileFromCache() {
@@ -266,29 +271,31 @@ class DereDatabaseHelper(context: Context) {
 
     suspend fun refreshCache(
         context: Context,
-        publisher: (Int, Int, MusicInfo?) -> Unit,
+        publisher: (Int, Int, MusicInfo?,String?) -> Unit,
         onFinish: () -> Unit
     ): Boolean = load(context, true, publisher, onFinish)
 
     suspend fun load(
         context: Context,
         refresh: Boolean = false,
-        publisher: (Int, Int, MusicInfo?) -> Unit,
+        publisher: (Int, Int, MusicInfo?,String?) -> Unit,
         onFinish: () -> Unit
     ): Boolean {
         try {
             if (loadFromCache(context) && !refresh) {
                 for (musicInfo in musicIDToInfo.values.withIndex()) {
-                    publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value)
+                    publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value,null)
                 }
             } else {
-                //publisher(100,0,null)
-
+                publisher(100,0,null,"Parsing main database...")
                 parseDatabases(publisher)
+                publisher(100,0,null, "Selecting fumens...")
                 indexFumens(publisher)
-                publisher(100, 50, null)
-                saveToCache(context)
-                publisher(100, 100, null)
+                publisher(100,0, null, "Counting notes...")
+                countFumens(publisher)
+                publisher(100, 50, null, "Saving")
+                saveToCache()
+                publisher(100, 100, null, "Done")
             }
             Log.d(TAG, "size of databases:${musicIDToInfo.size}")
             Log.d(TAG, "Number of fumens:${musicNumberToFumenFile.size}")
@@ -300,52 +307,69 @@ class DereDatabaseHelper(context: Context) {
         return true
     }
 
-    fun peekFumens(musicNumber: Int): OneMusic {
-        Log.d(
-            TAG,
-            "musicIndex : ${musicNumber},indexToFumenFile size:${musicNumberToFumenFile.size}"
-        )
-        val fumenFile = musicNumberToFumenFile[musicNumber]
-        Log.d(TAG, "fumenFile:${fumenFile?.name}")
-        if (fumenFile == null)
-            throw java.lang.RuntimeException()
-        val fumenDB =
-            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
-        val cursorFumens =
-            fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
-        val difficulties: MutableMap<TW5Difficulty, OneDifficulty> = HashMap()
-        val info = musicIDToInfo[musicNumber] ?: MusicInfo(
-            0,
-            "Error occurred",
-            192,
-            "System",
-            "Unknown",
-            0,
-            1
-        )
-        while (cursorFumens.moveToNext()) {
-            var name = cursorFumens.getString(0)
-            if (!name[name.length - 5].isDigit())
-                continue
-            Log.d(TAG, "name:${name}")
-            name = name.substring(13)
-            name = name.substringBefore('.')
-            val maybeDifficulty = name.substringAfter('_')
-            if (!maybeDifficulty.isDigitsOnly()) {
-                Log.d(TAG, "name:${name} continue")
-                continue
-            }
-            val difficulty = Integer.parseInt(maybeDifficulty)
-            //Log.d(TAG, "difficulty:${difficulty}")
-            val twDifficulty = TW5Difficulty.valueOf(difficulty)
-            difficulties[twDifficulty] = OneDifficulty(twDifficulty, null)
+//    fun peekFumens(musicNumber: Int): OneMusic {
+//        Log.d(
+//            TAG,
+//            "musicIndex : ${musicNumber},indexToFumenFile size:${musicNumberToFumenFile.size}"
+//        )
+//        val fumenFile = musicNumberToFumenFile[musicNumber]
+//        Log.d(TAG, "fumenFile:${fumenFile?.name}")
+//        if (fumenFile == null)
+//            throw java.lang.RuntimeException()
+//        val fumenDB =
+//            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+//        val cursorFumens =
+//            fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
+//        val difficulties: MutableMap<TW5Difficulty, OneDifficulty> = HashMap()
+//        val info = musicIDToInfo[musicNumber] ?: MusicInfo(
+//            0,
+//            "Error occurred",
+//            192,
+//            "System",
+//            "Unknown",
+//            0,
+//            1
+//        )
+//        while (cursorFumens.moveToNext()) {
+//            var name = cursorFumens.getString(0)
+//            if (!name[name.length - 5].isDigit())
+//                continue
+//            Log.d(TAG, "name:${name}")
+//            name = name.substring(13)
+//            name = name.substringBefore('.')
+//            val maybeDifficulty = name.substringAfter('_')
+//            if (!maybeDifficulty.isDigitsOnly()) {
+//                Log.d(TAG, "name:${name} continue")
+//                continue
+//            }
+//            val difficulty = Integer.parseInt(maybeDifficulty)
+//            //Log.d(TAG, "difficulty:${difficulty}")
+//            val twDifficulty = TW5Difficulty.valueOf(difficulty)
+//            difficulties[twDifficulty] = OneDifficulty(twDifficulty, null)
+//        }
+//        cursorFumens.close()
+//        return OneMusic(difficulties, info)
+//    }
+
+    var musicInfoIDToStatistic = HashMap<Int, FumenStatistic>()
+    fun countFumens(publisher: (Int, Int, MusicInfo?, String?) -> Unit) {
+        musicInfoIDToStatistic.clear()
+        for (musicInfo in musicIDToInfo.values.withIndex()) {
+            musicInfoIDToStatistic[musicInfo.value.id] = countFumen(musicInfo.value)
+            publisher(musicIDToInfo.size, musicInfo.index, null, null)
         }
-        cursorFumens.close()
-        return OneMusic(difficulties, info)
     }
 
+    //Difficulty와 통계를 같이 낸다.
     fun countFumen(musicInfo: MusicInfo): FumenStatistic {
-        val fumenFile = musicNumberToFumenFile[musicInfo.id]
+        val fumensDB =
+            SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
+        val musicNumber = musicIDTomusicNumber[musicInfo.id]
+        val fumenFile = musicNumberToFumenFile[musicNumber]
+        if (fumenFile == null) {
+            Log.e(TAG, "fumenfile for id${musicInfo.id}(${musicInfo.name}) is null")
+            return HashMap()
+        }
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
@@ -356,28 +380,47 @@ class DereDatabaseHelper(context: Context) {
             val parsedName = parseFumenName(name) ?: continue
             val musicNumber = parsedName.first
             val difficulty = parsedName.second
+            val cursorLiveData = fumensDB.query(
+                "live_detail",
+                arrayOf("level_vocal"),
+                "live_data_id=? AND difficulty_type=?",
+                arrayOf(musicNumber.toString(), difficulty.value.toString()),
+                null,
+                null,
+                null
+            )
             val fumenStr = cursorFumens.getBlob(1).toString()
             val rawNotes = csvReader().readAllWithHeader(fumenStr)
-            val resultOne = HashMap<StatisticIndex,Float>()
-            val counter = HashMap<StatisticIndex,Int>()
+            val resultOne = HashMap<StatisticIndex, Float>()
+            if (cursorLiveData.moveToNext()) {
+                val density = cursorLiveData.getInt(0)
+                resultOne[StatisticIndex.Level] = density.toFloat()
+            } else {
+                resultOne[StatisticIndex.Level] = -1.0f//error
+            }
+            cursorLiveData.close()
+            val counter = HashMap<StatisticIndex, Int>()
             for (rawNote in rawNotes) {
-                val modeAndFlick = getModeAndFlick(rawNote["type"]!!.toInt(),rawNote["status"]!!.toInt())
+                val modeAndFlick =
+                    getModeAndFlick(rawNote["type"]!!.toInt(), rawNote["status"]!!.toInt())
                 val mode = modeAndFlick.first
                 val flick = modeAndFlick.second
-                counter[StatisticIndex.Total] = counter[StatisticIndex.Total]?:0+1
+                counter[StatisticIndex.Total] = counter[StatisticIndex.Total] ?: 0 + 1
                 //시간도 계산?
                 //7초 11초 9초 나오겠지. 6/7 9/11 7.5/9
-                val index =  StatisticIndex.makeIndex(mode,flick)
-                counter[index] = counter[index] ?:0 + 1
+                val index = StatisticIndex.makeIndex(mode, flick)
+                counter[index] = counter[index] ?: 0 + 1
                 val actIndex = StatisticIndex.makeIndex(index, rawNote["sec"]!!.toFloat())
-                if(actIndex != null) {
-                    counter[actIndex] = counter[actIndex]?:0 + 1
+                if (actIndex != null) {
+                    counter[actIndex] = counter[actIndex] ?: 0 + 1
                 }
             }
-            resultOne[StatisticIndex.Total] = (counter[StatisticIndex.Total]?:0).toFloat()
-            for(index in StatisticIndex.values()) {
-                if(index == StatisticIndex.Total) continue
-                resultOne[index] = ((counter[index]?:0)/(counter[StatisticIndex.Total]?:1)).toFloat()
+            resultOne[StatisticIndex.Total] = (counter[StatisticIndex.Total] ?: 0).toFloat()
+            for (index in StatisticIndex.values()) {
+                if (index == StatisticIndex.Total) continue
+                if (index == StatisticIndex.Level) continue
+                resultOne[index] =
+                    ((counter[index] ?: 0) / (counter[StatisticIndex.Total] ?: 1)).toFloat()
             }
             result[difficulty] = resultOne
         }
@@ -412,7 +455,7 @@ class DereDatabaseHelper(context: Context) {
 
     //5개를 파싱해라.
     fun parseFumen(music: OneMusic, wantedDifficulty: TW5Difficulty): OneMusic {
-        val fumenFile = musicNumberToFumenFile[music.musicInfo.id]
+        val fumenFile = musicNumberToFumenFile[music.musicInfo.id]//wrong
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
@@ -479,7 +522,7 @@ class DereDatabaseHelper(context: Context) {
                 longnoteIDs[endpos] = idd
             }
             //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            if ((mode == 1) and (flick==FlickMode.None)) {
+            if ((mode == 1) and (flick == FlickMode.None)) {
                 prevID = 0
             }
             notes.add(
@@ -567,7 +610,7 @@ class DereDatabaseHelper(context: Context) {
                 longnoteIDs[endpos] = idd
             }
             //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            if ((mode == 1) and (flick==FlickMode.None)) {
+            if ((mode == 1) and (flick == FlickMode.None)) {
                 prevID = 0
             }
             notes.add(

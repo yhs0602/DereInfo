@@ -1,17 +1,17 @@
 package com.kyhsgeekcode.dereinfo.model
 
 import android.util.Log
-
-enum class TW5Difficulty {
-    Debut,
-    Regular,
-    Pro,
-    Master,
-    MasterPlus,
-    Light,
-    Trick,
-    Piano,
-    Forte;
+//Todo: support legacy (101) properly
+enum class TW5Difficulty(val value: Int) {
+    Debut(1),
+    Regular(2),
+    Pro(3),
+    Master(4),
+    MasterPlus(5),
+    Light(11),
+    Trick(12),
+    Piano(21),
+    Forte(22);
 
     companion object {
         val TAG = "TW5Difficulty"

@@ -1,6 +1,7 @@
 package com.kyhsgeekcode.dereinfo.model
 
 enum class StatisticIndex {
+    Level,
     Total,
     Normal,
     Long,
