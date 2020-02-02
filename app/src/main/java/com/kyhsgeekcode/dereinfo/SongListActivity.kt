@@ -88,7 +88,9 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
             }
         }
         val onFinish: () -> Unit = {
-            adapter.notifyDataSetChanged()
+            runOnUiThread{
+                adapter.notifyDataSetChanged()
+            }
             snackProgressBarManager.dismiss()
         }
         pullToRefresh.setOnRefreshListener {

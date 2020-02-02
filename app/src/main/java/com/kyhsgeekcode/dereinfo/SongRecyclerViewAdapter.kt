@@ -80,7 +80,7 @@ class SongRecyclerViewAdapter(
         val currentStatistic = statistic?.get(currentDifficulty)
         with(holder) {
             if (currentStatistic != null) {
-                tvLevel.text = currentStatistic[StatisticIndex.Level]?.toString()
+                tvLevel.text = """lv.${currentStatistic[StatisticIndex.Level]?.toInt() ?: "??"}"""
                 tvConditionValue.text = currentStatistic[sortType.getStatisticIndex()]?.toString()
             } else {
                 tvLevel.text = "-"
@@ -96,6 +96,7 @@ class SongRecyclerViewAdapter(
                         } else {
                             currentDifficulty = TW5Difficulty.fromString(button.text.toString())
                         }
+                        notifyDataSetChanged()
                     }
                 }
             }
