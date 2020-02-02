@@ -4,6 +4,8 @@ Deresute songs information
 
 Maybe can be used as a reference when you hesitate whom with which `Act skill` to scout using normal scout tickets. 
 
+**Supported Act skills: Long act, Flick act, and Slide act (롱, 플릭, 슬라이드 액트)(ロングアクト、フリクアクト、スライドアクト)**
+
 [Release](https://github.com/KYHSGeekCode/DereInfo/releases)
 
 
