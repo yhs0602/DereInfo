@@ -18,5 +18,10 @@
         android:id="@+id/app_bar_sort"
         android:icon="@android:drawable/checkbox_on_background"
         android:title="@string/sort" />
+    <item
+        android:id="@+id/app_bar_refresh"
+        android:icon="@android:drawable/stat_sys_download"
+        android:title="@string/refresh"
+        app:showAsAction="ifRoom"/>
 
 </menu>

@@ -58,7 +58,24 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
      * device.
      */
     private var twoPane: Boolean = false
-
+    val publisher: (Int, Int, MusicInfo?, String?) -> Unit = { total, progress, info, message ->
+        CoroutineScope(Dispatchers.Main).launch {
+            circularType.setProgressMax(total)
+            if (info != null)
+                adapter.addItem(info)
+            snackProgressBarManager.setProgress(progress)
+            if(message!=null) {
+                circularType.setMessage(message)
+            }
+            snackProgressBarManager.updateTo(circularType)
+        }
+    }
+    val onFinish: () -> Unit = {
+        runOnUiThread{
+            adapter.notifyDataSetChanged()
+        }
+        snackProgressBarManager.dismiss()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_song_list)
@@ -75,26 +92,10 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
         } else {
             fab.show()
         }
-        val publisher: (Int, Int, MusicInfo?, String?) -> Unit = { total, progress, info, message ->
-            CoroutineScope(Dispatchers.Main).launch {
-                circularType.setProgressMax(total)
-                if (info != null)
-                    adapter.addItem(info)
-                snackProgressBarManager.setProgress(progress)
-                if(message!=null) {
-                    circularType.setMessage(message)
-                }
-                snackProgressBarManager.updateTo(circularType)
-            }
-        }
-        val onFinish: () -> Unit = {
-            runOnUiThread{
-                adapter.notifyDataSetChanged()
-            }
-            snackProgressBarManager.dismiss()
-        }
+
         pullToRefresh.setOnRefreshListener {
-            refreshCache(publisher, onFinish)
+            pullToRefresh.isRefreshing=false
+//            refreshCache(publisher, onFinish)
         }
 
         if (song_detail_container != null) {
@@ -208,14 +209,16 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
                 val filterAlertDialogFragment = FilterAlertDialogFragment(checkedFilters)
                 filterAlertDialogFragment.show(supportFragmentManager, "filterFragment")
             }
+            app_bar_refresh -> {
+                refreshCache(publisher, onFinish)
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
 
     private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
-        val adapter =
-            SongRecyclerViewAdapter(this, twoPane)
+        val adapter = SongRecyclerViewAdapter(this, twoPane)
         adapter.userFilter.addFilter(CircleType.All,CircleType.Cute,CircleType.Cool,CircleType.Passion)
         recyclerView.adapter = adapter
         return adapter

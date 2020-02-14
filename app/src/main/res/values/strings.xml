@@ -5,4 +5,5 @@
     <string name="search_hint">Search hint</string>
     <string name="sort">Sort</string>
     <string name="filter">Filter</string>
+    <string name="refresh">Refresh</string>
 </resources>

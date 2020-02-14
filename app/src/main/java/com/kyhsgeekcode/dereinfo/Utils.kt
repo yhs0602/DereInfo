@@ -3,7 +3,9 @@ package com.kyhsgeekcode.dereinfo
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import java.io.*
+import kotlin.math.roundToInt
 
 fun launchActivity(context: Context, target: Class<out Activity>) {
     val intent = Intent(context, target)
@@ -54,4 +56,17 @@ fun checkIfDatabase(file: File): Boolean {
     fi.read(byteArray, 0, 16)
     fi.close()
     return byteArray contentEquals sqliteHeader
+}
+
+fun manipulateColor(color: Int, factor: Float): Int {
+    val a: Int = Color.alpha(color)
+    val r = (Color.red(color) * factor).roundToInt()
+    val g = (Color.green(color) * factor).roundToInt()
+    val b = (Color.blue(color) * factor).roundToInt()
+    return Color.argb(
+        a,
+        r.coerceAtMost(255),
+        g.coerceAtMost(255),
+        b.coerceAtMost(255)
+    )
 }

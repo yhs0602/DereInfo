@@ -6,4 +6,5 @@
     <string name="title_song_detail">곡 상세 정보</string>
     <string name="title_song_list">곡 목록</string>
     <string name="filter">필터</string>
+    <string name="refresh">새로고침</string>
 </resources>

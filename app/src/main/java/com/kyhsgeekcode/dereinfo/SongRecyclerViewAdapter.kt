@@ -1,8 +1,12 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +16,8 @@ import android.widget.Filterable
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
+import androidx.core.view.marginStart
+import androidx.core.view.setPadding
 import androidx.recyclerview.widget.RecyclerView
 import com.kyhsgeekcode.dereinfo.model.*
 import com.wanakanajava.WanaKanaJava
@@ -106,15 +112,31 @@ class SongRecyclerViewAdapter(
                         notifyDataSetChanged()
                         scrollToIndex()
                     }
+                    val darkness: Float
+                    button.visibility = View.VISIBLE
                     if (button.isEnabled) {
                         if (currentDifficulty == btnDifficulty) {
                             button.setBackgroundResource(R.drawable.shape_gradient_selected)
+                            darkness = 0.4f
                         } else {
                             button.setBackgroundResource(R.drawable.shape_gradient_round)
+                            darkness = 0.8f
                         }
-                    } else
+                    } else {
                         button.setBackgroundResource(R.drawable.shape_gradient_disabled)
-
+                        darkness = 0.95f
+                        button.visibility = View.GONE
+                    }
+                    val shapeDrawable = button.background as GradientDrawable
+                    shapeDrawable.setColor(
+                        manipulateColor(
+                            CircleType.makeRGB(
+                                CircleType.getColor(item.circleType)
+                            ), darkness
+                        )
+                    )
+                    button.setTextColor(Color.WHITE)
+                    button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11.0f)
                 }
             }
         }
@@ -239,5 +261,5 @@ class SongRecyclerViewAdapter(
 
     var userFilter: SongFilter = SongFilter()
     var sortType: SortType = SortType.Alphabetical
-    var currentMusicIDIndex : Int = 0
+    var currentMusicIDIndex: Int = 0
 }

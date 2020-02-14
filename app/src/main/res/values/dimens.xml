@@ -8,5 +8,8 @@
     <dimen name="app_bar_height">200dp</dimen>
     <dimen name="item_width">200dp</dimen>
     <dimen name="text_margin">16dp</dimen>
-    <dimen name="btn_corner_radius">8dp</dimen>
+    <dimen name="songlistitem_padding">5dp</dimen>
+    <dimen name="songtitle_margin">5dp</dimen>
+    <dimen name="btndifficulty_margin">5dp</dimen>
+    <dimen name="btn_corner_radius">20dp</dimen>
 </resources>
