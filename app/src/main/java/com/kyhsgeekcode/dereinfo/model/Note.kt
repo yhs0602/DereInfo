@@ -12,10 +12,11 @@ class Note(
     val speed: Float,
     val startline: Float,
     val endline: Float,
-    val previds: Array<Int>
+    val previds: Array<Int>,
+    val tick: Int = 10
 ) {
     fun isFlick(): Boolean = flick != FlickMode.None
     fun isLong(): Boolean = twMode == TWMode.Hold
     fun isSlide(): Boolean = twMode == TWMode.Slide
-    fun chaos() : Float = abs(startline-endline)
+    fun chaos(): Float = abs(startline - endline)
 }

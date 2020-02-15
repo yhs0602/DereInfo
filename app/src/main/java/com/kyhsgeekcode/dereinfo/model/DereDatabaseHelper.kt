@@ -545,6 +545,7 @@ class DereDatabaseHelper(context: Context) {
                     row["startPos"]!!.toFloat(),
                     endpos,
                     arrayOf(prevID)
+
                 )
             )
         }

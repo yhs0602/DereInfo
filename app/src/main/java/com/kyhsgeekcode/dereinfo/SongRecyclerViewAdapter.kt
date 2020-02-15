@@ -134,7 +134,7 @@ class SongRecyclerViewAdapter(
                                 CircleType.getColor(item.circleType)
                             ), darkness
                         )
-                    )
+                        )
                     button.setTextColor(Color.WHITE)
                     button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11.0f)
                 }
