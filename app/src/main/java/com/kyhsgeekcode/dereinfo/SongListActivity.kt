@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -53,6 +52,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
             .setAllowUserInput(false)
     private lateinit var dereDatabaseHelper: DereDatabaseHelper
     private lateinit var adapter: SongRecyclerViewAdapter
+
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -64,18 +64,19 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
             if (info != null)
                 adapter.addItem(info)
             snackProgressBarManager.setProgress(progress)
-            if(message!=null) {
+            if (message != null) {
                 circularType.setMessage(message)
             }
             snackProgressBarManager.updateTo(circularType)
         }
     }
     val onFinish: () -> Unit = {
-        runOnUiThread{
+        runOnUiThread {
             adapter.notifyDataSetChanged()
         }
         snackProgressBarManager.dismiss()
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_song_list)
@@ -87,14 +88,14 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
             Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
-        if(twoPane){
+        if (twoPane) {
             fab.hide()
         } else {
             fab.show()
         }
 
         pullToRefresh.setOnRefreshListener {
-            pullToRefresh.isRefreshing=false
+            pullToRefresh.isRefreshing = false
 //            refreshCache(publisher, onFinish)
         }
 
@@ -117,7 +118,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
     }
 
     private fun refreshCache(
-        publisher: (Int, Int, MusicInfo?,String?) -> Unit,
+        publisher: (Int, Int, MusicInfo?, String?) -> Unit,
         onFinish: () -> Unit
     ) {
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
@@ -219,7 +220,12 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
 
     private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
         val adapter = SongRecyclerViewAdapter(this, twoPane)
-        adapter.userFilter.addFilter(CircleType.All,CircleType.Cute,CircleType.Cool,CircleType.Passion)
+        adapter.userFilter.addFilter(
+            CircleType.All,
+            CircleType.Cute,
+            CircleType.Cool,
+            CircleType.Passion
+        )
         recyclerView.adapter = adapter
         return adapter
     }
@@ -282,7 +288,7 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
                 checkedFilters!![filterCBAllType] = true
                 checkedFilters!![filterCBMasterPlus] = true
             }
-            onDialogPositiveClick(null,checkedFilters!!)
+            onDialogPositiveClick(null, checkedFilters!!)
             adapter.filter?.filter(constraint)
         } catch (e: Exception) {
             Log.e(TAG, "", e)

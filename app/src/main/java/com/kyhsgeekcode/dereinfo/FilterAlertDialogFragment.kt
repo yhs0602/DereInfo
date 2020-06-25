@@ -46,7 +46,7 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
                 .setNegativeButton(
                     android.R.string.cancel
                 ) { _, _ ->
-                    dialog.cancel()
+                    dialog?.cancel()
                     filterDialogListener.onDialogNegativeClick(this)
                 }
             val result = builder.create()
