@@ -5,12 +5,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import androidx.fragment.app.Fragment
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
-import com.kyhsgeekcode.dereinfo.model.MusicInfo
-import com.kyhsgeekcode.dereinfo.model.OneMusic
-import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
+import com.kyhsgeekcode.dereinfo.model.*
 import kotlinx.android.synthetic.main.activity_song_detail.*
 import kotlinx.android.synthetic.main.song_detail.view.*
 
@@ -22,6 +21,7 @@ import kotlinx.android.synthetic.main.song_detail.view.*
  */
 class SongDetailFragment : Fragment() {
     val TAG = "SongDetailFrag"
+
     /**
      * The dummy content this fragment is presenting.
      */
@@ -54,6 +54,90 @@ class SongDetailFragment : Fragment() {
         // Show the dummy content as text in a TextView.
         item?.let {
             rootView.song_detail.text = it.toString()
+            val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
+                context!!,
+                android.R.layout.simple_spinner_dropdown_item,
+                resources.getStringArray(R.array.difficulties)
+            )
+            rootView.spinnerDifficulty.adapter = adapter
+            rootView.spinnerDifficulty.onItemSelectedListener =
+                object : AdapterView.OnItemSelectedListener {
+                    override fun onNothingSelected(parent: AdapterView<*>?) {
+
+                    }
+
+                    override fun onItemSelected(
+                        parent: AdapterView<*>?,
+                        view: View?,
+                        position: Int,
+                        id: Long
+                    ) {
+                        val statistic =
+                            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[it.id]?.get(
+                                TW5Difficulty.fromIndex(position)
+                            )
+                                ?: return
+                        rootView.detailedLayout.visibility = View.VISIBLE
+                        with(rootView) {
+                            val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0
+                            textViewTotalCount.text =
+                                statistic[StatisticIndex.Total]?.formatCleanPercent(2) ?: "-"
+                            textViewTotalPercent7.text =
+                                statistic[StatisticIndex.Total7]?.formatCleanPercent(2) ?: "-"
+                            textViewTotalPercent9.text =
+                                statistic[StatisticIndex.Total9]?.formatCleanPercent(2) ?: "-"
+                            textViewTotalPercent11.text =
+                                statistic[StatisticIndex.Total11]?.formatCleanPercent(2) ?: "-"
+                            textViewTotalPercent.text = "100%"
+
+                            textViewNormalCount.text =
+                                statistic[StatisticIndex.Normal]?.times(totalCount)?.toInt()?.div(100).toString()
+                            textViewNormalPercent7.text =
+                                statistic[StatisticIndex.Normal7]?.formatCleanPercent(2) ?: "-"
+                            textViewNormalPercent9.text =
+                                statistic[StatisticIndex.Normal9]?.formatCleanPercent(2) ?: "-"
+                            textViewNormalPercent11.text =
+                                statistic[StatisticIndex.Normal11]?.formatCleanPercent(2) ?: "-"
+                            textViewNormalPercent.text =
+                                statistic[StatisticIndex.Normal]?.formatCleanPercent(2) ?: "-"
+
+                            textViewLongCount.text =
+                                statistic[StatisticIndex.Long]?.times(totalCount)?.toInt()?.div(100).toString()
+                            textViewLongPercent7.text =
+                                statistic[StatisticIndex.Long7]?.formatCleanPercent(2) ?: "-"
+                            textViewLongPercent9.text =
+                                statistic[StatisticIndex.Long9]?.formatCleanPercent(2) ?: "-"
+                            textViewLongPercent11.text =
+                                statistic[StatisticIndex.Long11]?.formatCleanPercent(2) ?: "-"
+                            textViewLongPercent.text =
+                                statistic[StatisticIndex.Long]?.formatCleanPercent(2) ?: "-"
+
+                            textViewFlickCount.text =
+                                statistic[StatisticIndex.Flick]?.times(totalCount)?.toInt()?.div(100).toString()
+                            textViewFlickPercent7.text =
+                                statistic[StatisticIndex.Flick7]?.formatCleanPercent(2) ?: "-"
+                            textViewFlickPercent9.text =
+                                statistic[StatisticIndex.Flick9]?.formatCleanPercent(2) ?: "-"
+                            textViewFlickPercent11.text =
+                                statistic[StatisticIndex.Flick11]?.formatCleanPercent(2) ?: "-"
+                            textViewFlickPercent.text =
+                                statistic[StatisticIndex.Flick]?.formatCleanPercent(2) ?: "-"
+
+                            textViewSlideCount.text =
+                                statistic[StatisticIndex.Slide]?.times(totalCount)?.toInt()?.div(100).toString()
+                            textViewSlidePercent7.text =
+                                statistic[StatisticIndex.Slide7]?.formatCleanPercent(2) ?: "-"
+                            textViewSlidePercent9.text =
+                                statistic[StatisticIndex.Slide9]?.formatCleanPercent(2) ?: "-"
+                            textViewSlidePercent11.text =
+                                statistic[StatisticIndex.Slide11]?.formatCleanPercent(2) ?: "-"
+                            textViewSlidePercent.text =
+                                statistic[StatisticIndex.Slide]?.formatCleanPercent(2) ?: "-"
+
+                        }
+                    }
+                }
+
         }
         return rootView
     }

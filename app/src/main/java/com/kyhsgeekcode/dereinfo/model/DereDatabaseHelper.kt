@@ -415,10 +415,15 @@ class DereDatabaseHelper(context: Context) {
                 //7초 11초 9초 나오겠지. 6/7 9/11 7.5/9
                 val index = StatisticIndex.makeIndex(mode, flick)
                 counter[index] = (counter[index] ?: 0) + 1
-                val actIndex = StatisticIndex.makeIndex(index, rawNote["sec"]!!.toFloat())
-                if (actIndex != null) {
+                val actIndices = StatisticIndex.makeIndex(index, rawNote["sec"]!!.toFloat())
+                for (actIndex in actIndices)
                     counter[actIndex] = (counter[actIndex] ?: 0) + 1
-                }
+
+                val totalIndices =
+                    StatisticIndex.makeIndex(StatisticIndex.Total, rawNote["sec"]!!.toFloat())
+                for (totalIndex in totalIndices)
+                    counter[totalIndex] = (counter[totalIndex] ?: 0) + 1
+
             }
             //Log.d(TAG, "Counter:${counter}")
             resultOne[StatisticIndex.Total] = (counter[StatisticIndex.Total] ?: 0).toFloat()

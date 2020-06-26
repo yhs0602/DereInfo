@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="difficulties">
+        <item>Debut</item>
+        <item>Regular</item>
+        <item>Pro</item>
+        <item>Master</item>
+        <item>Master+</item>
+        <item>Light</item>
+        <item>Trick</item>
+        <item>Piano</item>
+        <item>Forte</item>
+    </string-array>
+</resources>

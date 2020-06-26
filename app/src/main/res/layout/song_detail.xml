@@ -16,16 +16,44 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:context=".SongDetailFragment" />
 
+    <Spinner
+        android:id="@+id/spinnerDifficulty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/song_detail" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/detailedLayout"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutDifficulties">
+        app:layout_constraintTop_toBottomOf="@+id/spinnerDifficulty"
+        app:layout_constraintVertical_bias="0.0">
 
+
+        <TextView
+            android:id="@+id/textViewTotalPercent7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalTotal" />
+
+        <TextView
+            android:id="@+id/textViewTotalPercent9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalTotal" />
 
         <TextView
             android:id="@+id/textViewStatistics"
@@ -44,7 +72,16 @@
             android:layout_margin="10sp"
             android:text="Total notes"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewStatistics" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotal3" />
+
+        <TextView
+            android:id="@+id/textViewTotal3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Item"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatistics" />
 
         <TextView
             android:id="@+id/textViewTotalCount"
@@ -52,17 +89,72 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="1"
+            app:layout_constraintEnd_toEndOf="@+id/textViewTotalCount2"
             app:layout_constraintStart_toEndOf="@id/textViewTotal"
-            app:layout_constraintTop_toBottomOf="@id/textViewStatistics" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalCount2" />
+
+        <TextView
+            android:id="@+id/textViewTotalCount2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Count"
+            app:layout_constraintStart_toEndOf="@+id/textViewNormal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatistics" />
 
         <TextView
             android:id="@+id/textViewTotalPercent"
-            android:layout_width="wrap_content"
+            android:layout_width="35dp"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="100%"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewStatistics" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalTotal" />
+
+        <TextView
+            android:id="@+id/textViewTotalTotal"
+            android:layout_width="35dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="Total"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatistics" />
+
+        <TextView
+            android:id="@+id/textViewTotalPercent11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalTotal" />
+
+        <TextView
+            android:id="@+id/textViewTotal11"
+            android:layout_width="35dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="11"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatistics" />
+
+        <TextView
+            android:id="@+id/textViewTotal9"
+            android:layout_width="35dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="9"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatistics" />
+
+        <TextView
+            android:id="@+id/textViewTotal7"
+            android:layout_width="35dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="7"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatistics" />
 
         <TextView
             android:id="@+id/textViewNormal"
@@ -92,6 +184,33 @@
             app:layout_constraintTop_toBottomOf="@+id/textViewTotalPercent" />
 
         <TextView
+            android:id="@+id/textViewNormalPercent11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalPercent" />
+
+        <TextView
+            android:id="@+id/textViewNormalPercent9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalPercent" />
+
+        <TextView
+            android:id="@+id/textViewNormalPercent7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTotalPercent" />
+
+        <TextView
             android:id="@+id/textViewLong"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -106,6 +225,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="3"
+            app:layout_constraintEnd_toEndOf="@+id/textViewTotalCount2"
             app:layout_constraintStart_toEndOf="@id/textViewLong"
             app:layout_constraintTop_toBottomOf="@id/textViewNormalCount" />
 
@@ -116,6 +236,33 @@
             android:layout_margin="10sp"
             android:text="100%"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewNormalPercent" />
+
+        <TextView
+            android:id="@+id/textViewLongPercent11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewNormalPercent" />
+
+        <TextView
+            android:id="@+id/textViewLongPercent9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
+            app:layout_constraintTop_toBottomOf="@+id/textViewNormalPercent" />
+
+        <TextView
+            android:id="@+id/textViewLongPercent7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
             app:layout_constraintTop_toBottomOf="@+id/textViewNormalPercent" />
 
         <TextView
@@ -133,6 +280,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="4"
+            app:layout_constraintEnd_toEndOf="@+id/textViewTotalCount2"
             app:layout_constraintStart_toEndOf="@id/textViewFlick"
             app:layout_constraintTop_toBottomOf="@id/textViewLongCount" />
 
@@ -143,6 +291,33 @@
             android:layout_margin="10sp"
             android:text="100%"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewLongPercent" />
+
+        <TextView
+            android:id="@+id/textViewFlickPercent11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewLongPercent" />
+
+        <TextView
+            android:id="@+id/textViewFlickPercent9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
+            app:layout_constraintTop_toBottomOf="@+id/textViewLongPercent" />
+
+        <TextView
+            android:id="@+id/textViewFlickPercent7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
             app:layout_constraintTop_toBottomOf="@+id/textViewLongPercent" />
 
         <TextView
@@ -160,6 +335,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="5"
+            app:layout_constraintEnd_toEndOf="@+id/textViewTotalCount2"
             app:layout_constraintStart_toEndOf="@id/textViewSlide"
             app:layout_constraintTop_toBottomOf="@id/textViewFlickCount" />
 
@@ -170,6 +346,33 @@
             android:layout_margin="10sp"
             android:text="100%"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
+
+        <TextView
+            android:id="@+id/textViewSlidePercent11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
+            app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
+
+        <TextView
+            android:id="@+id/textViewSlidePercent9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
+            app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
+
+        <TextView
+            android:id="@+id/textViewSlidePercent7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10sp"
+            android:text="100%"
+            app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
             app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
