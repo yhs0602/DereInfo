@@ -79,6 +79,11 @@ class SongDetailFragment : Fragment() {
                                 ?: return
                         rootView.detailedLayout.visibility = View.VISIBLE
                         with(rootView) {
+                            buttonStatisticsShowFumen.isEnabled = true
+                            buttonStatisticsShowFumen.setOnClickListener {
+                                //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
+                            }
+
                             val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0
                             textViewTotalCount.text =
                                 statistic[StatisticIndex.Total]?.formatCleanPercent(2) ?: "-"
@@ -91,7 +96,8 @@ class SongDetailFragment : Fragment() {
                             textViewTotalPercent.text = "100%"
 
                             textViewNormalCount.text =
-                                statistic[StatisticIndex.Normal]?.times(totalCount)?.toInt()?.div(100).toString()
+                                statistic[StatisticIndex.Normal]?.times(totalCount)?.toInt()
+                                    ?.div(100).toString()
                             textViewNormalPercent7.text =
                                 statistic[StatisticIndex.Normal7]?.formatCleanPercent(2) ?: "-"
                             textViewNormalPercent9.text =
@@ -102,7 +108,8 @@ class SongDetailFragment : Fragment() {
                                 statistic[StatisticIndex.Normal]?.formatCleanPercent(2) ?: "-"
 
                             textViewLongCount.text =
-                                statistic[StatisticIndex.Long]?.times(totalCount)?.toInt()?.div(100).toString()
+                                statistic[StatisticIndex.Long]?.times(totalCount)?.toInt()?.div(100)
+                                    .toString()
                             textViewLongPercent7.text =
                                 statistic[StatisticIndex.Long7]?.formatCleanPercent(2) ?: "-"
                             textViewLongPercent9.text =
@@ -113,7 +120,8 @@ class SongDetailFragment : Fragment() {
                                 statistic[StatisticIndex.Long]?.formatCleanPercent(2) ?: "-"
 
                             textViewFlickCount.text =
-                                statistic[StatisticIndex.Flick]?.times(totalCount)?.toInt()?.div(100).toString()
+                                statistic[StatisticIndex.Flick]?.times(totalCount)?.toInt()
+                                    ?.div(100).toString()
                             textViewFlickPercent7.text =
                                 statistic[StatisticIndex.Flick7]?.formatCleanPercent(2) ?: "-"
                             textViewFlickPercent9.text =
@@ -124,7 +132,8 @@ class SongDetailFragment : Fragment() {
                                 statistic[StatisticIndex.Flick]?.formatCleanPercent(2) ?: "-"
 
                             textViewSlideCount.text =
-                                statistic[StatisticIndex.Slide]?.times(totalCount)?.toInt()?.div(100).toString()
+                                statistic[StatisticIndex.Slide]?.times(totalCount)?.toInt()
+                                    ?.div(100).toString()
                             textViewSlidePercent7.text =
                                 statistic[StatisticIndex.Slide7]?.formatCleanPercent(2) ?: "-"
                             textViewSlidePercent9.text =

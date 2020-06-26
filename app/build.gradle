@@ -43,6 +43,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.3'
     implementation 'com.github.tingyik90:snackprogressbar:6.2.0'
     implementation 'com.github.doyaaaaaken:kotlin-csv-jvm:0.7.3'
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'net.crizin:korean-romanizer:2.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
