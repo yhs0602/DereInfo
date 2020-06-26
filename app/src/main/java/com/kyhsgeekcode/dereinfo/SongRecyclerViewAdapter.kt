@@ -3,7 +3,6 @@ package com.kyhsgeekcode.dereinfo
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
@@ -16,8 +15,6 @@ import android.widget.Filterable
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
-import androidx.core.view.marginStart
-import androidx.core.view.setPadding
 import androidx.recyclerview.widget.RecyclerView
 import com.kyhsgeekcode.dereinfo.model.*
 import com.wanakanajava.WanaKanaJava
@@ -108,7 +105,7 @@ class SongRecyclerViewAdapter(
                         } else {
                             currentDifficulty = btnDifficulty
                         }
-                        sortBy(sortType)
+                        sortBy(sortType, sortOrderAsc)
                         notifyDataSetChanged()
                         scrollToIndex()
                     }
@@ -134,7 +131,7 @@ class SongRecyclerViewAdapter(
                                 CircleType.getColor(item.circleType)
                             ), darkness
                         )
-                        )
+                    )
                     button.setTextColor(Color.WHITE)
                     button.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11.0f)
                 }
@@ -250,10 +247,18 @@ class SongRecyclerViewAdapter(
         }
     }
 
-    fun sortBy(sortType: SortType) {
+    fun sortBy(sortType: SortType, sortOrderAsc: Boolean) {
         this.sortType = sortType
-        filteredItemList.sortByDescending {
-            sortType.condition(it, currentDifficulty) as Comparable<Any>
+        this.sortOrderAsc = sortOrderAsc
+        if (sortOrderAsc) {
+            filteredItemList.sortByDescending {
+                (sortType.condition(it, currentDifficulty) as Comparable<Any>)
+            }
+            filteredItemList.reverse()
+        } else {
+            filteredItemList.sortByDescending {
+                sortType.condition(it, currentDifficulty) as Comparable<Any>
+            }
         }
         notifyDataSetChanged()
         scrollToIndex()
@@ -261,5 +266,6 @@ class SongRecyclerViewAdapter(
 
     var userFilter: SongFilter = SongFilter()
     var sortType: SortType = SortType.Alphabetical
+    var sortOrderAsc: Boolean = true
     var currentMusicIDIndex: Int = 0
 }

@@ -232,7 +232,7 @@ class SongListActivity : AppCompatActivity(),
 
     private fun sortList() {
         Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
-        adapter.sortBy(sortType)
+        adapter.sortBy(sortType, sortOrderAsc)
     }
 
     override fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>) {
@@ -291,10 +291,12 @@ class SongListActivity : AppCompatActivity(),
     }
 
     private var sortType: SortType = SortType.Data
+    private var sortOrderAsc : Boolean = true
     private var constraint: String = ""
     private var checkedFilters: HashMap<Int, Boolean>? = null
     override fun onDialogPositiveClick(dialog: DialogFragment?, item: Int, ascending: Boolean) {
         sortType = SortType.getByValue(item)
+        sortOrderAsc = ascending
         sortList()
     }
 

@@ -8,5 +8,14 @@
         <item>Long note percentage</item>
         <item>Flick note percentage</item>
         <item>Slide note percenage</item>
+        <item>Long note 7</item>
+        <item>Long note 9</item>
+        <item>Long note 11</item>
+        <item>Flick note 7</item>
+        <item>Flick note 9</item>
+        <item>Flick note 11</item>
+        <item>Slide note 7</item>
+        <item>Slide note 9</item>
+        <item>Slide note 11</item>
     </string-array>
 </resources>

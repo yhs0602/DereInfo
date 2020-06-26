@@ -2,7 +2,6 @@ package com.kyhsgeekcode.dereinfo
 
 import android.app.Dialog
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -19,6 +18,8 @@ class SortAlertDialogFragment : DialogFragment() {
 
     lateinit var sortDialogListener: SortDialogListener
     lateinit var inflated: View
+    var sortTypeIndex : Int = 0
+    var sortOrderAsc : Boolean = true
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         retainInstance = true
@@ -29,10 +30,12 @@ class SortAlertDialogFragment : DialogFragment() {
             builder.setTitle(R.string.sort)
                 .setView(inflated)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
+                    sortTypeIndex = inflated.sortSpinner.selectedItemPosition
+                    sortOrderAsc = inflated.sortRBAscending.isChecked
                     sortDialogListener.onDialogPositiveClick(
                         this,
-                        inflated.sortSpinner.selectedItemPosition,
-                        inflated.sortRBAscending.isChecked
+                        sortTypeIndex,
+                        sortOrderAsc
                     )
                 }
                 .setNegativeButton(
@@ -48,7 +51,7 @@ class SortAlertDialogFragment : DialogFragment() {
                 resources.getStringArray(R.array.sort_conditions)
             )
             inflated.sortSpinner.adapter = adapter
-            inflated.sortSpinner.setSelection(0)
+            inflated.sortSpinner.setSelection(sortTypeIndex)
             builder.create()
         } ?: throw IllegalStateException("Activity cannot be null")
     }
