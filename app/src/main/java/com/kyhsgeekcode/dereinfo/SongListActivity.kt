@@ -254,6 +254,10 @@ class SongListActivity : AppCompatActivity(),
         }
         Log.d(TAG, "Permitted2:${permittedType.toTypedArray().joinToString()}")
         adapter.userFilter.addFilter(*permittedType.toTypedArray())
+        adapter.userFilter.shouldHaveMasterPlus = checked[filterCBMasterPlus] ?: false
+        adapter.userFilter.shouldHaveSmart = checked[filterCBSmart] ?: false
+        adapter.userFilter.shouldHaveGrand = checked[filterCBGrand] ?: false
+        adapter.userFilter.shouldBeStarred = checked[filterCBStarred] ?: false
         adapter.filter?.filter(constraint)
         //sortList()
     }
@@ -291,7 +295,7 @@ class SongListActivity : AppCompatActivity(),
     }
 
     private var sortType: SortType = SortType.Data
-    private var sortOrderAsc : Boolean = true
+    private var sortOrderAsc: Boolean = true
     private var constraint: String = ""
     private var checkedFilters: HashMap<Int, Boolean>? = null
     override fun onDialogPositiveClick(dialog: DialogFragment?, item: Int, ascending: Boolean) {

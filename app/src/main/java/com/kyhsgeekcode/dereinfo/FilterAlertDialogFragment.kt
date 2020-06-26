@@ -70,10 +70,10 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
             inflated.filterCBPassion.isChecked = checkedMap[R.id.filterCBPassion] ?: true
             inflated.filterCBAllType.isChecked = checkedMap[R.id.filterCBAllType] ?: true
             inflated.filterCBTypeAllCheck.isChecked = checkedMap[R.id.filterCBTypeAllCheck] ?: true
-            inflated.filterCBMasterPlus.isChecked = checkedMap[R.id.filterCBMasterPlus] ?: true
-            inflated.filterCBGrand.isChecked = checkedMap[R.id.filterCBGrand] ?: true
-            inflated.filterCBStarred.isChecked = checkedMap[R.id.filterCBStarred] ?: true
-            inflated.filterCBSmart.isChecked = checkedMap[R.id.filterCBSmart] ?: true
+            inflated.filterCBMasterPlus.isChecked = checkedMap[R.id.filterCBMasterPlus] ?: false
+            inflated.filterCBGrand.isChecked = checkedMap[R.id.filterCBGrand] ?: false
+            inflated.filterCBStarred.isChecked = checkedMap[R.id.filterCBStarred] ?: false
+            inflated.filterCBSmart.isChecked = checkedMap[R.id.filterCBSmart] ?: false
 
             val allCheckNotifier = CompoundButton.OnCheckedChangeListener { _ , isChecked ->
                 if(!isChecked)

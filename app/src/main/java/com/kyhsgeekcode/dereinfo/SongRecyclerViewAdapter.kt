@@ -219,8 +219,15 @@ class SongRecyclerViewAdapter(
                         itemList.add(item)
                     }
                 }
-                itemList.sortByDescending {
-                    sortType.condition(it, currentDifficulty) as Comparable<Any>
+                if(sortOrderAsc) {
+                    itemList.sortByDescending {
+                        sortType.condition(it, currentDifficulty) as Comparable<Any>
+                    }
+                    itemList.reverse()
+                } else {
+                    itemList.sortByDescending {
+                        sortType.condition(it, currentDifficulty) as Comparable<Any>
+                    }
                 }
                 results.values = itemList
                 results.count = itemList.size
