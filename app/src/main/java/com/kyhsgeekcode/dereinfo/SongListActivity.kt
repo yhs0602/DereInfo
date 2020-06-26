@@ -1,7 +1,6 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.content.ActivityNotFoundException
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -37,8 +36,9 @@ import java.io.Serializable
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
-    FilterAlertDialogFragment.FilterDialogListener {
+class SongListActivity : AppCompatActivity(),
+    FilterAlertDialogFragment.FilterDialogListener,
+    SortAlertDialogFragment.SortDialogListener {
     val TAG = "SongListActivity"
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
@@ -230,11 +230,6 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
         return adapter
     }
 
-    override fun onClick(dialog: DialogInterface?, which: Int) {
-        sortType = SortType.getByValue(which)
-        sortList()
-    }
-
     private fun sortList() {
         Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
         adapter.sortBy(sortType)
@@ -298,6 +293,14 @@ class SongListActivity : AppCompatActivity(), DialogInterface.OnClickListener,
     private var sortType: SortType = SortType.Data
     private var constraint: String = ""
     private var checkedFilters: HashMap<Int, Boolean>? = null
+    override fun onDialogPositiveClick(dialog: DialogFragment?, item: Int, ascending: Boolean) {
+        sortType = SortType.getByValue(item)
+        sortList()
+    }
+
+    override fun onDialogNegativeClick(dialog: DialogFragment) {
+
+    }
 
 }
 
