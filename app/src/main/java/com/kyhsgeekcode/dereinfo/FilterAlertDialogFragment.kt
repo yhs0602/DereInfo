@@ -4,6 +4,8 @@ import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.CompoundButton
+import android.widget.RadioGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.dialog_filter.view.*
@@ -11,7 +13,7 @@ import kotlinx.android.synthetic.main.dialog_filter.view.*
 
 class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragment() {
     lateinit var filterDialogListener: FilterDialogListener
-    var inflated: View? = null
+    lateinit var inflated: View
     val checkedMap = initMap ?: HashMap()
     val CHECKED_KEY = "Checkeds"
 
@@ -35,12 +37,15 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
                     android.R.string.ok
                 ) { _, _ ->
                     checkedMap[R.id.filterCBTypeAllCheck] =
-                        inflated!!.filterCBTypeAllCheck.isChecked
-                    checkedMap[R.id.filterCBCute] = inflated!!.filterCBCute.isChecked
-                    checkedMap[R.id.filterCBCool] = inflated!!.filterCBCool.isChecked
-                    checkedMap[R.id.filterCBPassion] = inflated!!.filterCBPassion.isChecked
-                    checkedMap[R.id.filterCBAllType] = inflated!!.filterCBAllType.isChecked
-                    checkedMap[R.id.filterCBMasterPlus] = inflated!!.filterCBMasterPlus.isChecked
+                        inflated.filterCBTypeAllCheck.isChecked
+                    checkedMap[R.id.filterCBCute] = inflated.filterCBCute.isChecked
+                    checkedMap[R.id.filterCBCool] = inflated.filterCBCool.isChecked
+                    checkedMap[R.id.filterCBPassion] = inflated.filterCBPassion.isChecked
+                    checkedMap[R.id.filterCBAllType] = inflated.filterCBAllType.isChecked
+                    checkedMap[R.id.filterCBMasterPlus] = inflated.filterCBMasterPlus.isChecked
+                    checkedMap[R.id.filterCBGrand] = inflated.filterCBGrand.isChecked
+                    checkedMap[R.id.filterCBSmart] = inflated.filterCBSmart.isChecked
+                    checkedMap[R.id.filterCBStarred] = inflated.filterCBStarred.isChecked
                     filterDialogListener.onDialogPositiveClick(this, checkedMap)
                 }
                 .setNegativeButton(
@@ -51,19 +56,35 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
                 }
             val result = builder.create()
 
-            inflated!!.filterCBTypeAllCheck.setOnCheckedChangeListener { _, isChecked ->
-                inflated!!.filterCBCute.isChecked = isChecked
-                inflated!!.filterCBCool.isChecked = isChecked
-                inflated!!.filterCBPassion.isChecked = isChecked
-                inflated!!.filterCBAllType.isChecked = isChecked
-                checkedMap[R.id.filterCBTypeAllCheck] = isChecked
+            inflated.filterCBTypeAllCheck.setOnCheckedChangeListener { button, isChecked ->
+                if(button.isPressed) {
+                    inflated.filterCBCute.isChecked = isChecked
+                    inflated.filterCBCool.isChecked = isChecked
+                    inflated.filterCBPassion.isChecked = isChecked
+                    inflated.filterCBAllType.isChecked = isChecked
+                    checkedMap[R.id.filterCBTypeAllCheck] = isChecked
+                }
             }
-            inflated!!.filterCBCute.isChecked = checkedMap[R.id.filterCBCute] ?: true
-            inflated!!.filterCBCool.isChecked = checkedMap[R.id.filterCBCool] ?: true
-            inflated!!.filterCBPassion.isChecked = checkedMap[R.id.filterCBPassion] ?: true
-            inflated!!.filterCBAllType.isChecked = checkedMap[R.id.filterCBAllType] ?: true
-            inflated!!.filterCBTypeAllCheck.isChecked = checkedMap[R.id.filterCBTypeAllCheck] ?: true
+            inflated.filterCBCute.isChecked = checkedMap[R.id.filterCBCute] ?: true
+            inflated.filterCBCool.isChecked = checkedMap[R.id.filterCBCool] ?: true
+            inflated.filterCBPassion.isChecked = checkedMap[R.id.filterCBPassion] ?: true
+            inflated.filterCBAllType.isChecked = checkedMap[R.id.filterCBAllType] ?: true
+            inflated.filterCBTypeAllCheck.isChecked = checkedMap[R.id.filterCBTypeAllCheck] ?: true
+            inflated.filterCBMasterPlus.isChecked = checkedMap[R.id.filterCBMasterPlus] ?: true
+            inflated.filterCBGrand.isChecked = checkedMap[R.id.filterCBGrand] ?: true
+            inflated.filterCBStarred.isChecked = checkedMap[R.id.filterCBStarred] ?: true
+            inflated.filterCBSmart.isChecked = checkedMap[R.id.filterCBSmart] ?: true
 
+            val allCheckNotifier = CompoundButton.OnCheckedChangeListener { _ , isChecked ->
+                if(!isChecked)
+                    inflated.filterCBTypeAllCheck.isChecked = false
+            }
+            with(inflated) {
+                filterCBCute.setOnCheckedChangeListener(allCheckNotifier)
+                filterCBCool.setOnCheckedChangeListener(allCheckNotifier)
+                filterCBPassion.setOnCheckedChangeListener(allCheckNotifier)
+                filterCBAllType.setOnCheckedChangeListener(allCheckNotifier)
+            }
             result
         } ?: throw IllegalStateException("Activity cannot be null")
     }

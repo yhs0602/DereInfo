@@ -88,11 +88,11 @@
         app:layout_constraintTop_toBottomOf="@+id/filterCBMasterPlus" />
 
     <CheckBox
-        android:id="@+id/checkBox"
+        android:id="@+id/filterCBGrand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="PIANO"
+        android:text="GRAND"
         android:textColor="@color/gray"
         app:layout_constraintTop_toBottomOf="@+id/textView"
         tools:layout_editor_absoluteX="-1dp" />
@@ -103,14 +103,14 @@
         android:layout_height="wrap_content"
         android:text="Smart"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/checkBox" />
+        app:layout_constraintTop_toBottomOf="@+id/filterCBGrand" />
 
     <CheckBox
-        android:id="@+id/checkBox3"
+        android:id="@+id/filterCBSmart"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="LIGHT"
+        android:text="SMART"
         android:textColor="@android:color/holo_green_light"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
@@ -121,33 +121,14 @@
         android:layout_height="wrap_content"
         android:text="Starred"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/checkBox3" />
+        app:layout_constraintTop_toBottomOf="@+id/filterCBSmart" />
 
     <CheckBox
-        android:id="@+id/checkBox4"
+        android:id="@+id/filterCBStarred"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Starred"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
-
-    <CheckBox
-        android:id="@+id/checkBox5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:text="FORTE"
-        app:layout_constraintStart_toEndOf="@+id/checkBox"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
-
-    <CheckBox
-        android:id="@+id/checkBox6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:text="TRICK"
-        android:textColor="@android:color/holo_purple"
-        app:layout_constraintStart_toEndOf="@+id/checkBox3"
-        app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
