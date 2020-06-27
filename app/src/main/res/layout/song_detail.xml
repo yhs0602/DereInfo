@@ -114,7 +114,7 @@
 
         <TextView
             android:id="@+id/textViewTotalTotal"
-            android:layout_width="35dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="Total"
@@ -132,7 +132,7 @@
 
         <TextView
             android:id="@+id/textViewTotal11"
-            android:layout_width="35dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="11"
@@ -141,7 +141,7 @@
 
         <TextView
             android:id="@+id/textViewTotal9"
-            android:layout_width="35dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="9"
@@ -150,7 +150,7 @@
 
         <TextView
             android:id="@+id/textViewTotal7"
-            android:layout_width="35dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="7"
@@ -172,6 +172,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="2"
+            app:layout_constraintEnd_toEndOf="@+id/textViewTotalCount2"
             app:layout_constraintStart_toEndOf="@id/textViewNormal"
             app:layout_constraintTop_toBottomOf="@id/textViewTotalCount" />
 
