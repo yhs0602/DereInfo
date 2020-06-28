@@ -1,5 +1,6 @@
 package com.kyhsgeekcode.dereinfo
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,7 +9,9 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.github.chrisbanes.photoview.PhotoView
 import com.kyhsgeekcode.dereinfo.model.*
 import kotlinx.android.synthetic.main.activity_song_detail.*
 import kotlinx.android.synthetic.main.song_detail.view.*
@@ -52,8 +55,8 @@ class SongDetailFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.song_detail, container, false)
 
         // Show the dummy content as text in a TextView.
-        item?.let {
-            rootView.song_detail.text = it.toString()
+        item?.let { musicInfo ->
+            rootView.song_detail.text = musicInfo.toString()
             val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
                 context!!,
                 android.R.layout.simple_spinner_dropdown_item,
@@ -72,9 +75,10 @@ class SongDetailFragment : Fragment() {
                         position: Int,
                         id: Long
                     ) {
+                        val tw5Difficulty = TW5Difficulty.fromIndex(position)
                         val statistic =
-                            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[it.id]?.get(
-                                TW5Difficulty.fromIndex(position)
+                            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(
+                                tw5Difficulty
                             )
                                 ?: return
                         rootView.detailedLayout.visibility = View.VISIBLE
@@ -82,6 +86,33 @@ class SongDetailFragment : Fragment() {
                             buttonStatisticsShowFumen.isEnabled = true
                             buttonStatisticsShowFumen.setOnClickListener {
                                 //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
+                                val oneDifficulty =
+                                    DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+                                        musicInfo.id,
+                                        tw5Difficulty
+                                    )]?.difficulties?.get(tw5Difficulty)
+                                if (oneDifficulty == null) {
+                                    Toast.makeText(
+                                        requireActivity(),
+                                        "Failed to get the Difficulty",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@setOnClickListener
+                                }
+                                val bitmap =
+                                    FumenRenderer(oneDifficulty.lanes).render(oneDifficulty)
+                                if (bitmap == null) {
+                                    Toast.makeText(
+                                        requireActivity(),
+                                        "Failed to render",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    return@setOnClickListener
+                                }
+                                val photoView = PhotoView(context)
+                                photoView.setImageBitmap(bitmap)
+                                val alertDialog = AlertDialog.Builder(context).setTitle("Fumen")
+                                    .setView(photoView).show()
                             }
 
                             val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0

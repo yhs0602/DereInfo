@@ -276,7 +276,7 @@ class SongListActivity : AppCompatActivity(),
         constraint = savedInstanceState.getString(Constraint_KEY, "")
         try {
             checkedFilters =
-                savedInstanceState.getSerializable(Checked_KEY) as HashMap<Int, Boolean>
+                savedInstanceState.getSerializable(Checked_KEY) as HashMap<Int, Boolean>?
             if (checkedFilters == null)
                 checkedFilters = HashMap()
             if (checkedFilters?.isEmpty() == true) {

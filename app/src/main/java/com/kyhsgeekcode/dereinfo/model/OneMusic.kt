@@ -1,4 +1,7 @@
 package com.kyhsgeekcode.dereinfo.model
 
-class OneMusic(val difficulties: Map<TW5Difficulty, OneDifficulty>, val musicInfo: MusicInfo) {
+import java.io.Serializable
+
+class OneMusic(val difficulties: Map<TW5Difficulty, OneDifficulty>, val musicInfo: MusicInfo) :
+    Serializable {
 }

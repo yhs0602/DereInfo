@@ -6,7 +6,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
 
-typealias providerType<Key, Value> = (Key) -> Value
+typealias providerType<Key, Value> = (Key) -> Value?
 
 class FileDataCache<Key, Value>(
     val file: File,
@@ -30,15 +30,15 @@ class FileDataCache<Key, Value>(
 
     private val providers = ArrayList<providerType<Key, Value>>()
 
-    fun get(key: Key): Value {
+    operator fun get(key: Key): Value? {
         if (!dataMap.containsKey(key))
-            dataMap[key] = provider(key)
+            dataMap[key] = provider(key) ?: return null
         return dataMap[key]!!
     }
 
-    fun refreshByLevel(key: Key, level: Int): Value {
+    fun refreshByLevel(key: Key, level: Int): Value? {
         val newVal = providers[level](key)
-        dataMap[key] = newVal
+        dataMap[key] = newVal ?: return null
         return newVal
     }
 

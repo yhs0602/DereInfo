@@ -7,11 +7,13 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
+import com.kyhsgeekcode.dereinfo.FileDataCache
 import com.kyhsgeekcode.dereinfo.checkIfDatabase
 import com.kyhsgeekcode.dereinfo.loadObject
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
 import com.kyhsgeekcode.dereinfo.saveObject
 import java.io.File
+import java.nio.charset.Charset
 import kotlin.collections.set
 
 
@@ -465,16 +467,26 @@ class DereDatabaseHelper(context: Context) {
         else -> Pair(TWMode.fromType(type), FlickMode.fromStatus(status))
     }
 
+    // Music ID
+    val parsedFumenCache: FileDataCache<Pair<musicID, TW5Difficulty>, OneMusic> =
+        FileDataCache(context.filesDir.resolve("parsedFumen").let {
+            it.createNewFile()
+            it
+        }) { key ->
+            val musicInfo = musicIDToInfo[key.first] ?: return@FileDataCache null
+            parseFumen(musicInfo, key.second)
+        }
+
 
     //5개를 파싱해라.
-    fun parseFumen(music: OneMusic, wantedDifficulty: TW5Difficulty): OneMusic {
-        val fumenFile = musicNumberToFumenFile[music.musicInfo.id]//wrong
+    fun parseFumen(musicInfo: MusicInfo, wantedDifficulty: TW5Difficulty): OneMusic {
+        val fumenFile = musicNumberToFumenFile[musicIDTomusicNumber[musicInfo.id]]//wrong
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
             fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
         val difficulties: MutableMap<TW5Difficulty, OneDifficulty> = HashMap()
-        val info = music.musicInfo
+        val info = musicInfo
         while (cursorFumens.moveToNext()) {
             var name = cursorFumens.getString(0)
             if (!name[name.length - 5].isDigit())
@@ -485,7 +497,9 @@ class DereDatabaseHelper(context: Context) {
             val twDifficulty = TW5Difficulty.valueOf(difficulty)
             if (wantedDifficulty != twDifficulty)
                 continue
-            val fumenStr = cursorFumens.getBlob(1).toString()
+            val fumenStr = cursorFumens.getBlob(1).toString(
+                Charset.defaultCharset())
+            Log.d(TAG, "FumenStr: $fumenStr")
             val notes = parseDereFumen(fumenStr, info)
             difficulties[twDifficulty] = OneDifficulty(twDifficulty, notes)
         }
@@ -498,6 +512,8 @@ class DereDatabaseHelper(context: Context) {
         musicInfo: MusicInfo
     ): List<Note> {
         val parsedFumen = csvReader().readAllWithHeader(fumenStr)
+        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
+
         val prevIDs = HashMap<Int, Int>()
         val longnoteIDs = HashMap<Float, Int>()
         val notes = ArrayList<Note>()
@@ -644,3 +660,4 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 }
+
