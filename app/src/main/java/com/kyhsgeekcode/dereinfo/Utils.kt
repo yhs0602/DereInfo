@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import java.io.*
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 fun launchActivity(context: Context, target: Class<out Activity>) {
@@ -70,3 +71,5 @@ fun manipulateColor(color: Int, factor: Float): Int {
         b.coerceAtMost(255)
     )
 }
+
+fun Float.equalsDelta(other: Float) = abs(this - other) < 0.000001

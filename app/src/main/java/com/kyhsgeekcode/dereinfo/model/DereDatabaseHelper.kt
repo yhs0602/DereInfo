@@ -498,7 +498,8 @@ class DereDatabaseHelper(context: Context) {
             if (wantedDifficulty != twDifficulty)
                 continue
             val fumenStr = cursorFumens.getBlob(1).toString(
-                Charset.defaultCharset())
+                Charset.defaultCharset()
+            )
             Log.d(TAG, "FumenStr: $fumenStr")
             val notes = parseDereFumen(fumenStr, info)
             difficulties[twDifficulty] = OneDifficulty(twDifficulty, notes)
@@ -516,6 +517,7 @@ class DereDatabaseHelper(context: Context) {
 
         val prevIDs = HashMap<Int, Int>()
         val longnoteIDs = HashMap<Float, Int>()
+        val IDToNotes = HashMap<Int, Note>()
         val notes = ArrayList<Note>()
         var prevID = 0
         var idd = 0
@@ -554,21 +556,24 @@ class DereDatabaseHelper(context: Context) {
             if ((mode == 1) and (flick == FlickMode.None)) {
                 prevID = 0
             }
-            notes.add(
-                Note(
-                    idd,
-                    0,
-                    getColor(musicInfo.circleType),
-                    twMode,
-                    flick,
-                    row["sec"]!!.toFloat(),
-                    1.0f,
-                    row["startPos"]!!.toFloat(),
-                    endpos,
-                    arrayOf(prevID)
-
-                )
+            val theNote = Note(
+                idd,
+                0,
+                getColor(musicInfo.circleType),
+                twMode,
+                flick,
+                row["sec"]!!.toFloat(),
+                1.0f,
+                row["startPos"]!!.toFloat(),
+                endpos,
+                arrayOf(prevID),
+                row["sync"]?.toInt() == 1
             )
+            IDToNotes[idd] = theNote
+            for (id in theNote.previds) {
+                IDToNotes[id]?.addNext(theNote)
+            }
+            notes.add(theNote)
         }
         return notes
     }

@@ -15,7 +15,7 @@ class FumenRenderer(
     val lane: Int,
     val width: Int = 300,
     val heightPerSec: Int = 600,
-    val maxHeight: Int = 9000
+    val maxHeight: Int = 7500
 ) {
     fun render(oneDifficulty: OneDifficulty): Bitmap? {
         if (oneDifficulty.notes == null) {
@@ -42,11 +42,17 @@ class FumenRenderer(
         val lanePaint = Paint()
         val laneSubPaint = Paint()
         val normalNotePaint = Paint()
+        val connectPaint = Paint()
+        val syncPaint = Paint()
         lanePaint.strokeWidth = 5.0f
         lanePaint.color = Color.LTGRAY
         laneSubPaint.strokeWidth = 2.0f
         laneSubPaint.color = Color.WHITE
         normalNotePaint.color = Color.RED
+        connectPaint.color = Color.LTGRAY
+        connectPaint.strokeWidth = 15.0f
+        syncPaint.color = Color.WHITE
+        syncPaint.strokeWidth = 3.0f
         for (i in 0..lines) {
             val x = i * width.toFloat()
             canvas.drawLine(x, 0.0f, x, height.toFloat(), lanePaint)
@@ -57,10 +63,47 @@ class FumenRenderer(
         }
         val pkgName = context.packageName
         for (note in notes) {
-            val totalHeightPos = heightPerSec * note.time
-            val linenumber = (totalHeightPos / maxHeight).toInt()
-            val realWidthPos = linenumber * width + widthPerSubLane * note.endline
-            val realHeightPos = maxHeight - totalHeightPos.rem(maxHeight)
+            fun calcPos(theNote: Note): Pair<Float, Float> {
+                val totalHeightPos = heightPerSec * theNote.time
+                val linenumber = (totalHeightPos / maxHeight).toInt()
+                val realWidthPos = calcNoteX(linenumber, widthPerSubLane, theNote)
+                val realHeightPos = calcNoteY(totalHeightPos)
+                return Pair(realWidthPos, realHeightPos)
+            }
+
+            val realX: Float
+            val realY: Float
+            val coord = calcPos(note)
+            realX = coord.first
+            realY = coord.second
+            if (note.isFlick()) {
+                if (!note.nextNotes.isNullOrEmpty()) {
+                    val nextNote = note.nextNotes[0]
+                    val nextNoteCoord = calcPos(nextNote)
+                    canvas.drawLine(
+                        realX,
+                        realY,
+                        nextNoteCoord.first,
+                        nextNoteCoord.second,
+                        connectPaint
+                    )
+                }
+            }
+            if (note.sync) {
+                if (note.id < notes.size && notes[note.id].sync) {
+                    val syncedNote = notes[note.id]
+                    if (syncedNote.time.equalsDelta(note.time)) {
+                        val syncedCoord = calcPos(syncedNote)
+                        canvas.drawLine(
+                            realX,
+                            realY,
+                            syncedCoord.first,
+                            syncedCoord.second,
+                            syncPaint
+                        )
+                    }
+                }
+            }
             val bitmapName = note.getBitmap().toLowerCase()
             ResourcesCompat.getDrawable(
                 context.resources,
@@ -73,12 +116,27 @@ class FumenRenderer(
                 canvas.drawBitmap(
                     it.toBitmap(),
                     null,
-                    RectF(realWidthPos - 20, realHeightPos - 20, realWidthPos + 20, realHeightPos + 20),
+                    RectF(
+                        realX - 20,
+                        realY - 20,
+                        realX + 20,
+                        realY + 20
+                    ),
                     normalNotePaint
                 )
-            } ?: canvas.drawCircle(realWidthPos, realHeightPos, 20.0f, normalNotePaint)
+            } ?: canvas.drawCircle(realX, realY, 20.0f, normalNotePaint)
         }
         canvas.drawText(oneDifficulty.lanes.toString(), 0.0f, 10.0f, Paint())
         return bitmap
     }
+
+    private fun calcNoteY(totalHeightPos: Float) = maxHeight - totalHeightPos.rem(maxHeight)
+
+    private fun calcNoteX(
+        linenumber: Int,
+        widthPerSubLane: Float,
+        note: Note
+    ) = linenumber * width + widthPerSubLane * note.endline
+
+
 }

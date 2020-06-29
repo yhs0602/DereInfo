@@ -1,7 +1,5 @@
 package com.kyhsgeekcode.dereinfo.model
 
-import android.content.res.Resources
-import android.graphics.Bitmap
 import kotlin.math.abs
 
 class Note(
@@ -15,22 +13,30 @@ class Note(
     val startline: Float,
     val endline: Float,
     val previds: Array<Int>,
+    val sync : Boolean = false,
     val tick: Int = 10
 ) {
+    val nextNotes = arrayListOf<Note>()
+
     fun isFlick(): Boolean = flick != FlickMode.None
     fun isLong(): Boolean = twMode == TWMode.Hold
     fun isSlide(): Boolean = twMode == TWMode.Slide
     fun chaos(): Float = abs(startline - endline)
-    fun getBitmap() : String {
-        if(isFlick()) {
+    fun getBitmap(): String {
+        if (isFlick()) {
             return "Flick${flick.name}note"
         }
-        if(isSlide()) {
+        if (isSlide()) {
             return "Slidenote"
         }
-        if(isLong()) {
+        if (isLong()) {
             return "Longnote"
         }
         return "Normalnote"
     }
+
+    fun addNext(nextNote: Note) {
+        nextNotes.add(nextNote)
+    }
+
 }
