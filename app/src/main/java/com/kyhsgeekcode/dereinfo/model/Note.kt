@@ -13,7 +13,7 @@ class Note(
     val startline: Float,
     val endline: Float,
     val previds: Array<Int>,
-    val sync : Boolean = false,
+    val sync: Boolean = false,
     val tick: Int = 10
 ) {
     val nextNotes = arrayListOf<Note>()

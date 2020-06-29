@@ -63,12 +63,12 @@ class FumenRenderer(
         }
         val pkgName = context.packageName
         for (note in notes) {
-            fun calcPos(theNote: Note): Pair<Float, Float> {
+            fun calcPos(theNote: Note): Triple<Float, Float, Int> {
                 val totalHeightPos = heightPerSec * theNote.time
                 val linenumber = (totalHeightPos / maxHeight).toInt()
                 val realWidthPos = calcNoteX(linenumber, widthPerSubLane, theNote)
                 val realHeightPos = calcNoteY(totalHeightPos)
-                return Pair(realWidthPos, realHeightPos)
+                return Triple(realWidthPos, realHeightPos, linenumber)
             }
 
             val realX: Float
@@ -80,13 +80,50 @@ class FumenRenderer(
                 if (!note.nextNotes.isNullOrEmpty()) {
                     val nextNote = note.nextNotes[0]
                     val nextNoteCoord = calcPos(nextNote)
-                    canvas.drawLine(
-                        realX,
-                        realY,
-                        nextNoteCoord.first,
-                        nextNoteCoord.second,
-                        connectPaint
-                    )
+                    var leftDy = (nextNote.time - note.time) * heightPerSec
+                    if (coord.third < nextNoteCoord.third) {
+                        // stop & cut and continue
+                        val dxdy = (widthPerSubLane * (nextNote.endline - note.endline)).rem(width.toFloat()) / leftDy
+                        var beforeX = realX
+                        val destX = nextNoteCoord.first
+                        var afterX: Float = beforeX + realY * dxdy
+                        canvas.drawLine(
+                            realX,
+                            realY,
+                            afterX,
+                            0.0f,
+                            connectPaint
+                        )
+                        leftDy -= realY
+                        beforeX = afterX + width
+                        while (leftDy >= maxHeight) {
+                            afterX = beforeX + maxHeight * dxdy
+                            canvas.drawLine(
+                                beforeX,
+                                maxHeight.toFloat(),
+                                afterX,
+                                0.0f,
+                                connectPaint
+                            )
+                            leftDy -= maxHeight
+                            beforeX = afterX + width
+                        }
+                        canvas.drawLine(
+                            beforeX, // x dest just before
+                            maxHeight.toFloat(),
+                            nextNoteCoord.first,
+                            nextNoteCoord.second,
+                            connectPaint
+                        )
+                    } else {
+                        canvas.drawLine(
+                            realX,
+                            realY,
+                            nextNoteCoord.first,
+                            nextNoteCoord.second,
+                            connectPaint
+                        )
+                    }
                 }
             }
 //            if(note.isLong() || note.isSlide()) {
