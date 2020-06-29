@@ -40,17 +40,26 @@ class FumenRenderer(
         canvas.drawARGB(255, 0, 0, 0)
         val lanePaint = Paint()
         val laneSubPaint = Paint()
+        val normalNotePaint = Paint()
         lanePaint.strokeWidth = 5.0f
         lanePaint.color = Color.LTGRAY
         laneSubPaint.strokeWidth = 2.0f
         laneSubPaint.color = Color.WHITE
+        normalNotePaint.color = Color.RED
         for (i in 0..lines) {
             val x = i * width.toFloat()
             canvas.drawLine(x, 0.0f, x, height.toFloat(), lanePaint)
-            for (i in 1..lane) {
-                val xx = x + widthPerSubLane * i
+            for (j in 1..lane) {
+                val xx = x + widthPerSubLane * j
                 canvas.drawLine(xx, 0.0f, xx, height.toFloat(), laneSubPaint)
             }
+        }
+        for (note in notes) {
+            val totalHeightPos = heightPerSec * note.time
+            val linenumber = ceil(totalHeightPos / maxHeight).toInt()
+            val realWidthPos = linenumber * width + widthPerSubLane * note.endline
+            val realHeightPos = maxHeight - totalHeightPos.rem(maxHeight)
+            canvas.drawCircle(realWidthPos, realHeightPos, 10.0f, normalNotePaint)
         }
         canvas.drawText(oneDifficulty.lanes.toString(), 0.0f, 10.0f, Paint())
         return bitmap
