@@ -493,7 +493,10 @@ class DereDatabaseHelper(context: Context) {
                 continue
             name = name.substring(13)
             name = name.substringBefore('.')
-            val difficulty = Integer.parseInt(name.substringAfter('_'))
+            val maybeDifficulty = name.substringAfter('_')
+            if(!maybeDifficulty.isDigitsOnly())
+                continue
+            val difficulty = Integer.parseInt(maybeDifficulty)
             val twDifficulty = TW5Difficulty.valueOf(difficulty)
             if (wantedDifficulty != twDifficulty)
                 continue
