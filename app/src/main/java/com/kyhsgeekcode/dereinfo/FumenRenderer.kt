@@ -44,13 +44,13 @@ class FumenRenderer(
         val normalNotePaint = Paint()
         val connectPaint = Paint()
         val syncPaint = Paint()
-        lanePaint.strokeWidth = 5.0f
+        lanePaint.strokeWidth = 6.0f
         lanePaint.color = Color.LTGRAY
-        laneSubPaint.strokeWidth = 2.0f
+        laneSubPaint.strokeWidth = 1.0f
         laneSubPaint.color = Color.WHITE
         normalNotePaint.color = Color.RED
         connectPaint.color = Color.LTGRAY
-        connectPaint.strokeWidth = 15.0f
+        connectPaint.strokeWidth = 16.0f
         syncPaint.color = Color.WHITE
         syncPaint.strokeWidth = 3.0f
         for (i in 0..lines) {

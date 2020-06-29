@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.MenuItem
+import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
 import kotlinx.android.synthetic.main.activity_song_detail.*
 
 /**
@@ -45,6 +46,10 @@ class SongDetailActivity : AppCompatActivity() {
                     putInt(
                         SongDetailFragment.ARG_ITEM_ID,
                         intent.getIntExtra(SongDetailFragment.ARG_ITEM_ID,-1)
+                    )
+                    putSerializable(
+                        SongDetailFragment.ARG_ITEM_DIFFICULTY,
+                        intent.getSerializableExtra(SongDetailFragment.ARG_ITEM_DIFFICULTY)
                     )
                 }
             }

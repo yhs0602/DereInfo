@@ -43,6 +43,7 @@ class SongRecyclerViewAdapter(
                 val fragment = SongDetailFragment().apply {
                     arguments = Bundle().apply {
                         putInt(SongDetailFragment.ARG_ITEM_ID, item.id)
+                        putSerializable(SongDetailFragment.ARG_ITEM_DIFFICULTY, currentDifficulty)
                     }
                 }
                 parentActivity.supportFragmentManager
@@ -55,6 +56,8 @@ class SongRecyclerViewAdapter(
                     SongDetailActivity::class.java
                 ).apply {
                     putExtra(SongDetailFragment.ARG_ITEM_ID, item.id)
+                    Log.d(TAG, "CurrentDifficulty: $currentDifficulty")
+                    putExtra(SongDetailFragment.ARG_ITEM_DIFFICULTY, currentDifficulty)
                 }
                 v.context.startActivity(intent)
             }

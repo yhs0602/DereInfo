@@ -30,6 +30,7 @@ class SongDetailFragment : Fragment() {
      */
     private var item: MusicInfo? = null
     private var oneMusic: OneMusic? = null
+    private var difficulty: TW5Difficulty = TW5Difficulty.Debut
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -45,6 +46,11 @@ class SongDetailFragment : Fragment() {
                 Log.w(TAG, "Item.id:${item!!.id}, musicNumber:${musicNumber}")
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
+            if (it.containsKey(ARG_ITEM_DIFFICULTY)) {
+                difficulty = it[ARG_ITEM_DIFFICULTY] as TW5Difficulty
+                Log.d(TAG, "Contains key, key is:${difficulty.name}")
+                //spinnerDifficulty.setSelection(difficulty.ordinal)
+            }
         }
     }
 
@@ -57,7 +63,7 @@ class SongDetailFragment : Fragment() {
         // Show the dummy content as text in a TextView.
         item?.let { musicInfo ->
             rootView.song_detail.text = musicInfo.toString()
-            val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
+            val adapter: ArrayAdapter<String> = ArrayAdapter(
                 context!!,
                 android.R.layout.simple_spinner_dropdown_item,
                 resources.getStringArray(R.array.difficulties)
@@ -100,7 +106,10 @@ class SongDetailFragment : Fragment() {
                                     return@setOnClickListener
                                 }
                                 val bitmap =
-                                    FumenRenderer(context, oneDifficulty.lanes).render(oneDifficulty)
+                                    FumenRenderer(
+                                        context,
+                                        oneDifficulty.lanes
+                                    ).render(oneDifficulty)
                                 if (bitmap == null) {
                                     Toast.makeText(
                                         requireActivity(),
@@ -112,7 +121,9 @@ class SongDetailFragment : Fragment() {
                                 val photoView = PhotoView(context)
                                 photoView.setImageBitmap(bitmap)
                                 val alertDialog = AlertDialog.Builder(context).setTitle("Fumen")
-                                    .setView(photoView).show()
+                                    .setView(photoView).show().setOnCancelListener {
+                                        bitmap.recycle()
+                                    }
                             }
 
                             val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0
@@ -177,7 +188,7 @@ class SongDetailFragment : Fragment() {
                         }
                     }
                 }
-
+            rootView.spinnerDifficulty.setSelection(difficulty.ordinal)
         }
         return rootView
     }
@@ -189,6 +200,8 @@ class SongDetailFragment : Fragment() {
     }
 
     companion object {
+        const val ARG_ITEM_DIFFICULTY = "item_difficulty"
+
         /**
          * The fragment argument representing the item ID that this fragment
          * represents.
