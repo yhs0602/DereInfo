@@ -15,7 +15,7 @@ class FumenRenderer(
     val lane: Int,
     val width: Int = 300,
     val heightPerSec: Int = 600,
-    val maxHeight: Int = 6000
+    val maxHeight: Int = 9000
 ) {
     fun render(oneDifficulty: OneDifficulty): Bitmap? {
         if (oneDifficulty.notes == null) {
@@ -34,7 +34,7 @@ class FumenRenderer(
         val lines = ceil(totalHeight / maxHeight).toInt()
         val totalWidth = lines * width
         val height = maxHeight
-        val widthPerSubLane = width / (lines + 1)
+        val widthPerSubLane = width.toFloat() / (lane + 1)
         val bitmap = createBitmap(totalWidth, height)
         Log.d("Renderer", "")
         val canvas = Canvas(bitmap)
@@ -58,7 +58,7 @@ class FumenRenderer(
         val pkgName = context.packageName
         for (note in notes) {
             val totalHeightPos = heightPerSec * note.time
-            val linenumber = ceil(totalHeightPos / maxHeight).toInt()
+            val linenumber = (totalHeightPos / maxHeight).toInt()
             val realWidthPos = linenumber * width + widthPerSubLane * note.endline
             val realHeightPos = maxHeight - totalHeightPos.rem(maxHeight)
             val bitmapName = note.getBitmap().toLowerCase()
