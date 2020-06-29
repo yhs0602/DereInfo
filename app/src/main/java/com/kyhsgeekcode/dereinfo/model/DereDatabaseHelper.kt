@@ -553,7 +553,7 @@ class DereDatabaseHelper(context: Context) {
                 longnoteIDs[endpos] = idd
             }
             //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            if ((mode == 1) and (flick == FlickMode.None)) {
+            else if ((mode == 1) and (flick == FlickMode.None)) {
                 prevID = 0
             }
             val theNote = Note(

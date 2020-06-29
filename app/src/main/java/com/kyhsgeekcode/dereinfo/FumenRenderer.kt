@@ -76,7 +76,7 @@ class FumenRenderer(
             val coord = calcPos(note)
             realX = coord.first
             realY = coord.second
-            if (note.isFlick()) {
+            if (note.isFlick() || note.isSlide() || note.isLong()) {
                 if (!note.nextNotes.isNullOrEmpty()) {
                     val nextNote = note.nextNotes[0]
                     val nextNoteCoord = calcPos(nextNote)
@@ -89,6 +89,9 @@ class FumenRenderer(
                     )
                 }
             }
+//            if(note.isLong() || note.isSlide()) {
+//
+//            }
             if (note.sync) {
                 if (note.id < notes.size && notes[note.id].sync) {
                     val syncedNote = notes[note.id]
