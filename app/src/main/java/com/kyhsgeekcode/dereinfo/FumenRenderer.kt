@@ -1,16 +1,17 @@
 package com.kyhsgeekcode.dereinfo
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.content.Context
+import android.graphics.*
 import android.util.Log
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
 import com.kyhsgeekcode.dereinfo.model.Note
 import com.kyhsgeekcode.dereinfo.model.OneDifficulty
 import kotlin.math.ceil
 
 class FumenRenderer(
+    val context: Context,
     val lane: Int,
     val width: Int = 300,
     val heightPerSec: Int = 600,
@@ -54,12 +55,28 @@ class FumenRenderer(
                 canvas.drawLine(xx, 0.0f, xx, height.toFloat(), laneSubPaint)
             }
         }
+        val pkgName = context.packageName
         for (note in notes) {
             val totalHeightPos = heightPerSec * note.time
             val linenumber = ceil(totalHeightPos / maxHeight).toInt()
             val realWidthPos = linenumber * width + widthPerSubLane * note.endline
             val realHeightPos = maxHeight - totalHeightPos.rem(maxHeight)
-            canvas.drawCircle(realWidthPos, realHeightPos, 10.0f, normalNotePaint)
+            val bitmapName = note.getBitmap().toLowerCase()
+            ResourcesCompat.getDrawable(
+                context.resources,
+                context.resources.getIdentifier(
+                    bitmapName,
+                    "drawable",
+                    pkgName
+                ), null
+            )?.let {
+                canvas.drawBitmap(
+                    it.toBitmap(),
+                    null,
+                    RectF(realWidthPos - 20, realHeightPos - 20, realWidthPos + 20, realHeightPos + 20),
+                    normalNotePaint
+                )
+            } ?: canvas.drawCircle(realWidthPos, realHeightPos, 20.0f, normalNotePaint)
         }
         canvas.drawText(oneDifficulty.lanes.toString(), 0.0f, 10.0f, Paint())
         return bitmap

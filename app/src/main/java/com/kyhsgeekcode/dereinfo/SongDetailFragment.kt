@@ -100,7 +100,7 @@ class SongDetailFragment : Fragment() {
                                     return@setOnClickListener
                                 }
                                 val bitmap =
-                                    FumenRenderer(oneDifficulty.lanes).render(oneDifficulty)
+                                    FumenRenderer(context, oneDifficulty.lanes).render(oneDifficulty)
                                 if (bitmap == null) {
                                     Toast.makeText(
                                         requireActivity(),
