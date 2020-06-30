@@ -1,0 +1,22 @@
+package com.kyhsgeekcode.dereinfo.cardunit
+
+data class LeaderSkillModel(
+    val id: Int,
+    val name: String,
+    val explain: String,
+    val type: Int,  // 20: appeal 30: present, 40: fan 50: cross 60: unizon 70: resonance 80: yell
+    val need_cute: Boolean,
+    val need_cool: Boolean,
+    val need_passion: Boolean,
+    val target_attribute: Int,
+    val target_param: Int,
+    val up_type: Int,
+    val up_value: Int,
+    val special_id: Int,
+    val target_attribute_2: Int,
+    val target_param_2: Int,
+    val up_type_2: Int,
+    val up_value_2: Int,
+    val need_skill_variation: Int, // resonance
+    val param_limit: Int // resonance
+)
