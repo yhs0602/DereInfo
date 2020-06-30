@@ -494,7 +494,7 @@ class DereDatabaseHelper(context: Context) {
             name = name.substring(13)
             name = name.substringBefore('.')
             val maybeDifficulty = name.substringAfter('_')
-            if(!maybeDifficulty.isDigitsOnly())
+            if (!maybeDifficulty.isDigitsOnly())
                 continue
             val difficulty = Integer.parseInt(maybeDifficulty)
             val twDifficulty = TW5Difficulty.valueOf(difficulty)
@@ -504,7 +504,11 @@ class DereDatabaseHelper(context: Context) {
                 Charset.defaultCharset()
             )
             Log.d(TAG, "FumenStr: $fumenStr")
-            val notes = parseDereFumen(fumenStr, info)
+            val notes: List<Note>
+            if (twDifficulty == TW5Difficulty.Piano || twDifficulty == TW5Difficulty.Forte)
+                notes = parseDereFumenGrand(fumenStr, info)
+            else
+                notes = parseDereFumen(fumenStr, info)
             difficulties[twDifficulty] = OneDifficulty(twDifficulty, notes)
         }
         cursorFumens.close()
@@ -562,6 +566,77 @@ class DereDatabaseHelper(context: Context) {
             val theNote = Note(
                 idd,
                 0,
+                getColor(musicInfo.circleType),
+                twMode,
+                flick,
+                row["sec"]!!.toFloat(),
+                1.0f,
+                row["startPos"]!!.toFloat(),
+                endpos,
+                arrayOf(prevID),
+                row["sync"]?.toInt() == 1
+            )
+            IDToNotes[idd] = theNote
+            for (id in theNote.previds) {
+                IDToNotes[id]?.addNext(theNote)
+            }
+            notes.add(theNote)
+        }
+        return notes
+    }
+
+    private fun parseDereFumenGrand(
+        fumenStr: String,
+        musicInfo: MusicInfo
+    ): List<Note> {
+        val parsedFumen = csvReader().readAllWithHeader(fumenStr)
+        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
+
+        val prevIDs = HashMap<Int, Int>()
+        val longnoteIDs = HashMap<Float, Int>()
+        val IDToNotes = HashMap<Int, Note>()
+        val notes = ArrayList<Note>()
+        var prevID = 0
+        var idd = 0
+        for (row in parsedFumen) {
+            prevID = 0
+            var gid = row["groupId"]!!.toInt()
+            var mode = row["type"]!!.toInt()
+            if (mode > 7)
+                continue
+            idd++
+            val twModePair = getTWModeGrand(mode)
+            var twMode = twModePair.first
+            val flick = twModePair.second
+            val endpos = row["finishPos"]!!.toFloat()
+            val width = row["status"]!!.toInt()
+            if (gid == 0) {
+                //...
+            } else {
+                if (prevIDs.containsKey(gid)) {
+                    prevID = prevIDs[gid]!!
+                } else {
+                    //...
+                }
+                prevIDs[gid] = idd
+            }
+            if (longnoteIDs.containsKey(endpos)) {
+                //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
+                prevID = longnoteIDs[endpos]!!
+                twMode = TWMode.Tap
+                longnoteIDs.remove(endpos)
+            } else if (mode == 2) {
+                //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
+                prevID = 0
+                longnoteIDs[endpos] = idd
+            }
+            //롱노트 중도 아니었고 자신도 롱노트가 아니다
+            else if ((mode == 1) and (flick == FlickMode.None)) {
+                prevID = 0
+            }
+            val theNote = Note(
+                idd,
+                width,
                 getColor(musicInfo.circleType),
                 twMode,
                 flick,

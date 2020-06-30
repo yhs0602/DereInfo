@@ -10,6 +10,7 @@ import com.kyhsgeekcode.dereinfo.model.Note
 import com.kyhsgeekcode.dereinfo.model.OneDifficulty
 import kotlin.math.ceil
 
+
 class FumenRenderer(
     val context: Context,
     val lane: Int,
@@ -26,6 +27,7 @@ class FumenRenderer(
             Log.d("Renderer", "Size is 0")
             return null
         }
+        val isGrand = oneDifficulty.difficulty.isGrandMode()
         val notes: List<Note> = oneDifficulty.notes ?: return null
         val lastTime = notes.maxBy {
             it.time
@@ -44,6 +46,8 @@ class FumenRenderer(
         val normalNotePaint = Paint()
         val connectPaint = Paint()
         val syncPaint = Paint()
+        val grandPaint = Paint()
+
         lanePaint.strokeWidth = 6.0f
         lanePaint.color = Color.LTGRAY
         laneSubPaint.strokeWidth = 1.0f
@@ -53,6 +57,9 @@ class FumenRenderer(
         connectPaint.strokeWidth = 16.0f
         syncPaint.color = Color.WHITE
         syncPaint.strokeWidth = 3.0f
+
+        grandPaint.color = Color.RED
+        grandPaint.strokeWidth = 5.0f
         for (i in 0..lines) {
             val x = i * width.toFloat()
             canvas.drawLine(x, 0.0f, x, height.toFloat(), lanePaint)
@@ -83,7 +90,8 @@ class FumenRenderer(
                     var leftDy = (nextNote.time - note.time) * heightPerSec
                     if (coord.third < nextNoteCoord.third) {
                         // stop & cut and continue
-                        val dxdy = (widthPerSubLane * (nextNote.endline - note.endline)).rem(width.toFloat()) / leftDy
+                        val dxdy =
+                            (widthPerSubLane * (nextNote.endline - note.endline)).rem(width.toFloat()) / leftDy
                         var beforeX = realX
                         val destX = nextNoteCoord.first
                         var afterX: Float = beforeX + realY * dxdy
@@ -145,29 +153,75 @@ class FumenRenderer(
                 }
             }
             val bitmapName = note.getBitmap().toLowerCase()
-            ResourcesCompat.getDrawable(
-                context.resources,
-                context.resources.getIdentifier(
-                    bitmapName,
-                    "drawable",
-                    pkgName
-                ), null
-            )?.let {
-                canvas.drawBitmap(
-                    it.toBitmap(),
-                    null,
-                    RectF(
-                        realX - 20,
-                        realY - 20,
-                        realX + 20,
-                        realY + 20
-                    ),
-                    normalNotePaint
+            if (isGrand) {
+                val noteWidth = note.size * widthPerSubLane / 2
+                val rect = RectF(realX - noteWidth, realY - 10, realX + noteWidth, realY + 10)
+                val grandBitmapName = bitmapName + "grand"
+                ResourcesCompat.getDrawable(
+                    context.resources,
+                    context.resources.getIdentifier(
+                        grandBitmapName,
+                        "drawable",
+                        pkgName
+                    ), null
+                )?.let {
+                    canvas.drawBitmap(
+                        it.toBitmap(),
+                        null,
+                        rect,
+                        grandPaint
+                    )
+                } ?: drawBorderedRect(
+                    canvas,
+                    rect,
+                    6f,
+                    6f,
+                    grandPaint,
+                    Color.RED
                 )
-            } ?: canvas.drawCircle(realX, realY, 20.0f, normalNotePaint)
+            } else {
+                ResourcesCompat.getDrawable(
+                    context.resources,
+                    context.resources.getIdentifier(
+                        bitmapName,
+                        "drawable",
+                        pkgName
+                    ), null
+                )?.let {
+                    canvas.drawBitmap(
+                        it.toBitmap(),
+                        null,
+                        RectF(
+                            realX - 20,
+                            realY - 20,
+                            realX + 20,
+                            realY + 20
+                        ),
+                        normalNotePaint
+                    )
+                } ?: canvas.drawCircle(realX, realY, 20.0f, normalNotePaint)
+            }
         }
-        canvas.drawText(oneDifficulty.lanes.toString(), 0.0f, 10.0f, Paint())
+//        canvas.drawText(oneDifficulty.lanes.toString(), 0.0f, 10.0f, Paint())
         return bitmap
+    }
+
+    private fun drawBorderedRect(
+        canvas: Canvas,
+        rectF: RectF,
+        f1: Float,
+        fl1: Float,
+        paint: Paint,
+        color: Int
+    ) {
+        paint.style = Paint.Style.FILL;
+        paint.color = color;
+        canvas.drawRoundRect(rectF, f1, fl1, paint)
+
+        // border
+        paint.style = Paint.Style.STROKE;
+        paint.color = Color.WHITE;
+        canvas.drawRoundRect(rectF, f1, fl1, paint)
     }
 
     private fun calcNoteY(totalHeightPos: Float) = maxHeight - totalHeightPos.rem(maxHeight)

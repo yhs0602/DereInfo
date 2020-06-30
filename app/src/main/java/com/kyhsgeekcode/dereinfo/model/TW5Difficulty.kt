@@ -12,6 +12,10 @@ enum class TW5Difficulty(val value: Int) {
     Piano(21),
     Forte(22);
 
+    fun isGrandMode(): Boolean =
+        this == Piano || this == Forte
+
+
     companion object {
         val TAG = "TW5Difficulty"
         fun fromString(value: String): TW5Difficulty = when (value.toLowerCase()) {
@@ -47,15 +51,15 @@ enum class TW5Difficulty(val value: Int) {
 
         fun fromIndex(value: Int): TW5Difficulty {
             return when (value) {
-                0->Debut
-                1->Regular
-                2->Pro
-                3->Master
-                4->MasterPlus
-                5->Light
-                6->Trick
-                7->Piano
-                8->Forte
+                0 -> Debut
+                1 -> Regular
+                2 -> Pro
+                3 -> Master
+                4 -> MasterPlus
+                5 -> Light
+                6 -> Trick
+                7 -> Piano
+                8 -> Forte
                 else -> throw IllegalArgumentException()
             }
         }

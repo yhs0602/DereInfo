@@ -23,3 +23,13 @@ fun getTWMode(mode: Int): TWMode {
     }
 }
 
+fun getTWModeGrand(type: Int): Pair<TWMode, FlickMode> {
+    return when (type) {
+        4 -> Pair(TWMode.Tap, FlickMode.None)
+        5 -> Pair(TWMode.Slide, FlickMode.None)
+        6 -> Pair(TWMode.Tap, FlickMode.Left)
+        7 -> Pair(TWMode.Tap, FlickMode.Right)
+        else -> Pair(TWMode.Tap, FlickMode.None)
+    }
+}
+
