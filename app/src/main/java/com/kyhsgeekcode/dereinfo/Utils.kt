@@ -3,10 +3,17 @@ package com.kyhsgeekcode.dereinfo
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.graphics.Color
+import android.util.Log
+import androidx.core.database.getBlobOrNull
+import androidx.core.database.getFloatOrNull
+import androidx.core.database.getIntOrNull
+import androidx.core.database.getStringOrNull
 import java.io.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
 
 fun launchActivity(context: Context, target: Class<out Activity>) {
     val intent = Intent(context, target)
@@ -48,12 +55,12 @@ val sqliteHeader = byteArrayOf(
 )
 
 fun checkIfDatabase(file: File): Boolean {
-    if(file==null)
+    if (file == null)
         return false
-    if(file.isDirectory)
+    if (file.isDirectory)
         return false
     val byteArray = ByteArray(16)
-    val fi =  file.inputStream()
+    val fi = file.inputStream()
     fi.read(byteArray, 0, 16)
     fi.close()
     return byteArray contentEquals sqliteHeader
@@ -73,3 +80,36 @@ fun manipulateColor(color: Int, factor: Float): Int {
 }
 
 fun Float.equalsDelta(other: Float) = abs(this - other) < 0.000001
+
+inline fun <reified T> cur2List(cursor: Cursor): List<T> {
+    val converters = arrayOf(
+        Cursor::getStringOrNull,
+        Cursor::getIntOrNull, Cursor::getStringOrNull, Cursor::getFloatOrNull,
+        Cursor::getBlobOrNull
+    )
+    val resultList = ArrayList<T>()
+    cursor.moveToFirst()
+    while (!cursor.isAfterLast) {
+        val totalColumn: Int = cursor.columnCount
+        val arr = ArrayList<Any?>()
+        for (i in 0 until totalColumn) {
+            if (cursor.getColumnName(i) != null) {
+                try {
+                    arr.add(converters[cursor.getType(i)](cursor, i))
+                } catch (e: Exception) {
+                    Log.d("CursorToJson", e.message)
+                }
+            }
+            try {
+                val theObject: T =
+                    T::class.java.constructors[0].newInstance(*arr.toTypedArray()) as T
+                resultList.add(theObject)
+            } catch (e: Exception) {
+                Log.e("Cur", "Error $i", e)
+            }
+        }
+        cursor.moveToNext()
+    }
+    cursor.close()
+    return resultList
+}

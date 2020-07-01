@@ -8,11 +8,11 @@ data class LeaderSkillModel(
     val need_cute: Boolean,
     val need_cool: Boolean,
     val need_passion: Boolean,
-    val target_attribute: Int,
-    val target_param: Int,
+    val target_attribute: Int, // cu co pa
+    val target_param: Int, // vo da vi
     val up_type: Int,
     val up_value: Int,
-    val special_id: Int,
+    val special_id: Int, // for live party
     val target_attribute_2: Int,
     val target_param_2: Int,
     val up_type_2: Int,
