@@ -43,6 +43,7 @@ class DereDatabaseHelper(context: Context) {
         } catch (e: Exception) {
             searchMainDB()
         }
+        initSkillAndLeaderSkillData()
     }
 
     private fun searchMainDB() {
@@ -744,14 +745,13 @@ class DereDatabaseHelper(context: Context) {
     }
 
     //
-    fun initSkillAndLeaderSkillData(cursor: Cursor) {
+    private fun initSkillAndLeaderSkillData() {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
-        fumensDB.query("card_data", )
-        cardModels = cur2List(cursor)
-        skillModels = cur2List(cursor)
-        leaderSkillModels = cur2List(cursor)
-        skillBoostModels = cur2List(cursor)
+        cardModels = queryToList(fumensDB, "card_data")
+        skillModels = queryToList(fumensDB, "skill_data")
+        leaderSkillModels = queryToList(fumensDB, "leader_skill_data")
+        skillBoostModels = queryToList(fumensDB, "skill_boost_type")
     }
 
     lateinit var cardModels: List<CardModel>
