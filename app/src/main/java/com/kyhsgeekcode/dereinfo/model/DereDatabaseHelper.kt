@@ -7,11 +7,11 @@ import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
-import com.kyhsgeekcode.dereinfo.FileDataCache
-import com.kyhsgeekcode.dereinfo.checkIfDatabase
-import com.kyhsgeekcode.dereinfo.loadObject
+import com.kyhsgeekcode.dereinfo.*
+import com.kyhsgeekcode.dereinfo.cardunit.CardModel
+import com.kyhsgeekcode.dereinfo.cardunit.LeaderSkillModel
+import com.kyhsgeekcode.dereinfo.cardunit.SkillModel
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
-import com.kyhsgeekcode.dereinfo.saveObject
 import java.io.File
 import java.nio.charset.Charset
 import kotlin.collections.set
@@ -744,5 +744,19 @@ class DereDatabaseHelper(context: Context) {
     }
 
     //
+    fun initSkillAndLeaderSkillData(cursor: Cursor) {
+        val fumensDB =
+            SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
+        fumensDB.query("card_data", )
+        cardModels = cur2List(cursor)
+        skillModels = cur2List(cursor)
+        leaderSkillModels = cur2List(cursor)
+        skillBoostModels = cur2List(cursor)
+    }
+
+    lateinit var cardModels: List<CardModel>
+    lateinit var skillModels: List<SkillModel>
+    lateinit var leaderSkillModels: List<LeaderSkillModel>
+    lateinit var skillBoostModels: List<LeaderSkillModel>
 }
 
