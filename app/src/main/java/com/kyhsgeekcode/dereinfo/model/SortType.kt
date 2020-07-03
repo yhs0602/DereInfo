@@ -16,7 +16,9 @@ enum class SortType(val value: Int) {
     Slide7(12),
     Slide9(13),
     Slide11(14),
-
+    Total7(15),
+    Total9(16),
+    Total11(17)
     ;
 
     fun condition(musicInfo: MusicInfo, difficulty: TW5Difficulty): Any {
@@ -38,6 +40,10 @@ enum class SortType(val value: Int) {
             Slide7 -> statistic?.get(StatisticIndex.Slide7) ?: 0.0f
             Slide9 -> statistic?.get(StatisticIndex.Slide9) ?: 0.0f
             Slide11 -> statistic?.get(StatisticIndex.Slide11) ?: 0.0f
+            Total7 -> statistic?.get(StatisticIndex.Total7) ?: 0.0f
+            Total9 -> statistic?.get(StatisticIndex.Total9) ?: 0.0f
+            Total11 -> statistic?.get(StatisticIndex.Total11) ?: 0.0f
+
         }
     }
 
@@ -67,6 +73,9 @@ enum class SortType(val value: Int) {
         Slide7 -> StatisticIndex.Slide7
         Slide9 -> StatisticIndex.Slide9
         Slide11 -> StatisticIndex.Slide11
+        Total7 -> StatisticIndex.Total7
+        Total9 -> StatisticIndex.Total9
+        Total11 -> StatisticIndex.Total11
     }
 
     companion object {
