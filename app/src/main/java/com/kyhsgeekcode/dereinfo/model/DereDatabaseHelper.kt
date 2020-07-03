@@ -43,7 +43,7 @@ class DereDatabaseHelper(context: Context) {
         } catch (e: Exception) {
             searchMainDB()
         }
-        initSkillAndLeaderSkillData()
+        // initSkillAndLeaderSkillData()
     }
 
     private fun searchMainDB() {
@@ -521,7 +521,7 @@ class DereDatabaseHelper(context: Context) {
         musicInfo: MusicInfo
     ): List<Note> {
         val parsedFumen = csvReader().readAllWithHeader(fumenStr)
-        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
+//        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
 
         val prevIDs = HashMap<Int, Int>()
         val longnoteIDs = HashMap<Float, Int>()
@@ -553,7 +553,7 @@ class DereDatabaseHelper(context: Context) {
             if (longnoteIDs.containsKey(endpos)) {
                 //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
                 prevID = longnoteIDs[endpos]!!
-                twMode = TWMode.Tap
+                twMode = TWMode.Hold
                 longnoteIDs.remove(endpos)
             } else if (mode == 2) {
                 //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
@@ -561,7 +561,7 @@ class DereDatabaseHelper(context: Context) {
                 longnoteIDs[endpos] = idd
             }
             //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            else if ((mode == 1) and (flick == FlickMode.None)) {
+            else if ((mode == 1) and (IDToNotes[prevID]?.isFlick() == false) /*and (flick == FlickMode.None)*/) {
                 prevID = 0
             }
             val theNote = Note(
