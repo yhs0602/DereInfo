@@ -22,6 +22,8 @@ Maybe can be used as a reference when you hesitate whom with which `Act skill` t
    3. Lyricist
    4. Type of the song
    5. Levels
+   6. scores(fumens) of the music
+    1. debut, regular, pro, master, master+, light, trick, piano, forte
 3. Sort By
    1. Data order
    2. Name
@@ -29,9 +31,14 @@ Maybe can be used as a reference when you hesitate whom with which `Act skill` t
    4. Percentage of long notes
    5. Percentage of flick notes
    6. Percentage of slide notes
-4. Filter by *(Not working)*
+   7. Percentage of total notes
+   8. Percentage of notes by time(7, 9, 11)
+4. Filter by
    1. Type of the song
-   2. Has Master
+   2. Has MasterPlus
+   3. Has smart mode
+   4. Has grand mode
+
 
 
 
