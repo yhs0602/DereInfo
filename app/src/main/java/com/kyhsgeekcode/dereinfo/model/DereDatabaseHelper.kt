@@ -10,6 +10,7 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.kyhsgeekcode.dereinfo.*
 import com.kyhsgeekcode.dereinfo.cardunit.CardModel
 import com.kyhsgeekcode.dereinfo.cardunit.LeaderSkillModel
+import com.kyhsgeekcode.dereinfo.cardunit.SkillBoostModel
 import com.kyhsgeekcode.dereinfo.cardunit.SkillModel
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
 import java.io.File
@@ -43,7 +44,7 @@ class DereDatabaseHelper(context: Context) {
         } catch (e: Exception) {
             searchMainDB()
         }
-        // initSkillAndLeaderSkillData()
+        initSkillAndLeaderSkillData()
     }
 
     private fun searchMainDB() {
@@ -746,17 +747,19 @@ class DereDatabaseHelper(context: Context) {
 
     //
     private fun initSkillAndLeaderSkillData() {
+        Log.d(TAG, "QueryToList Test start")
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
         cardModels = queryToList(fumensDB, "card_data")
         skillModels = queryToList(fumensDB, "skill_data")
         leaderSkillModels = queryToList(fumensDB, "leader_skill_data")
         skillBoostModels = queryToList(fumensDB, "skill_boost_type")
+        Log.d(TAG, "QueryToList Test end")
     }
 
     lateinit var cardModels: List<CardModel>
     lateinit var skillModels: List<SkillModel>
     lateinit var leaderSkillModels: List<LeaderSkillModel>
-    lateinit var skillBoostModels: List<LeaderSkillModel>
+    lateinit var skillBoostModels: List<SkillBoostModel>
 }
 

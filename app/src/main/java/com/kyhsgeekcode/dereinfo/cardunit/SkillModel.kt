@@ -2,7 +2,7 @@ package com.kyhsgeekcode.dereinfo.cardunit
 
 data class SkillModel(
     val id: Int,
-    val name: String,
+    val skill_name: String,
     val explain: String,
     val skill_type: Int,
     val judge_type: Int,

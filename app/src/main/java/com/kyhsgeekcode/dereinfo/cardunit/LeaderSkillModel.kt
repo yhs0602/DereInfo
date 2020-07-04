@@ -5,9 +5,9 @@ data class LeaderSkillModel(
     val name: String,
     val explain: String,
     val type: Int,  // 20: appeal 30: present, 40: fan 50: cross 60: unizon 70: resonance 80: yell
-    val need_cute: Boolean,
-    val need_cool: Boolean,
-    val need_passion: Boolean,
+    val need_cute: Int,
+    val need_cool: Int,
+    val need_passion: Int,
     val target_attribute: Int, // cu co pa
     val target_param: Int, // vo da vi
     val up_type: Int,

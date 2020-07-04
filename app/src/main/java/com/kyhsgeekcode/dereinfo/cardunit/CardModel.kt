@@ -6,7 +6,7 @@ data class CardModel(
     val chara_id: Int,
     val rarity: Int,
     val attribute: Int,
-    val titleFlag: Int,
+    val title_flag: Int,
     val evolution_id: Int,
     val series_id: Int,
     val pose: Int,
