@@ -5,9 +5,9 @@ data class CardModel(
     val name: String,
     val chara_id: Int,
     val rarity: Int,
-    val attribute: Int,
+    val attribute: Int, // 속성 Cu Co Pa
     val title_flag: Int,
-    val evolution_id: Int,
+    val evolution_id: Int, // after revolution(특훈)
     val series_id: Int,
     val pose: Int,
     val place: Int,
