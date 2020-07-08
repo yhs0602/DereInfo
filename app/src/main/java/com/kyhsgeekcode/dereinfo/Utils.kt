@@ -83,7 +83,8 @@ fun manipulateColor(color: Int, factor: Float): Int {
     )
 }
 
-fun Float.equalsDelta(other: Float) = abs(this - other) < 0.000001
+fun Float.equalsDelta(other: Float?) = abs(this - (other?: Float.NaN)) < 0.000001
+
 
 inline fun <reified T> cur2List(cursor: Cursor): List<T> {
     val converters = arrayOf(
