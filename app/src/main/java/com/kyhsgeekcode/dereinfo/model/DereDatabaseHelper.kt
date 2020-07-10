@@ -8,10 +8,7 @@ import android.util.Log
 import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.kyhsgeekcode.dereinfo.*
-import com.kyhsgeekcode.dereinfo.cardunit.CardModel
-import com.kyhsgeekcode.dereinfo.cardunit.LeaderSkillModel
-import com.kyhsgeekcode.dereinfo.cardunit.SkillBoostModel
-import com.kyhsgeekcode.dereinfo.cardunit.SkillModel
+import com.kyhsgeekcode.dereinfo.cardunit.*
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
 import java.io.File
 import java.nio.charset.Charset
@@ -754,12 +751,57 @@ class DereDatabaseHelper(context: Context) {
         skillModels = queryToList(fumensDB, "skill_data")
         leaderSkillModels = queryToList(fumensDB, "leader_skill_data")
         skillBoostModels = queryToList(fumensDB, "skill_boost_type")
+        motifModels = queryToList(fumensDB, "skill_motif_value")
+        motifModelsGrand = queryToList(fumensDB, "skill_motif_value_grand")
+        lifeSparkleModels = queryToList(fumensDB, "skill_life_value")
+        lifeSparkleModelsGrand = queryToList(fumensDB, "skill_life_value_grand")
         Log.d(TAG, "QueryToList Test end")
+    }
+
+    fun motifBonus(appeal: Int, type: Int, isGrand: Boolean = false): Int {
+        val model: SkillMotifValueModel
+        if (isGrand) {
+            model = motifModelsGrand.first {
+                appeal >= it.motif_value
+            }
+        } else {
+            model = motifModels.first {
+                appeal >= it.motif_value
+            }
+        }
+        return when (type) {
+            1 -> model.type_01_value
+            2 -> model.type_02_value
+            else -> model.type_01_value
+        }
+    }
+
+    fun lifeSparkleBonus(life: Int, type: Int, isGrand: Boolean = false): Int {
+        val model: SkillLifeValueModel
+        if (isGrand) {
+            model = lifeSparkleModelsGrand.first {
+                life >= it.life_value
+            }
+        } else {
+            model = lifeSparkleModels.first {
+                life >= it.life_value
+            }
+        }
+        return when (type) {
+            1 -> model.type_01_value
+            2 -> model.type_02_value
+            else -> model.type_01_value
+        }
     }
 
     lateinit var cardModels: List<CardModel>
     lateinit var skillModels: List<SkillModel>
     lateinit var leaderSkillModels: List<LeaderSkillModel>
     lateinit var skillBoostModels: List<SkillBoostModel>
+    lateinit var motifModels: List<SkillMotifValueModel>
+    lateinit var motifModelsGrand: List<SkillMotifValueModel>
+    lateinit var lifeSparkleModels: List<SkillLifeValueModel>
+    lateinit var lifeSparkleModelsGrand: List<SkillLifeValueModel>
+
 }
 
