@@ -23,52 +23,58 @@ data class LeaderSkillModel(
     val need_skill_variation: Int, // resonance
     val param_limit: Int // resonance
 ) {
-    fun canApply(unit: CardUnit) : Boolean {
-        if((need_cute >= 1) and !unit.hasAttr(1))
-                return false
-        if((need_cool >= 1) and !unit.hasAttr(2))
-                return false
-        if((need_passion >= 1) and !unit.hasAttr(3))
-                return false
-        if((need_cute == 6) and !unit.hasOnlyAttr(1)) // pricess
+    fun canApply(unit: CardUnit, guest: Card): Boolean {
+        if ((need_cute >= 1) and !(unit.hasAttr(1) || guest.cardData.attribute == 1))
             return false
-        if((need_cool == 6) and !unit.hasOnlyAttr(2)) // pricess
+        if ((need_cool >= 1) and !(unit.hasAttr(2) || guest.cardData.attribute == 2))
             return false
-        if((need_passion == 6) and !unit.hasOnlyAttr(3)) // pricess
+        if ((need_passion >= 1) and !(unit.hasAttr(3) || guest.cardData.attribute == 3))
             return false
-        if((unit.countSkills() < need_skill_variation))
+        if ((need_cute == 6) and !(unit.hasOnlyAttr(1) && guest.cardData.attribute == 1)) // pricess
+            return false
+        if ((need_cool == 6) and !(unit.hasOnlyAttr(2) && guest.cardData.attribute == 2)) // pricess
+            return false
+        if ((need_passion == 6) and !(unit.hasOnlyAttr(3) && guest.cardData.attribute == 3)) // pricess
+            return false
+        if ((countSkills(unit, guest) < need_skill_variation))
             return false
         return true
     }
 
+    fun countSkills(unit: CardUnit, guest: Card) : Int {
+        val cards = unit.cards.map { it.skillModel.id }.toMutableList()
+        cards.add(guest.cardData.skill_id)
+        return cards.groupBy { it }.size
+    }
+
     fun getBonusRatio(cardUnit: CardUnit): Array<IntArray> {
         val resultArray = Array<IntArray>(cardUnit.cards.size) { IntArray(7) }
-        for((index, card) in cardUnit.cards.withIndex()) {
+        for ((index, card) in cardUnit.cards.withIndex()) {
             val cardData = card.cardData
             // other, vo, vi, dan, all, life, skill,
             val bonus = intArrayOf(100, 100, 100, 100, 100, 100, 100)
-            if(cardData.attribute == target_attribute || target_attribute == 4) {
+            if (cardData.attribute == target_attribute || target_attribute == 4) {
                 bonus[target_param] += up_value
             }
-            if(cardData.attribute == target_attribute_2 ||  target_attribute_2 == 4) {
-                if(target_attribute_2 <= 6 && up_type_2 == 1) // cross fans
+            if (cardData.attribute == target_attribute_2 || target_attribute_2 == 4) {
+                if (target_attribute_2 <= 6 && up_type_2 == 1) // cross fans
                     bonus[target_attribute_2] += up_value_2
             }
 
-            if(cardData.attribute + 10 == target_attribute_2) { // unizon
+            if (cardData.attribute + 10 == target_attribute_2) { // unizon
                 bonus[target_param_2] = up_value_2
             }
 
-            if(bonus[4] > 0) {
-                for(i in 1..3) {
+            if (bonus[4] > 0) {
+                for (i in 1..3) {
                     bonus[i] += bonus[4]
                 }
                 bonus[4] = 0
             }
 
-            if(param_limit > 0) {
-                for(i in 1..3)
-                    if(param_limit != i) {
+            if (param_limit > 0) {
+                for (i in 1..3)
+                    if (param_limit != i) {
                         bonus[i] -= 100
                         bonus[i] = max(bonus[i], 0)
                     }
@@ -76,5 +82,12 @@ data class LeaderSkillModel(
             resultArray[index] = bonus
         }
         return resultArray
+    }
+
+    companion object {
+        val ID_RESONANCE_VOICE = 104
+        val ID_RESONANCE_STEP = 105
+        val ID_RESONANCE_MAKE = 106
+        val RESONANCE_IDS = arrayOf(ID_RESONANCE_MAKE, ID_RESONANCE_STEP, ID_RESONANCE_VOICE)
     }
 }
