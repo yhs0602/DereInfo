@@ -4,10 +4,7 @@ import com.kyhsgeekcode.dereinfo.cardunit.Card
 import com.kyhsgeekcode.dereinfo.cardunit.CardUnit
 import com.kyhsgeekcode.dereinfo.cardunit.SkillModel
 import com.kyhsgeekcode.dereinfo.equalsDelta
-import com.kyhsgeekcode.dereinfo.model.CircleType
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
-import com.kyhsgeekcode.dereinfo.model.Note
-import com.kyhsgeekcode.dereinfo.model.OneDifficulty
+import com.kyhsgeekcode.dereinfo.model.*
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -27,13 +24,13 @@ object CGCalc {
         support: Int,
         ratio: Float
     ): Int {
-        val appeals: Array<Int> =
-            unit.calculateAppeal(guest, type, roomBonus) // vo, vi , da, life, skill
+        appeals = unit.calculateAppeal(guest, type, roomBonus) // vo, vi , da, life, skill
+        val isResonance = unit.isResonanceApplied(guest)
         val totalAppeal = appeals[0] + appeals[1] + appeals[2] + support
         val notes = difficulty.notes!!
         val totalNotes = notes.size
         val scorePerNote = ((ratio * totalAppeal) / totalNotes).roundToInt()
-        var life = appeals[4]
+        life = appeals[4]
         val maxLife = life * 2
         val skillModels = arrayOfNulls<SkillModel>(5)
         for ((index, card) in unit.cards.withIndex()) {
@@ -98,8 +95,15 @@ object CGCalc {
                     else -> 2.0f
                 }
                 val scoreByCombo = (scorePerNote * comboBonusBase).roundToInt()
-                val scoreBonus = calculateScoreBonus(note, workingSkills)
-                val comboBonus = calcualteComboBonus(note, workingSkills)
+                val scoreBonus: Float
+                val comboBonus: Float
+                if (isResonance) {
+                    scoreBonus = calculateScoreBonusResonance(note, workingSkills)
+                    comboBonus = calcualteComboBonusResonance(note, workingSkills)
+                } else {
+                    scoreBonus = calculateScoreBonus(note, workingSkills)
+                    comboBonus = calcualteComboBonus(note, workingSkills)
+                }
                 val finalScore = scoreByCombo * scoreBonus * comboBonus
                 totalScore += finalScore.roundToInt()
                 processedNotes++
@@ -136,18 +140,77 @@ object CGCalc {
         return totalScore
     }
 
-    private fun calcualteComboBonus(
+    // TODO: 2020/07/10 Apply BOOST
+
+    private fun calculateScoreBonusResonance(
         note: Note,
         workingSkills: List<IndexedValue<SkillModel?>>
     ): Float {
-        return 1.0f
+        return 1.0f + workingSkills.sumByDouble {
+            (it.value?.getScoreBonus(
+                note,
+                Judge.PERFECT,
+                life,
+                appeals,
+                lastSkillModel,
+                strongestScoreSkillModel
+            )?.div(100.0) ?: 1.0) - 1.0
+        }.toFloat()
     }
+
+    private fun calcualteComboBonusResonance(
+        note: Note,
+        workingSkills: List<IndexedValue<SkillModel?>>
+    ): Float {
+        return 1.0f + workingSkills.sumByDouble {
+            (it.value?.getComboBonus(
+                note,
+                Judge.PERFECT,
+                life,
+                appeals,
+                lastSkillModel,
+                strongestComboSkillModel
+            )?.div(100.0) ?: 1.0) - 1.0
+        }.toFloat()
+    }
+
 
     private fun calculateScoreBonus(
         note: Note,
         workingSkills: List<IndexedValue<SkillModel?>>
     ): Float {
-
-        return 1.0f
+        return 1.0f + (workingSkills.asSequence().map {
+            (it.value?.getScoreBonus(
+                note,
+                Judge.PERFECT,
+                life,
+                appeals,
+                lastSkillModel,
+                strongestScoreSkillModel
+            )?.div(100.0) ?: 1.0) - 1.0
+        }.max()?.toFloat() ?: 0.0f)
     }
+
+    private fun calcualteComboBonus(
+        note: Note,
+        workingSkills: List<IndexedValue<SkillModel?>>
+    ): Float {
+        return 1.0f + (workingSkills.asSequence().map {
+            (it.value?.getComboBonus(
+                note,
+                Judge.PERFECT,
+                life,
+                appeals,
+                lastSkillModel,
+                strongestComboSkillModel
+            )?.div(100.0) ?: 1.0) - 1.0
+        }.max()?.toFloat() ?: 0.0f)
+    }
+
+    var life: Int = 0
+    var appeals: Array<Int> = arrayOf()
+    var lastSkillModel: SkillModel? = null
+    var strongestScoreSkillModel: SkillModel? = null
+    var strongestComboSkillModel: SkillModel? = null
+
 }
