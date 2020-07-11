@@ -5,7 +5,6 @@ import com.kyhsgeekcode.dereinfo.cardunit.CardUnit
 import com.kyhsgeekcode.dereinfo.cardunit.SkillModel
 import com.kyhsgeekcode.dereinfo.equalsDelta
 import com.kyhsgeekcode.dereinfo.model.*
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 object CGCalc {
@@ -79,6 +78,7 @@ object CGCalc {
             }
 
             val workingSkills = skillModels.withIndex().filter { isWorking[it.index] }
+            val workingBoostSkills = workingSkills.filter { it.value?.isBoost() == true }
 
             // process notes
             var note = notes[processedNotes]
@@ -95,16 +95,22 @@ object CGCalc {
                     else -> 2.0f
                 }
                 val scoreByCombo = (scorePerNote * comboBonusBase).roundToInt()
-                val scoreBonus: Float
-                val comboBonus: Float
+                val finalScore: Float
                 if (isResonance) {
-                    scoreBonus = calculateScoreBonusResonance(note, workingSkills)
-                    comboBonus = calcualteComboBonusResonance(note, workingSkills)
+                    val (scoreBonus, comboBonus) = calculateBonusResonance(
+                        note,
+                        workingSkills,
+                        workingBoostSkills
+                    )
+                    finalScore = scoreByCombo * scoreBonus * comboBonus
                 } else {
-                    scoreBonus = calculateScoreBonus(note, workingSkills)
-                    comboBonus = calcualteComboBonus(note, workingSkills)
+                    val (scoreBonus, comboBonus) = calculateBonus(
+                        note,
+                        workingSkills,
+                        workingBoostSkills
+                    )
+                    finalScore = scoreByCombo * scoreBonus * comboBonus
                 }
-                val finalScore = scoreByCombo * scoreBonus * comboBonus
                 totalScore += finalScore.roundToInt()
                 processedNotes++
                 if (processedNotes < totalNotes)
@@ -140,6 +146,62 @@ object CGCalc {
         return totalScore
     }
 
+    private fun calculateBonus(
+        note: Note,
+        workingSkills: List<IndexedValue<SkillModel?>>,
+        workingBoostSkills: List<IndexedValue<SkillModel?>>,
+        attributes: Array<Int>
+    ): Triple<Float, Float, Int> {
+        workingSkills.map { it ->
+            val skillModel = it.value ?: return@map Triple(100, 100, 0)
+            if (skillModel.isBoost())
+                return@map Triple(100, 100, 0)
+            val boostValues = workingBoostSkills.map { boostSkill ->
+                DereDatabaseHelper.theInstance.skillBoostModels.asSequence().filter { boostModel ->
+                    (boostModel.skill_value == boostSkill.value?.value)
+                            && (boostModel.target_type == skillModel.skill_type)
+                            && (boostModel.target_attribute == 0 || boostModel.target_attribute == attributes[boostSkill.index])
+                }.map { boostModel ->
+                    Triple(
+                        boostModel.boost_value_1,
+                        boostModel.boost_value_2,
+                        boostModel.boost_value_3
+                    )
+                }.firstOrNull()?: Triple(100,100,0)
+            }
+            val boost1 = boostValues.map {
+                it.first
+            }.max()?.div(100f)
+            val boost2 = boostValues.map {
+                it.second
+            }.max()?.div(100f)
+            val boost3 = boostValues.map {
+                it.third
+            }.max()?.div(100f)
+            val bonus = skillModel.getBonus(
+                note,
+                Judge.PERFECT,
+                life,
+                appeals,
+                lastSkillModel,
+                { note : Note, judge : Judge ->
+
+                },
+                boost1,
+                boost2,
+                boost3
+            )
+        }
+    }
+
+    private fun calculateBonusResonance(
+        note: Note,
+        workingSkills: List<IndexedValue<SkillModel?>>,
+        workingBoostSkills: List<IndexedValue<SkillModel?>>
+    ): Pair<Float, Float> {
+
+    }
+
     // TODO: 2020/07/10 Apply BOOST
 
     private fun calculateScoreBonusResonance(
@@ -147,15 +209,37 @@ object CGCalc {
         workingSkills: List<IndexedValue<SkillModel?>>
     ): Float {
         return 1.0f + workingSkills.sumByDouble {
-            (it.value?.getScoreBonus(
-                note,
-                Judge.PERFECT,
-                life,
-                appeals,
-                lastSkillModel,
-                strongestScoreSkillModel
-            )?.div(100.0) ?: 1.0) - 1.0
+            (applyScoreBoostResonance(
+                workingSkills, it.value?.getScoreBonus(
+                    note,
+                    Judge.PERFECT,
+                    life,
+                    appeals,
+                    lastSkillModel,
+                    strongestScoreSkillModel
+                )
+            ).div(100.0)) - 1.0
         }.toFloat()
+    }
+
+    private fun applyScoreBoostResonance(
+        workingSkills: List<IndexedValue<SkillModel?>>,
+        scoreBonus: Double?
+    ): Int {
+        if (scoreBonus == null)
+            return 100
+        var totalScoreBonus: Double = scoreBonus
+        var totalScoreBonusBoost: Double = 1.0
+        for (skill in workingSkills) {
+            if (skill.value == null)
+                continue
+            if (skill.value!!.isBoost()) {
+                val boostModel =
+                    DereDatabaseHelper.theInstance.skillValueToBoostModel[skill.value!!.value]
+                totalScoreBonus += ((boostModel?.getScoreBoost() ?: 100) - 100)
+            }
+        }
+        return (totalScoreBonus * totalScoreBonusBoost).roundToInt()
     }
 
     private fun calcualteComboBonusResonance(
@@ -206,6 +290,7 @@ object CGCalc {
             )?.div(100.0) ?: 1.0) - 1.0
         }.max()?.toFloat() ?: 0.0f)
     }
+
 
     var life: Int = 0
     var appeals: Array<Int> = arrayOf()

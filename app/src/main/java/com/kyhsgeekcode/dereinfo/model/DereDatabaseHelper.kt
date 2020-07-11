@@ -751,6 +751,7 @@ class DereDatabaseHelper(context: Context) {
         skillModels = queryToList(fumensDB, "skill_data")
         leaderSkillModels = queryToList(fumensDB, "leader_skill_data")
         skillBoostModels = queryToList(fumensDB, "skill_boost_type")
+//        initSkillToBoostModel()
         motifModels = queryToList(fumensDB, "skill_motif_value")
         motifModelsGrand = queryToList(fumensDB, "skill_motif_value_grand")
         lifeSparkleModels = queryToList(fumensDB, "skill_life_value")
@@ -794,6 +795,17 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 
+//    fun initSkillToBoostModel() {
+//        val values = skillBoostModels.map {
+//            it.skill_value
+//        }
+//        val maxValue = values.max() ?: 0
+//        skillValueToBoostModel = arrayOfNulls(maxValue)
+//        skillBoostModels.forEach {
+//            skillValueToBoostModel[it.skill_value] = it
+//        }
+//    }
+
     lateinit var cardModels: List<CardModel>
     lateinit var skillModels: List<SkillModel>
     lateinit var leaderSkillModels: List<LeaderSkillModel>
@@ -802,6 +814,7 @@ class DereDatabaseHelper(context: Context) {
     lateinit var motifModelsGrand: List<SkillMotifValueModel>
     lateinit var lifeSparkleModels: List<SkillLifeValueModel>
     lateinit var lifeSparkleModelsGrand: List<SkillLifeValueModel>
+//    lateinit var skillValueToBoostModel: Array<SkillBoostModel?>
 
 }
 
