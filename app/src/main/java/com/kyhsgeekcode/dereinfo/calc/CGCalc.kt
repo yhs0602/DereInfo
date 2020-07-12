@@ -58,12 +58,21 @@ object CGCalc {
                 val skillModel = theValue.value
                 (time - lastWorkTiming[index]).equalsDelta(unit.cards[index].getSkillDuration())
             }
+            for (skill in skillsToDeactivate) {
+                // make working false
+                isWorking[skill.index] = false
+            }
+            val isDamageGuard = skillsToActivate.asSequence().filter {
+                it.value?.skill_type == 12 && !skillsToDeactivate.contains(it)
+            }.toList().isNotEmpty()
+
             for (skill in skillsToActivate) {
                 // check availability
                 if (unit.cards[skill.index].canWork(unit, guest, life)) {
                     // apply penalty
                     if (skill.value?.skill_trigger_type == 1) { // overload
-                        life -= skill.value!!.skill_trigger_value // overload
+                        if (!isDamageGuard)
+                            life -= skill.value!!.skill_trigger_value // overload
                     }
                     // make working true
                     isWorking[skill.index] = true
@@ -72,14 +81,9 @@ object CGCalc {
                 lastWorkTiming[skill.index] += skill.value?.condition?.toFloat() ?: 0f
             }
 
-            for (skill in skillsToDeactivate) {
-                // make working false
-                isWorking[skill.index] = false
-            }
 
             val workingSkills = skillModels.withIndex().filter { isWorking[it.index] }
             val workingBoostSkills = workingSkills.filter { it.value?.isBoost() == true }
-
             // process notes
             var note = notes[processedNotes]
             while (note.time >= time) {
@@ -167,7 +171,7 @@ object CGCalc {
                         boostModel.boost_value_2,
                         boostModel.boost_value_3
                     )
-                }.firstOrNull()?: Triple(100,100,0)
+                }.firstOrNull() ?: Triple(100, 100, 0)
             }
             val boost1 = boostValues.map {
                 it.first
@@ -184,7 +188,7 @@ object CGCalc {
                 life,
                 appeals,
                 lastSkillModel,
-                { note : Note, judge : Judge ->
+                { note: Note, judge: Judge ->
 
                 },
                 boost1,
