@@ -1,10 +1,8 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.calc.CGCalc.strongestScoreSkillModel
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.Judge
 import com.kyhsgeekcode.dereinfo.model.Note
-import kotlin.math.roundToInt
 
 data class SkillModel(
     val id: Int,
@@ -108,7 +106,7 @@ data class SkillModel(
         life: Int,
         appeals: Array<Int>,
         lastSkillModel: SkillModel?,
-        strongestScoreSkillModel: (Note, Judge) -> Int,
+        workedSkills: Set<SkillModel>,
         boost1: Float?,
         boost2: Float?,
         boost3: Float?
@@ -136,7 +134,7 @@ data class SkillModel(
                 life,
                 appeals,
                 lastSkillModel,
-                strongestScoreSkillModel,
+                workedSkills,
                 boost1,
                 boost2,
                 boost3
@@ -196,20 +194,35 @@ data class SkillModel(
                 if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
                     appeals[3],
                     value
-                ) * (boost1?:1f) else 100f, 100f, 0f
+                ) * (boost1 ?: 1f) else 100f, 100f, 0f
             )
             37 -> Triple(
                 if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
                     appeals[2],
                     value
-                ) * (boost1?:1f) else 100f, 100f, 0f
+                ) * (boost1 ?: 1f) else 100f, 100f, 0f
             )
-            39 -> Triple(
-                (strongestScoreSkillModel(
-                    note,
-                    judge
-                ) * (value_2 / 100.0f) * (boost2?:1f)), value * (boost1?:1f), 0f
-            )
+            39 -> {
+                val bestScoreModelBonus = workedSkills.map {
+                    it.getBonus(
+                        note,
+                        judge,
+                        life,
+                        appeals,
+                        lastSkillModel,
+                        workedSkills,
+                        null,
+                        null,
+                        null
+                    ).first
+                }.max() ?: return Triple(100f, 100f, 0f)
+                Triple(
+                    (bestScoreModelBonus * (value_2 / 100.0f) * (boost2 ?: 1f)),
+                    value * (boost1 ?: 1f),
+                    0f
+                )
+            }
+
             else -> Triple(100f, 100f, 0f)
         }
     }

@@ -24,6 +24,9 @@ object CGCalc {
         ratio: Float
     ): Int {
         appeals = unit.calculateAppeal(guest, type, roomBonus) // vo, vi , da, life, skill
+        val attributes = unit.cards.map {
+            it.cardData.attribute
+        }.toTypedArray()
         val isResonance = unit.isResonanceApplied(guest)
         val totalAppeal = appeals[0] + appeals[1] + appeals[2] + support
         val notes = difficulty.notes!!
@@ -45,6 +48,7 @@ object CGCalc {
         var time: Float = 0f
         var totalScore = 0
         var noteIndex: Int = 0
+
         while (noteIndex < totalNotes) {
             // 주기적으로 패널티를 먹이고 시작하는 스킬 처리
             // 스킬 발동!
@@ -67,15 +71,38 @@ object CGCalc {
             }.toList().isNotEmpty()
 
             for (skill in skillsToActivate) {
-                // check availability
-                if (unit.cards[skill.index].canWork(unit, guest, life)) {
-                    // apply penalty
-                    if (skill.value?.skill_trigger_type == 1) { // overload
-                        if (!isDamageGuard)
-                            life -= skill.value!!.skill_trigger_value // overload
+                if (skill.value?.skill_type == 16) {
+                    skillToMimic = lastSkillModel // solidify
+                    val skillToMimicNonNull = skillToMimic ?: continue
+                    if (unit.cards[skillToMimicNonNull.index].canWork(unit, guest, life)) {
+                        if (skillToMimicNonNull.value.skill_trigger_type == 1) {
+                            if (!isDamageGuard)
+                                life -= skillToMimicNonNull.value.skill_trigger_value
+                        }
+                        isWorking[skill.index] = true
+                        // avoid alternate from using anchor
+//                        if(skill.value != null)
+//                            workedSkills.add(skill.value!!)
                     }
-                    // make working true
-                    isWorking[skill.index] = true
+                } else {
+                    // check availability
+                    if (unit.cards[skill.index].canWork(unit, guest, life)) {
+                        // apply penalty
+                        if (skill.value?.skill_trigger_type == 1) { // overload
+                            if (!isDamageGuard)
+                                life -= skill.value!!.skill_trigger_value // overload
+                        }
+                        // make working true
+                        isWorking[skill.index] = true
+                        lastSkillModel =
+                            if (skill.value == null) null else IndexedValue(
+                                skill.index,
+                                skill.value!!
+                            )
+                        if (skill.value != null)
+                            workedSkills.add(skill.value!!)
+                    }
+
                 }
                 // update last work
                 lastWorkTiming[skill.index] += skill.value?.condition?.toFloat() ?: 0f
@@ -101,19 +128,23 @@ object CGCalc {
                 val scoreByCombo = (scorePerNote * comboBonusBase).roundToInt()
                 val finalScore: Float
                 if (isResonance) {
-                    val (scoreBonus, comboBonus) = calculateBonusResonance(
+                    val (scoreBonus, comboBonus, lifeBonus) = calculateBonusResonance(
                         note,
                         workingSkills,
-                        workingBoostSkills
+                        workingBoostSkills,
+                        attributes
                     )
                     finalScore = scoreByCombo * scoreBonus * comboBonus
+                    life += lifeBonus
                 } else {
-                    val (scoreBonus, comboBonus) = calculateBonus(
+                    val (scoreBonus, comboBonus, lifeBonus) = calculateBonus(
                         note,
                         workingSkills,
-                        workingBoostSkills
+                        workingBoostSkills,
+                        attributes
                     )
                     finalScore = scoreByCombo * scoreBonus * comboBonus
+                    life += lifeBonus
                 }
                 totalScore += finalScore.roundToInt()
                 processedNotes++
@@ -156,10 +187,10 @@ object CGCalc {
         workingBoostSkills: List<IndexedValue<SkillModel?>>,
         attributes: Array<Int>
     ): Triple<Float, Float, Int> {
-        workingSkills.map { it ->
-            val skillModel = it.value ?: return@map Triple(100, 100, 0)
+        val totalAvailableBonus = workingSkills.map { it ->
+            val skillModel = it.value ?: return@map Triple(100f, 100f, 0f)
             if (skillModel.isBoost())
-                return@map Triple(100, 100, 0)
+                return@map Triple(100f, 100f, 0f)
             val boostValues = workingBoostSkills.map { boostSkill ->
                 DereDatabaseHelper.theInstance.skillBoostModels.asSequence().filter { boostModel ->
                     (boostModel.skill_value == boostSkill.value?.value)
@@ -187,119 +218,129 @@ object CGCalc {
                 Judge.PERFECT,
                 life,
                 appeals,
-                lastSkillModel,
-                { note: Note, judge: Judge ->
-
-                },
+                skillToMimic?.value,
+                workedSkills,
                 boost1,
                 boost2,
                 boost3
             )
+            bonus
         }
+        val scoreBonus = totalAvailableBonus.map {
+            it.first
+        }.max()?.div(100f) ?: 1f
+        val comboBonus = totalAvailableBonus.map {
+            it.second
+        }.max()?.div(100f) ?: 1f
+        val lifeBonus = totalAvailableBonus.map {
+            it.third
+        }.max()?.div(100f)?.roundToInt() ?: 0
+        return Triple(scoreBonus, comboBonus, lifeBonus)
     }
 
     private fun calculateBonusResonance(
         note: Note,
         workingSkills: List<IndexedValue<SkillModel?>>,
-        workingBoostSkills: List<IndexedValue<SkillModel?>>
-    ): Pair<Float, Float> {
+        workingBoostSkills: List<IndexedValue<SkillModel?>>,
+        attributes: Array<Int>
+    ): Pair<Float, Float, Int> {
 
     }
 
     // TODO: 2020/07/10 Apply BOOST
 
-    private fun calculateScoreBonusResonance(
-        note: Note,
-        workingSkills: List<IndexedValue<SkillModel?>>
-    ): Float {
-        return 1.0f + workingSkills.sumByDouble {
-            (applyScoreBoostResonance(
-                workingSkills, it.value?.getScoreBonus(
-                    note,
-                    Judge.PERFECT,
-                    life,
-                    appeals,
-                    lastSkillModel,
-                    strongestScoreSkillModel
-                )
-            ).div(100.0)) - 1.0
-        }.toFloat()
-    }
+//    private fun calculateScoreBonusResonance(
+//        note: Note,
+//        workingSkills: List<IndexedValue<SkillModel?>>
+//    ): Float {
+//        return 1.0f + workingSkills.sumByDouble {
+//            (applyScoreBoostResonance(
+//                workingSkills, it.value?.getScoreBonus(
+//                    note,
+//                    Judge.PERFECT,
+//                    life,
+//                    appeals,
+//                    lastSkillModel,
+//                    workedSkills
+//                )
+//            ).div(100.0)) - 1.0
+//        }.toFloat()
+//    }
 
-    private fun applyScoreBoostResonance(
-        workingSkills: List<IndexedValue<SkillModel?>>,
-        scoreBonus: Double?
-    ): Int {
-        if (scoreBonus == null)
-            return 100
-        var totalScoreBonus: Double = scoreBonus
-        var totalScoreBonusBoost: Double = 1.0
-        for (skill in workingSkills) {
-            if (skill.value == null)
-                continue
-            if (skill.value!!.isBoost()) {
-                val boostModel =
-                    DereDatabaseHelper.theInstance.skillValueToBoostModel[skill.value!!.value]
-                totalScoreBonus += ((boostModel?.getScoreBoost() ?: 100) - 100)
-            }
-        }
-        return (totalScoreBonus * totalScoreBonusBoost).roundToInt()
-    }
+//    private fun applyScoreBoostResonance(
+//        workingSkills: List<IndexedValue<SkillModel?>>,
+//        scoreBonus: Double?
+//    ): Int {
+//        if (scoreBonus == null)
+//            return 100
+//        var totalScoreBonus: Double = scoreBonus
+//        var totalScoreBonusBoost: Double = 1.0
+//        for (skill in workingSkills) {
+//            if (skill.value == null)
+//                continue
+//            if (skill.value!!.isBoost()) {
+//                val boostModel =
+//                    DereDatabaseHelper.theInstance.skillValueToBoostModel[skill.value!!.value]
+//                totalScoreBonus += ((boostModel?.getScoreBoost() ?: 100) - 100)
+//            }
+//        }
+//        return (totalScoreBonus * totalScoreBonusBoost).roundToInt()
+//    }
 
-    private fun calcualteComboBonusResonance(
-        note: Note,
-        workingSkills: List<IndexedValue<SkillModel?>>
-    ): Float {
-        return 1.0f + workingSkills.sumByDouble {
-            (it.value?.getComboBonus(
-                note,
-                Judge.PERFECT,
-                life,
-                appeals,
-                lastSkillModel,
-                strongestComboSkillModel
-            )?.div(100.0) ?: 1.0) - 1.0
-        }.toFloat()
-    }
+//    private fun calcualteComboBonusResonance(
+//        note: Note,
+//        workingSkills: List<IndexedValue<SkillModel?>>
+//    ): Float {
+//        return 1.0f + workingSkills.sumByDouble {
+//            (it.value?.getComboBonus(
+//                note,
+//                Judge.PERFECT,
+//                life,
+//                appeals,
+//                lastSkillModel,
+//                workedSkills
+//            )?.div(100.0) ?: 1.0) - 1.0
+//        }.toFloat()
+//    }
 
 
-    private fun calculateScoreBonus(
-        note: Note,
-        workingSkills: List<IndexedValue<SkillModel?>>
-    ): Float {
-        return 1.0f + (workingSkills.asSequence().map {
-            (it.value?.getScoreBonus(
-                note,
-                Judge.PERFECT,
-                life,
-                appeals,
-                lastSkillModel,
-                strongestScoreSkillModel
-            )?.div(100.0) ?: 1.0) - 1.0
-        }.max()?.toFloat() ?: 0.0f)
-    }
-
-    private fun calcualteComboBonus(
-        note: Note,
-        workingSkills: List<IndexedValue<SkillModel?>>
-    ): Float {
-        return 1.0f + (workingSkills.asSequence().map {
-            (it.value?.getComboBonus(
-                note,
-                Judge.PERFECT,
-                life,
-                appeals,
-                lastSkillModel,
-                strongestComboSkillModel
-            )?.div(100.0) ?: 1.0) - 1.0
-        }.max()?.toFloat() ?: 0.0f)
-    }
+//    private fun calculateScoreBonus(
+//        note: Note,
+//        workingSkills: List<IndexedValue<SkillModel?>>
+//    ): Float {
+//        return 1.0f + (workingSkills.asSequence().map {
+//            (it.value?.getScoreBonus(
+//                note,
+//                Judge.PERFECT,
+//                life,
+//                appeals,
+//                lastSkillModel,
+//                workedSkills
+//            )?.div(100.0) ?: 1.0) - 1.0
+//        }.max()?.toFloat() ?: 0.0f)
+//    }
+//
+//    private fun calcualteComboBonus(
+//        note: Note,
+//        workingSkills: List<IndexedValue<SkillModel?>>
+//    ): Float {
+//        return 1.0f + (workingSkills.asSequence().map {
+//            (it.value?.getComboBonus(
+//                note,
+//                Judge.PERFECT,
+//                life,
+//                appeals,
+//                lastSkillModel,
+//                workedSkills
+//            )?.div(100.0) ?: 1.0) - 1.0
+//        }.max()?.toFloat() ?: 0.0f)
+//    }
 
 
     var life: Int = 0
     var appeals: Array<Int> = arrayOf()
-    var lastSkillModel: SkillModel? = null
-    var strongestScoreSkillModel: SkillModel? = null
-    var strongestComboSkillModel: SkillModel? = null
+    var lastSkillModel: IndexedValue<SkillModel>? = null
+    private var skillToMimic: IndexedValue<SkillModel>? = null
+    private val workedSkills = mutableSetOf<SkillModel>()
 
 }
