@@ -191,19 +191,7 @@ object CGCalc {
             val skillModel = it.value ?: return@map Triple(100f, 100f, 0f)
             if (skillModel.isBoost())
                 return@map Triple(100f, 100f, 0f)
-            val boostValues = workingBoostSkills.map { boostSkill ->
-                DereDatabaseHelper.theInstance.skillBoostModels.asSequence().filter { boostModel ->
-                    (boostModel.skill_value == boostSkill.value?.value)
-                            && (boostModel.target_type == skillModel.skill_type)
-                            && (boostModel.target_attribute == 0 || boostModel.target_attribute == attributes[boostSkill.index])
-                }.map { boostModel ->
-                    Triple(
-                        boostModel.boost_value_1,
-                        boostModel.boost_value_2,
-                        boostModel.boost_value_3
-                    )
-                }.firstOrNull() ?: Triple(100, 100, 0)
-            }
+            val boostValues = getBoostValues(workingBoostSkills, skillModel, attributes)
             val boost1 = boostValues.map {
                 it.first
             }.max()?.div(100f)
@@ -238,13 +226,69 @@ object CGCalc {
         return Triple(scoreBonus, comboBonus, lifeBonus)
     }
 
+    private fun getBoostValues(
+        workingBoostSkills: List<IndexedValue<SkillModel?>>,
+        skillModel: SkillModel,
+        attributes: Array<Int>
+    ): List<Triple<Int, Int, Int>> {
+        return workingBoostSkills.map { boostSkill ->
+            DereDatabaseHelper.theInstance.skillBoostModels.asSequence().filter { boostModel ->
+                (boostModel.skill_value == boostSkill.value?.value)
+                        && (boostModel.target_type == skillModel.skill_type)
+                        && (boostModel.target_attribute == 0 || boostModel.target_attribute == attributes[boostSkill.index])
+            }.map { boostModel ->
+                Triple(
+                    boostModel.boost_value_1,
+                    boostModel.boost_value_2,
+                    boostModel.boost_value_3
+                )
+            }.firstOrNull() ?: Triple(100, 100, 0)
+        }
+    }
+
     private fun calculateBonusResonance(
         note: Note,
         workingSkills: List<IndexedValue<SkillModel?>>,
         workingBoostSkills: List<IndexedValue<SkillModel?>>,
         attributes: Array<Int>
-    ): Pair<Float, Float, Int> {
-
+    ): Triple<Float, Float, Int> {
+        val totalAvailableBonus = workingSkills.map { it ->
+            val skillModel = it.value ?: return@map Triple(100f, 100f, 0f)
+            if (skillModel.isBoost())
+                return@map Triple(100f, 100f, 0f)
+            val boostValues = getBoostValues(workingBoostSkills, skillModel, attributes)
+            val boost1 = boostValues.sumBy {
+                it.first
+            }?.div(100f)
+            val boost2 = boostValues.sumBy {
+                it.second
+            }?.div(100f)
+            val boost3 = boostValues.sumBy {
+                it.third
+            }?.div(100f)
+            val bonus = skillModel.getBonus(
+                note,
+                Judge.PERFECT,
+                life,
+                appeals,
+                skillToMimic?.value,
+                workedSkills,
+                boost1,
+                boost2,
+                boost3
+            )
+            bonus
+        }
+        val scoreBonus = totalAvailableBonus.sumByDouble {
+            it.first.toDouble()
+        }?.div(100f) //?: 1f
+        val comboBonus = totalAvailableBonus.sumByDouble {
+            it.second.toDouble()
+        }?.div(100f) // ?: 1f
+        val lifeBonus = totalAvailableBonus.sumByDouble {
+            it.third.toDouble()
+        }?.div(100f)?.roundToInt() // ?: 0
+        return Triple(scoreBonus.toFloat(), comboBonus.toFloat(), lifeBonus)
     }
 
     // TODO: 2020/07/10 Apply BOOST
