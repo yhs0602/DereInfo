@@ -16,6 +16,7 @@ import java.io.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMembers
 
 
@@ -133,7 +134,9 @@ inline fun <reified T> queryToList(
     params: Array<String>? = null
 ): List<T> {
     Log.d("QueryToList", "QueryToList Test 1")
-    val fields /*: Array<String>*/ = T::class.members.map { it.name }.filter { it ->
+    val fields /*: Array<String>*/ = T::class.members.filter{
+        it is KProperty<*>
+    } .map { it.name }.filter { it ->
         !(it.startsWith("component") && it.replace("component", "")
             .isDigitsOnly() || arrayOf("copy", "equals", "hashCode", "toString").contains(it))
     }.toTypedArray()
