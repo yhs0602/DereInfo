@@ -3,6 +3,7 @@
     package="com.kyhsgeekcode.dereinfo">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -10,6 +11,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".UnitListActivity"
+            android:label="@string/title_unit_list"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".UnitDetailActivity"
+            android:label="@string/title_unit_detail"
+            android:parentActivityName=".UnitListActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.kyhsgeekcode.dereinfo.UnitListActivity" />
+        </activity>
         <activity android:name=".StartActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

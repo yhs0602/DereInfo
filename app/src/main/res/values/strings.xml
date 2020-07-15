@@ -8,4 +8,6 @@
     <string name="refresh">Refresh</string>
     <string name="title_activity_unit_manage">Manage units</string>
     <string name="action_settings">Settings</string>
+    <string name="title_unit_list">Units</string>
+    <string name="title_unit_detail">Unit Detail</string>
 </resources>
