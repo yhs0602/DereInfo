@@ -9,6 +9,7 @@ import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.kyhsgeekcode.dereinfo.*
 import com.kyhsgeekcode.dereinfo.cardunit.*
+import com.kyhsgeekcode.dereinfo.dereclient.AssetDownloader
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
 import java.io.File
 import java.nio.charset.Charset
@@ -36,6 +37,7 @@ class DereDatabaseHelper(context: Context) {
         val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
         manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
         fumenFolder = File(dereFilesDir, "a/")
+        AssetDownloader.download()
         try {
             loadFumenDBFileFromCache()
         } catch (e: Exception) {
