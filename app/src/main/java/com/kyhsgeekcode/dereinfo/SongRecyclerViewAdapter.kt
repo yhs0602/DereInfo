@@ -165,7 +165,7 @@ class SongRecyclerViewAdapter(
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val idView: TextView = view.id_text
+        val idView: TextView = view.unit_id
         val textViewComposer: TextView = view.textViewComposer
         val backgroundLayout: ConstraintLayout = view.listitem_background
         val tvLevel: TextView = view.textViewLevel

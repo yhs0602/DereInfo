@@ -110,8 +110,8 @@ class UnitListActivity : AppCompatActivity() {
         override fun getItemCount() = values.size
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val idView: TextView = view.findViewById(R.id.id_text)
-            val contentView: TextView = view.findViewById(R.id.content)
+            val idView: TextView = view.findViewById(R.id.unit_id)
+            val contentView: TextView = view.findViewById(R.id.unit_name)
         }
     }
 }
