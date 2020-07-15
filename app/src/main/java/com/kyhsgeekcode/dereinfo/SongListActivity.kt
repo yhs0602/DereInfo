@@ -213,6 +213,9 @@ class SongListActivity : AppCompatActivity(),
             app_bar_refresh -> {
                 refreshCache(publisher, onFinish)
             }
+            app_bar_units -> {
+                startActivity(Intent(this, UnitManageActivity::class.java))
+            }
         }
         return super.onOptionsItemSelected(item)
     }

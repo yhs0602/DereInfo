@@ -6,4 +6,6 @@
     <string name="sort">Sort</string>
     <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
+    <string name="title_activity_unit_manage">Manage units</string>
+    <string name="action_settings">Settings</string>
 </resources>
