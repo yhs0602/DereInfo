@@ -47,6 +47,7 @@ data class LeaderSkillModel(
         return cards.groupBy { it }.size
     }
 
+    // other, vo, vi, dan, all, life, skill
     fun getBonusRatio(cardUnit: CardUnit): Array<IntArray> {
         val resultArray = Array<IntArray>(cardUnit.cards.size) { IntArray(7) }
         for ((index, card) in cardUnit.cards.withIndex()) {

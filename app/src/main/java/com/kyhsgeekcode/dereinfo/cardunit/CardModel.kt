@@ -1,7 +1,7 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
 data class CardModel(
-    val id: Int,
+    val id: Int, // Can be used to retrieve illustrate id like https://hidamarirhodonite.kirara.ca/icon_card/100854.png
     val name: String,
     val chara_id: Int,
     val rarity: Int,

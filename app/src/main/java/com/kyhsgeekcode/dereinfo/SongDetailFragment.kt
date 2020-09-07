@@ -25,9 +25,6 @@ import kotlinx.android.synthetic.main.song_detail.view.*
 class SongDetailFragment : Fragment() {
     val TAG = "SongDetailFrag"
 
-    /**
-     * The dummy content this fragment is presenting.
-     */
     private var item: MusicInfo? = null
     private var oneMusic: OneMusic? = null
     private var difficulty: TW5Difficulty = TW5Difficulty.Debut
