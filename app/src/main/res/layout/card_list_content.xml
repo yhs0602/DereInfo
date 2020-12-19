@@ -90,13 +90,13 @@
             android:id="@+id/tv_card_leaderskill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="브릴리언듯(40%)" />
+            android:text="브릴리언스(40%)" />
 
         <TextView
             android:id="@+id/tv_card_skill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="10초마다 40%확률로 스코어 50퍼넨트 업이다." />
+            android:text="10초마다 40%확률로  후훟후ㅜㅎ후 " />
     </LinearLayout>
 
     <ImageView
