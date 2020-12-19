@@ -55,7 +55,7 @@ Maybe can be used as a reference when you hesitate whom with which `Act skill` t
 IFS=$'\n'; (for name in $(file a/* | grep SQLite | cut -d: -f1); do echo $name; done) | cut -d: -f1 | tar -cvf db.tar -T -
 ```
 
-## CSV scheme (2020.12.19 update - witch mode
+## CSV scheme (2020.12.19 update - witch mode)
 
 1. id: primary key, **does NOT indicate the index of the notes.**
 2. sec: The time when the note reaches the judge line.
@@ -69,10 +69,10 @@ IFS=$'\n'; (for name in $(file a/* | grep SQLite | cut -d: -f1); do echo $name; 
    7. grand right flick
    8. witch accident
    9. witch decorator
-   93. change tempo (default=100)
+   93. 93: change tempo (default=100)
 4. startPos, finishPos: start and end position from left.
 5. status:
-   0. normal
+   0. 0: normal
    1. normal left flick
    2. normal right flick
    3. or raw note width in grand mode.
@@ -84,3 +84,73 @@ IFS=$'\n'; (for name in $(file a/* | grep SQLite | cut -d: -f1); do echo $name; 
 9. size: the size of note in witch
 10. distance: helper for engine after changing tempo
    
+## Skill_type
+
+1. Perfect Score bonus 
+2. Perfect, Great score bonus
+3. NONE
+4. 콤보 보너스 4                  콤보
+5. 판강 레어                             판정
+6. 판강 스알                             판정
+7. 판강 쓰알 4 + 2 + 1                   판정
+8. MISS까지 커버되는 판강 (Not implemented)
+9. 콤보 유지                                 콤보유지
+10. NONE
+11. NONE
+12. 데미지 가드                                       라이프
+13. NONE
+14. 오버로드 8 + 4 + 2    스코어               콤보유지  라이프
+15. 컨센 8+ 4+ 2 + 1     스코어                               판정
+16. 앵콜 16
+17. 라이프회복 16 + 1                                 라이프
+18. NONE
+19. NONE
+20. 부스트
+21. Cute focus
+22. Cool focus
+23. Passion focus            스코어   콤보
+24. 올라운드                     콤보                  라이프
+25. 라이프스파클                  콤보
+26. 트리콜로로 시너지        스코어  콤보                  라이프
+27. 코디네이트            스코어   콤보
+28. 롱 액트             스코어 1, 2
+29. 플릭 액트            스코어 1, 2
+30. 슬라이드 액트        스코어 1, 2
+31. 튜닝                       콤보     판정
+32. Cute ensemble
+33. Cool ensemble
+34. Passion ensemble
+35. Vocal Motif
+36. Dance Motif
+37. Visual Motif           스코어
+38. 심포니
+39. 얼터네이트          콤보 스코어
+40. refrain
+
+## leader_skill type
+
+1. Cute voice
+2. Cute step
+3. Cute makeup
+4. Cute brilliance
+5. Cute energy
+6. Cool voice
+7. Cool step
+8. Cool makeup
+9. Cool brilliance
+10. Cool energy
+11. Passion voice
+12. Passion step
+13. Passion makeup
+14. Passion brilliance
+15. Passion energy
+16. Shiny voice
+17. Shiny step
+18. Shiny makeup
+19. Shiny brilliance
+20. Shiny energy
+21. Cute ability
+22. Cool ability
+23. Passion ability
+24. Cute voice60
+25. blah
