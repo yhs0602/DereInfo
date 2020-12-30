@@ -19,6 +19,7 @@ fun getTWMode(mode: Int): TWMode {
         1 -> TWMode.Tap
         2 -> TWMode.Hold
         3 -> TWMode.Slide
+        8 -> TWMode.Damage
         else -> TWMode.Tap
     }
 }

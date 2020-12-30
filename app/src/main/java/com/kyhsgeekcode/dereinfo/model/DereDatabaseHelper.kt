@@ -521,7 +521,73 @@ class DereDatabaseHelper(context: Context) {
     }
 
     private fun parseDereFumenWitch(fumenStr: String, info: MusicInfo): List<Note> {
-        return parseDereFumen(fumenStr, info)
+        val parsedFumen = csvReader().readAllWithHeader(fumenStr)
+//        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
+
+        val prevIDs = HashMap<Int, Int>()
+        val longnoteIDs = HashMap<Float, Int>()
+        val IDToNotes = HashMap<Int, Note>()
+        val notes = ArrayList<Note>()
+        var prevID = 0
+        var idd = 0
+        for (row in parsedFumen) {
+            prevID = 0
+            val gid = row["groupId"]!!.toInt()
+            val mode = row["type"]!!.toInt()
+            val visible = row["visible"]?.toIntOrNull() ?: 100
+            if (visible < 0)
+                continue
+            if (mode > 3 && mode != 8)
+                continue
+            idd++
+            var twMode = getTWMode(mode)
+            val endpos = row["finishPos"]!!.toFloat()
+            val flick =
+                getTW5Flick(row["status"]!!.toInt())
+            if (gid == 0) {
+                //...
+            } else {
+                if (prevIDs.containsKey(gid)) {
+                    prevID = prevIDs[gid]!!
+                } else {
+                    //...
+                }
+                prevIDs[gid] = idd
+            }
+            if (longnoteIDs.containsKey(endpos)) {
+                //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
+                prevID = longnoteIDs[endpos]!!
+                twMode = TWMode.Hold
+                longnoteIDs.remove(endpos)
+            } else if (mode == 2) {
+                //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
+                prevID = 0
+                longnoteIDs[endpos] = idd
+            }
+            //롱노트 중도 아니었고 자신도 롱노트가 아니다
+            else if ((mode == 1) and (IDToNotes[prevID]?.isFlick() == false) /*and (flick == FlickMode.None)*/) {
+                prevID = 0
+            }
+            val theNote = Note(
+                idd,
+                0,
+                getColor(info.circleType),
+                twMode,
+                flick,
+                row["sec"]!!.toFloat(),
+                1.0f,
+                row["startPos"]!!.toFloat(),
+                endpos,
+                arrayOf(prevID),
+                row["sync"]?.toInt() == 1
+            )
+            IDToNotes[idd] = theNote
+            for (id in theNote.previds) {
+                IDToNotes[id]?.addNext(theNote)
+            }
+            notes.add(theNote)
+        }
+        return notes
     }
 
     private fun parseDereFumen(
@@ -541,7 +607,7 @@ class DereDatabaseHelper(context: Context) {
             prevID = 0
             var gid = row["groupId"]!!.toInt()
             var mode = row["type"]!!.toInt()
-            if (mode > 3)
+            if (mode > 3 && mode != 8)
                 continue
             idd++
             var twMode = getTWMode(mode)
@@ -611,7 +677,7 @@ class DereDatabaseHelper(context: Context) {
             prevID = 0
             var gid = row["groupId"]!!.toInt()
             var mode = row["type"]!!.toInt()
-            if (mode > 7)
+            if (mode > 8)
                 continue
             idd++
             val twModePair = getTWModeGrand(mode)

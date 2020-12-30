@@ -9,6 +9,7 @@ enum class StatisticIndex {
     Long,
     Flick,
     Slide,
+    Damage,
 
     Total7,
     Total9,
@@ -28,7 +29,11 @@ enum class StatisticIndex {
 
     Slide7,
     Slide9,
-    Slide11;
+    Slide11,
+
+    Damage7,
+    Damage9,
+    Damage11;
 
     companion object {
         fun makeIndex(type: String, time: Int = 0): StatisticIndex {
@@ -46,6 +51,7 @@ enum class StatisticIndex {
                 TWMode.Tap -> Normal
                 TWMode.Hold -> Long
                 TWMode.Slide -> Slide
+                TWMode.Damage -> Damage
                 else -> throw IllegalArgumentException()
             }
             else Flick
