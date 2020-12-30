@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <Button
+        android:id="@+id/buttonDebut"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/btndifficulty_margin"
+        android:background="@drawable/shape_gradient_round"
+        android:text="Debut"
+        app:layout_constraintEnd_toStartOf="@id/buttonRegular"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonRegular"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/btndifficulty_margin"
+        android:background="@drawable/shape_gradient_round"
+        android:text="Regular"
+        app:layout_constraintEnd_toStartOf="@id/buttonPro"
+        app:layout_constraintStart_toEndOf="@id/buttonDebut"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonPro"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/btndifficulty_margin"
+        android:background="@drawable/shape_gradient_round"
+        android:text="Pro"
+        app:layout_constraintEnd_toStartOf="@id/buttonMaster"
+        app:layout_constraintStart_toEndOf="@id/buttonRegular"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonMaster"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/btndifficulty_margin"
+        android:background="@drawable/shape_gradient_round"
+        android:text="Master"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/buttonPro"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

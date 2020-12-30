@@ -45,7 +45,7 @@ class UnitDetailFragment : Fragment() {
 
         // Show the dummy content as text in a TextView.
         item?.let {
-            rootView.findViewById<TextView>(R.id.unit_detail).text = it.details
+//            rootView.findViewById<TextView>(R.id.unit_detail).text = it.details
         }
 
         return rootView

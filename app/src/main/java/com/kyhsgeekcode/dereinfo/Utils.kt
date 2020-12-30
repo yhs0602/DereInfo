@@ -17,7 +17,12 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.declaredMembers
+
+//val Any.TAG: String
+//    get() {
+//        val tag = javaClass.simpleName
+//        return if (tag.length <= 23) tag else tag.substring(0, 23)
+//    }
 
 
 fun launchActivity(context: Context, target: Class<out Activity>) {
@@ -84,7 +89,7 @@ fun manipulateColor(color: Int, factor: Float): Int {
     )
 }
 
-fun Float.equalsDelta(other: Float?) = abs(this - (other?: Float.NaN)) < 0.000001
+fun Float.equalsDelta(other: Float?) = abs(this - (other ?: Float.NaN)) < 0.000001
 
 
 inline fun <reified T> cur2List(cursor: Cursor): List<T> {
@@ -134,11 +139,17 @@ inline fun <reified T> queryToList(
     params: Array<String>? = null
 ): List<T> {
     Log.d("QueryToList", "QueryToList Test 1")
-    val fields /*: Array<String>*/ = T::class.members.filter{
+    val fields /*: Array<String>*/ = T::class.members.filter {
         it is KProperty<*>
-    } .map { it.name }.filter { it ->
+    }.map { it.name }.filter { it ->
         !(it.startsWith("component") && it.replace("component", "")
-            .isDigitsOnly() || arrayOf("copy", "equals", "hashCode", "toString").contains(it))
+            .isDigitsOnly() || arrayOf(
+            "copy",
+            "equals",
+            "hashCode",
+            "toString",
+            "TAG"
+        ).contains(it))
     }.toTypedArray()
     Log.d("QueryToList", "${fields.joinToString(",")}")
     val cursor = database.query(table, fields, selection, params, null, null, null)

@@ -13,11 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.tabs.TabLayout
 import com.kyhsgeekcode.dereinfo.R.id.*
-import com.kyhsgeekcode.dereinfo.model.CircleType
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
-import com.kyhsgeekcode.dereinfo.model.MusicInfo
-import com.kyhsgeekcode.dereinfo.model.SortType
+import com.kyhsgeekcode.dereinfo.model.*
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import kotlinx.android.synthetic.main.activity_song_list.*
@@ -99,6 +97,20 @@ class SongListActivity : AppCompatActivity(),
 //            refreshCache(publisher, onFinish)
         }
 
+        tl_song_list_modes.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                Log.d(TAG, "OnSelectedTab")
+//                val tag = tab?.view?.id as? String ?: "normal"
+                val gamemode = GameMode.fromTabIndex(tab?.position ?: 0)
+                Log.d(TAG, "GameMode: $gamemode")
+                refreshMode(gamemode ?: GameMode.NORMAL)
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
         if (song_detail_container != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-w900dp).
@@ -115,6 +127,12 @@ class SongListActivity : AppCompatActivity(),
                 onFailedLoadDatabase()
             }
         }
+    }
+
+    private fun refreshMode(gamemode: GameMode) {
+        adapter.gameMode = gamemode
+        song_list.adapter = adapter
+        adapter.notifyDataSetChanged()
     }
 
     private fun refreshCache(

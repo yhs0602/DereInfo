@@ -18,8 +18,7 @@
     
     -->
 
-    <androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/song_list"
         android:name="com.kyhsgeekcode.dereinfo.SongListFragment"
         android:layout_width="@dimen/item_width"

@@ -65,8 +65,18 @@ class SongRecyclerViewAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.song_list_content, parent, false)
+        val inflater = LayoutInflater.from(parent.context)
+        val view = inflater.inflate(R.layout.song_list_content, parent, false)
+        val difficultyButtons = inflater.inflate(
+            when (gameMode) {
+                GameMode.NORMAL -> R.layout.song_list_sub_normal
+                GameMode.MASTERPLUS -> R.layout.song_list_sub_masterplus
+                GameMode.WITCH -> R.layout.song_list_sub_witch
+                GameMode.SMART -> R.layout.song_list_sub_smart
+                GameMode.GRAND -> R.layout.song_list_sub_grand
+            }, parent, false
+        )
+        view.layoutDifficulties.addView(difficultyButtons)
         listView = parent as RecyclerView
         return ViewHolder(view)
     }
@@ -96,11 +106,11 @@ class SongRecyclerViewAdapter(
                 tvLevel.text = "-"
                 tvConditionValue.text = "-"
             }
-            for (button in layoutDifficulties.children) {
+            for (button in (layoutDifficulties.children.first() as ViewGroup).children) {
                 if (button is Button) {
                     val btnDifficulty = TW5Difficulty.fromString(button.text.toString())
-                    button.isEnabled =
-                        statistic?.containsKey(btnDifficulty) == true
+//                    button.isEnabled =
+//                        statistic?.containsKey(btnDifficulty) == true
                     button.setOnClickListener {
                         currentMusicIDIndex = item.id
                         if (twoPaneInTablet) {
@@ -170,15 +180,16 @@ class SongRecyclerViewAdapter(
         val backgroundLayout: ConstraintLayout = view.listitem_background
         val tvLevel: TextView = view.textViewLevel
         val tvConditionValue = view.textViewConditionValue
-        val buttonDebut = view.buttonDebut
-        val buttonRegular = view.buttonRegular
-        val buttonPro = view.buttonPro
-        val buttonMaster = view.buttonMaster
-        val buttonMasterPlus = view.buttonMasterPlus
-        val buttonLight = view.buttonLight
-        val buttonTrick = view.buttonTrick
-        val buttonPiano = view.buttonPiano
-        val buttonForte = view.buttonForte
+
+        //        val buttonDebut = view.buttonDebut
+//        val buttonRegular = view.buttonRegular
+//        val buttonPro = view.buttonPro
+//        val buttonMaster = view.buttonMaster
+//        val buttonMasterPlus = view.buttonMasterPlus
+//        val buttonLight = view.buttonLight
+//        val buttonTrick = view.buttonTrick
+//        val buttonPiano = view.buttonPiano
+//        val buttonForte = view.buttonForte
         val layoutDifficulties = view.layoutDifficulties
     }
 
@@ -222,7 +233,7 @@ class SongRecyclerViewAdapter(
                         itemList.add(item)
                     }
                 }
-                if(sortOrderAsc) {
+                if (sortOrderAsc) {
                     itemList.sortByDescending {
                         sortType.condition(it, currentDifficulty) as Comparable<Any>
                     }
@@ -278,4 +289,5 @@ class SongRecyclerViewAdapter(
     var sortType: SortType = SortType.Alphabetical
     var sortOrderAsc: Boolean = true
     var currentMusicIDIndex: Int = 0
+    var gameMode: GameMode = GameMode.NORMAL
 }
