@@ -7,6 +7,7 @@ enum class TW5Difficulty(val value: Int) {
     Pro(3),
     Master(4),
     MasterPlus(5),
+    Witch(6),
     Light(11),
     Trick(12),
     Piano(21),
@@ -24,6 +25,7 @@ enum class TW5Difficulty(val value: Int) {
             "pro" -> Pro
             "master" -> Master
             "master+" -> MasterPlus
+            "witch" -> Witch
             "trick" -> Trick
             "light" -> Light
             "piano" -> Piano
@@ -40,6 +42,7 @@ enum class TW5Difficulty(val value: Int) {
                 3 -> Pro
                 4 -> Master
                 5 -> MasterPlus
+                6 -> Witch
                 101 -> MasterPlus
                 11 -> Light
                 12 -> Trick
@@ -56,10 +59,11 @@ enum class TW5Difficulty(val value: Int) {
                 2 -> Pro
                 3 -> Master
                 4 -> MasterPlus
-                5 -> Light
-                6 -> Trick
-                7 -> Piano
-                8 -> Forte
+                5 -> Witch
+                6 -> Light
+                7 -> Trick
+                8 -> Piano
+                9 -> Forte
                 else -> throw IllegalArgumentException()
             }
         }

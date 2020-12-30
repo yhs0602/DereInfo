@@ -44,7 +44,7 @@ class SongDetailFragment : Fragment() {
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
             if (it.containsKey(ARG_ITEM_DIFFICULTY)) {
-                difficulty = it[ARG_ITEM_DIFFICULTY] as TW5Difficulty
+                difficulty = it[ARG_ITEM_DIFFICULTY] as  TW5Difficulty
                 Log.d(TAG, "Contains key, key is:${difficulty.name}")
                 //spinnerDifficulty.setSelection(difficulty.ordinal)
             }
