@@ -21,6 +21,7 @@ class Note(
     fun isFlick(): Boolean = flick != FlickMode.None
     fun isLong(): Boolean = twMode == TWMode.Hold
     fun isSlide(): Boolean = twMode == TWMode.Slide
+    fun isDamage(): Boolean = twMode == TWMode.Damage
     fun chaos(): Float = abs(startline - endline)
     fun getBitmap(): String {
         if (isFlick()) {
@@ -31,6 +32,9 @@ class Note(
         }
         if (isLong()) {
             return "Longnote"
+        }
+        if (isDamage()) {
+            return "Damagenote"
         }
         return "Normalnote"
     }

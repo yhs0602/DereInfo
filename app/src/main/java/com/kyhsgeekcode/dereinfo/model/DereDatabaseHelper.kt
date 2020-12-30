@@ -175,9 +175,10 @@ class DereDatabaseHelper(context: Context) {
                 //Log.d(TAG, "Skip file")
                 continue
             }
+            var fumenDB: SQLiteDatabase? = null
             try {
                 //Log.d(TAG, "Oh file")
-                val fumenDB =
+                fumenDB =
                     SQLiteDatabase.openDatabase(file!!.path, null, SQLiteDatabase.OPEN_READONLY)
                 cursorFumens = fumenDB.query("blobs", arrayOf("name"), null, null, null, null, null)
                 while (cursorFumens.moveToNext()) {
@@ -192,11 +193,11 @@ class DereDatabaseHelper(context: Context) {
                     musicNumberToFumenFile[musicIndex] = file
                     break
                 }
-                fumenDB.close()
             } catch (e: SQLException) {
                 Log.e(TAG, "indexFumen", e)
                 continue
             } finally {
+                fumenDB?.close()
                 cursorFumens?.close()
             }
         }
@@ -465,6 +466,7 @@ class DereDatabaseHelper(context: Context) {
         5 -> Pair(TWMode.Slide, FlickMode.None)
         6 -> Pair(TWMode.Tap, FlickMode.Left)
         7 -> Pair(TWMode.Tap, FlickMode.Right)
+        8 -> Pair(TWMode.Damage, FlickMode.None)
         else -> Pair(TWMode.fromType(type), FlickMode.fromStatus(status))
     }
 
@@ -508,12 +510,18 @@ class DereDatabaseHelper(context: Context) {
             val notes: List<Note>
             if (twDifficulty == TW5Difficulty.Piano || twDifficulty == TW5Difficulty.Forte)
                 notes = parseDereFumenGrand(fumenStr, info)
+            else if (twDifficulty == TW5Difficulty.Witch)
+                notes = parseDereFumenWitch(fumenStr, info)
             else
                 notes = parseDereFumen(fumenStr, info)
             difficulties[twDifficulty] = OneDifficulty(twDifficulty, notes)
         }
         cursorFumens.close()
         return OneMusic(difficulties, info)
+    }
+
+    private fun parseDereFumenWitch(fumenStr: String, info: MusicInfo): List<Note> {
+        return parseDereFumen(fumenStr, info)
     }
 
     private fun parseDereFumen(
