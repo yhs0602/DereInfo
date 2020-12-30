@@ -131,9 +131,16 @@ class SongListActivity : AppCompatActivity(),
     }
 
     private fun refreshMode(gamemode: GameMode) {
+        adapter.userFilter.shouldHaveGrand = gamemode == GameMode.GRAND
+        adapter.userFilter.shouldHaveMasterPlus = gamemode == GameMode.MASTERPLUS
+        adapter.userFilter.shouldHaveSmart = gamemode == GameMode.SMART
+        adapter.userFilter.shouldHaveWitch = gamemode == GameMode.WITCH
+
         adapter.gameMode = gamemode
         song_list.adapter = adapter
         adapter.notifyDataSetChanged()
+        adapter.filter?.filter("")
+
     }
 
     private fun refreshCache(

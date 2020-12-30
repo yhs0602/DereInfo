@@ -28,9 +28,17 @@ class SongFilter {
                 return false
         }
 
+        if (shouldHaveWitch) {
+            if (DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
+                    TW5Difficulty.Witch
+                ) == false
+            )
+                return false
+        }
         return true
     }
 
+    var shouldHaveWitch: Boolean = false
     var shouldBeStarred: Boolean = false
     var shouldHaveGrand: Boolean = false
     var shouldHaveSmart: Boolean = false
