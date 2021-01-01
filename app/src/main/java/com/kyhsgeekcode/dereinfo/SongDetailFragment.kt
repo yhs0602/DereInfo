@@ -1,7 +1,6 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.app.AlertDialog
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -89,7 +88,8 @@ class SongDetailFragment : Fragment() {
                         with(rootView) {
                             buttonStatisticsShowFumen.isEnabled = true
                             buttonStatisticsShowFumen.setOnClickListener {
-                                showFumen(context, musicInfo, tw5Difficulty)
+//                                showFumen(musicInfo, tw5Difficulty)
+                                showFumen2()
                             }
 
                             val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0
@@ -159,11 +159,17 @@ class SongDetailFragment : Fragment() {
         return rootView
     }
 
+    private fun showFumen2() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.song_detail_container, FumenFragment()).addToBackStack(null)
+            .commit()
+    }
+
     private fun showFumen(
-        context: Context,
         musicInfo: MusicInfo,
         tw5Difficulty: TW5Difficulty
     ) {
+        val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
             DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
