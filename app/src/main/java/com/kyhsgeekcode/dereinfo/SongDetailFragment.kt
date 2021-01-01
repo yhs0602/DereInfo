@@ -154,7 +154,13 @@ class SongDetailFragment : Fragment() {
 
 
                             val bitmap = createFumenBitmap(musicInfo, tw5Difficulty)
-                            iv_song_detail.setImageBitmap(bitmap)
+                            bitmap?.let {
+                                iv_song_detail.setImageBitmap(it)
+                                val lp = iv_song_detail.layoutParams
+                                lp.height = it.height / it.width * iv_song_detail.width
+                                iv_song_detail.layoutParams = lp
+                            }
+
                         }
                     }
                 }
