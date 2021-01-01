@@ -1,7 +1,9 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -9,11 +11,18 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.github.chrisbanes.photoview.PhotoView
 import com.kyhsgeekcode.dereinfo.model.*
 import kotlinx.android.synthetic.main.activity_song_detail.*
 import kotlinx.android.synthetic.main.song_detail.view.*
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+
 
 /**
  * A fragment representing a single Song detail screen.
@@ -281,6 +290,36 @@ class SongDetailFragment : Fragment() {
             saveImage(bitmap!!, requireContext(), "dereinfo")
             Toast.makeText(requireContext(), "Saved", Toast.LENGTH_SHORT).show()
             return true
+        } else if (item.itemId == R.id.action_detail_export_db) {
+            if (this.item == null) {
+                Toast.makeText(requireActivity(), "No Item", Toast.LENGTH_SHORT).show()
+
+            } else {
+                Log.d(TAG, "id:${this.item?.id}")
+                val file =
+                    DereDatabaseHelper.theInstance.musicNumberToFumenFile[DereDatabaseHelper.theInstance.musicIDTomusicNumber[this.item?.id]]
+                Log.d(TAG, "Size=${DereDatabaseHelper.theInstance.musicNumberToFumenFile.size}")
+                if (file == null) {
+                    Toast.makeText(requireActivity(), "No db file", Toast.LENGTH_SHORT).show()
+                } else {
+                    val temp =
+                        File.createTempFile(this.item?.name ?: "temp", ".zip", context!!.cacheDir)
+                    val out = ZipOutputStream(BufferedOutputStream(FileOutputStream(temp)))
+                    val entry = ZipEntry(file.name)
+                    out.putNextEntry(entry)
+                    file.inputStream().copyTo(out)
+                    out.close()
+                    val shareIntent = Intent(Intent.ACTION_SEND)
+                    shareIntent.type = "application/zip"
+                    val contentUri: Uri = FileProvider.getUriForFile(
+                        requireContext().applicationContext,
+                        requireContext().packageName.toString() + ".fileprovider",
+                        temp
+                    )
+                    shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+                    startActivity(Intent.createChooser(shareIntent, "share db zip file"))
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
     }
