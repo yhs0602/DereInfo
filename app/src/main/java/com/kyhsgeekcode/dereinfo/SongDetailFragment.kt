@@ -1,6 +1,7 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -44,7 +45,7 @@ class SongDetailFragment : Fragment() {
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
             if (it.containsKey(ARG_ITEM_DIFFICULTY)) {
-                difficulty = it[ARG_ITEM_DIFFICULTY] as  TW5Difficulty
+                difficulty = it[ARG_ITEM_DIFFICULTY] as TW5Difficulty
                 Log.d(TAG, "Contains key, key is:${difficulty.name}")
                 //spinnerDifficulty.setSelection(difficulty.ordinal)
             }
@@ -88,39 +89,7 @@ class SongDetailFragment : Fragment() {
                         with(rootView) {
                             buttonStatisticsShowFumen.isEnabled = true
                             buttonStatisticsShowFumen.setOnClickListener {
-                                //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
-                                val oneDifficulty =
-                                    DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
-                                        musicInfo.id,
-                                        tw5Difficulty
-                                    )]?.difficulties?.get(tw5Difficulty)
-                                if (oneDifficulty == null) {
-                                    Toast.makeText(
-                                        requireActivity(),
-                                        "Failed to get the Difficulty",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    return@setOnClickListener
-                                }
-                                val bitmap =
-                                    FumenRenderer(
-                                        context,
-                                        oneDifficulty.lanes
-                                    ).render(oneDifficulty)
-                                if (bitmap == null) {
-                                    Toast.makeText(
-                                        requireActivity(),
-                                        "Failed to render",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    return@setOnClickListener
-                                }
-                                val photoView = PhotoView(context)
-                                photoView.setImageBitmap(bitmap)
-                                val alertDialog = AlertDialog.Builder(context).setTitle("Fumen")
-                                    .setView(photoView).show().setOnCancelListener {
-                                        bitmap.recycle()
-                                    }
+                                showFumen(context, musicInfo, tw5Difficulty)
                             }
 
                             val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0
@@ -188,6 +157,47 @@ class SongDetailFragment : Fragment() {
             rootView.spinnerDifficulty.setSelection(difficulty.ordinal)
         }
         return rootView
+    }
+
+    private fun showFumen(
+        context: Context,
+        musicInfo: MusicInfo,
+        tw5Difficulty: TW5Difficulty
+    ) {
+        //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
+        val oneDifficulty =
+            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+                musicInfo.id,
+                tw5Difficulty
+            )]?.difficulties?.get(tw5Difficulty)
+        if (oneDifficulty == null) {
+            Toast.makeText(
+                requireActivity(),
+                "Failed to get the Difficulty",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        val bitmap =
+            FumenRenderer(
+                context,
+                oneDifficulty.lanes
+            ).render(oneDifficulty)
+        if (bitmap == null) {
+            Toast.makeText(
+                requireActivity(),
+                "Failed to render",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        val photoView = PhotoView(context)
+        photoView.setImageBitmap(bitmap)
+        val alertDialog = AlertDialog.Builder(context)
+            .setTitle("${musicInfo.name} (${oneDifficulty.difficulty})")
+            .setView(photoView).show().setOnCancelListener {
+                bitmap.recycle()
+            }
     }
 
     private fun shouldEnable(child: Button): Boolean {

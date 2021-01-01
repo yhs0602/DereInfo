@@ -29,7 +29,7 @@ class FumenRenderer(
         }
         val isGrand = oneDifficulty.difficulty.isGrandMode()
         val notes: List<Note> = oneDifficulty.notes ?: return null
-        val lastTime = notes.maxBy {
+        val lastTime = notes.maxByOrNull {
             it.time
         }?.time ?: return null
         val totalHeight = heightPerSec * lastTime
