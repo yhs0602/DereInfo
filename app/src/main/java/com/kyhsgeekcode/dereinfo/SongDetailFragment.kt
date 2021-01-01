@@ -154,11 +154,23 @@ class SongDetailFragment : Fragment() {
 
 
                             bitmap = createFumenBitmap(musicInfo, tw5Difficulty)
-                            bitmap?.let {
-                                iv_song_detail.setImageBitmap(it)
+                            bitmap?.let { bm ->
+                                iv_song_detail.setImageBitmap(bm)
                                 val lp = iv_song_detail.layoutParams
-                                lp.height = it.height / it.width * iv_song_detail.width
+                                lp.height = bm.height / bm.width * iv_song_detail.width
                                 iv_song_detail.layoutParams = lp
+
+                                iv_song_detail.setOnClickListener {
+                                    val photoView = PhotoView(context)
+                                    photoView.setImageBitmap(bitmap)
+                                    val alertDialog = AlertDialog.Builder(context)
+                                        .setTitle("${musicInfo.name} (${tw5Difficulty})")
+                                        .setView(photoView).show()
+//                                        .setOnCancelListener {
+////                                            bm.recycle()
+//                                        }
+                                }
+
                             }
 
                         }
