@@ -33,7 +33,7 @@ class DereDatabaseHelper(context: Context) {
     var musicIDTomusicNumber = HashMap<Int, Int>() //  = SerializableSparseIntArray()
 
     init {
-        val datadir = context.getExternalFilesDir(null).parentFile.parentFile
+        val datadir = context.getExternalFilesDir(null)!!.parentFile.parentFile
         val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
         manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
         fumenFolder = File(dereFilesDir, "a/")

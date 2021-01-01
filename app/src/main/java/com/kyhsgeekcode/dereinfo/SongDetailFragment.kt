@@ -1,6 +1,7 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.app.AlertDialog
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -86,11 +87,11 @@ class SongDetailFragment : Fragment() {
                                 ?: return
                         rootView.detailedLayout.visibility = View.VISIBLE
                         with(rootView) {
-                            buttonStatisticsShowFumen.isEnabled = true
-                            buttonStatisticsShowFumen.setOnClickListener {
-//                                showFumen(musicInfo, tw5Difficulty)
-                                showFumen2()
-                            }
+//                            buttonStatisticsShowFumen.isEnabled = true
+//                            buttonStatisticsShowFumen.setOnClickListener {
+////                                showFumen(musicInfo, tw5Difficulty)
+//                                showFumen2(musicInfo, tw5Difficulty)
+//                            }
 
                             val totalCount: Int = statistic[StatisticIndex.Total]?.toInt() ?: 0
                             textViewTotalCount.text =
@@ -151,6 +152,9 @@ class SongDetailFragment : Fragment() {
                             textViewSlidePercent.text =
                                 statistic[StatisticIndex.Slide]?.formatCleanPercent(2) ?: "-"
 
+
+                            val bitmap = createFumenBitmap(musicInfo, tw5Difficulty)
+                            iv_song_detail.setImageBitmap(bitmap)
                         }
                     }
                 }
@@ -159,10 +163,49 @@ class SongDetailFragment : Fragment() {
         return rootView
     }
 
-    private fun showFumen2() {
+    private fun showFumen2(
+        musicInfo: MusicInfo,
+        tw5Difficulty: TW5Difficulty
+    ) {
         parentFragmentManager.beginTransaction()
-            .replace(R.id.song_detail_container, FumenFragment()).addToBackStack(null)
+            .replace(
+                R.id.song_detail_container,
+                FumenFragment.newInstance(musicInfo, tw5Difficulty)
+            ).addToBackStack(null)
             .commit()
+    }
+
+
+    private fun createFumenBitmap(musicInfo: MusicInfo, tw5Difficulty: TW5Difficulty): Bitmap? {
+        val context = requireContext()
+        //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
+        val oneDifficulty =
+            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+                musicInfo.id,
+                tw5Difficulty
+            )]?.difficulties?.get(tw5Difficulty)
+        if (oneDifficulty == null) {
+            Toast.makeText(
+                requireActivity(),
+                "Failed to get the Difficulty",
+                Toast.LENGTH_SHORT
+            ).show()
+            return null
+        }
+        val bitmap =
+            FumenRenderer(
+                context,
+                oneDifficulty.lanes
+            ).render(oneDifficulty)
+        if (bitmap == null) {
+            Toast.makeText(
+                requireActivity(),
+                "Failed to render",
+                Toast.LENGTH_SHORT
+            ).show()
+            return null
+        }
+        return bitmap
     }
 
     private fun showFumen(

@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView xmlns:tools="http://schemas.android.com/tools"
+    <TextView
         android:id="@+id/song_detail"
         style="?android:attr/textAppearanceLarge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:textIsSelectable="true"
-        app:layout_constraintBottom_toTopOf="@+id/layoutDifficulties"
+        app:layout_constraintBottom_toTopOf="@id/spinnerDifficulty"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:context=".SongDetailFragment" />
@@ -25,18 +25,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/song_detail" />
 
+
+    <!--        <LinearLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="match_parent"-->
+    <!--            android:orientation="vertical">-->
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/detailedLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerDifficulty"
-        app:layout_constraintVertical_bias="0.0">
-
+        app:layout_constraintBottom_toTopOf="@id/iv_song_detail"
+        app:layout_constraintTop_toBottomOf="@id/spinnerDifficulty">
 
         <TextView
             android:id="@+id/textViewTotalPercent7"
@@ -328,6 +329,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="Slide notes"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textViewFlick" />
 
@@ -337,6 +339,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="5"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/textViewTotalCount2"
             app:layout_constraintStart_toEndOf="@id/textViewSlide"
             app:layout_constraintTop_toBottomOf="@id/textViewFlickCount" />
@@ -347,6 +350,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="100%"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
 
@@ -356,6 +360,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="100%"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/textViewTotalTotal"
             app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
 
@@ -365,6 +370,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="100%"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/textViewTotal11"
             app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
 
@@ -374,18 +380,27 @@
             android:layout_height="wrap_content"
             android:layout_margin="10sp"
             android:text="100%"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/textViewTotal9"
             app:layout_constraintTop_toBottomOf="@+id/textViewFlickPercent" />
 
-        <Button
-            android:id="@+id/buttonStatisticsShowFumen"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Show fumen"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewSlide" />
+        <!--        <Button-->
+        <!--            android:id="@+id/buttonStatisticsShowFumen"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:text="Show fumen"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toBottomOf="@+id/textViewSlide" />-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:id="@+id/iv_song_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/detailedLayout" />
+    <!--        </LinearLayout>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
