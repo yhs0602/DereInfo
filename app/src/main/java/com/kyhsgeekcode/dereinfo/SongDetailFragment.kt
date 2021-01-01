@@ -4,9 +4,7 @@ import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -29,9 +27,11 @@ class SongDetailFragment : Fragment() {
     private var item: MusicInfo? = null
     private var oneMusic: OneMusic? = null
     private var difficulty: TW5Difficulty = TW5Difficulty.Debut
+    private var bitmap: Bitmap? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setHasOptionsMenu(true)
         arguments?.let {
             if (it.containsKey(ARG_ITEM_ID)) {
                 // Load the dummy content specified by the fragment
@@ -153,7 +153,7 @@ class SongDetailFragment : Fragment() {
                                 statistic[StatisticIndex.Slide]?.formatCleanPercent(2) ?: "-"
 
 
-                            val bitmap = createFumenBitmap(musicInfo, tw5Difficulty)
+                            bitmap = createFumenBitmap(musicInfo, tw5Difficulty)
                             bitmap?.let {
                                 iv_song_detail.setImageBitmap(it)
                                 val lp = iv_song_detail.layoutParams
@@ -253,6 +253,24 @@ class SongDetailFragment : Fragment() {
             .setView(photoView).show().setOnCancelListener {
                 bitmap.recycle()
             }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.detail_menu, menu)
+        return
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.action_detail_export_image) {
+            if (bitmap == null) {
+                Toast.makeText(requireActivity(), "No image", Toast.LENGTH_SHORT).show()
+                return true
+            }
+            saveImage(bitmap!!, requireContext(), "dereinfo")
+            Toast.makeText(requireContext(), "Saved", Toast.LENGTH_SHORT).show()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun shouldEnable(child: Button): Boolean {
