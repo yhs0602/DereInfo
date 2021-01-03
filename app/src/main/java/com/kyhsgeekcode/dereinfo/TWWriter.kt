@@ -1,6 +1,6 @@
 package com.kyhsgeekcode.dereinfo
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
 import com.kyhsgeekcode.dereinfo.model.OneDifficulty
@@ -37,7 +37,7 @@ class TWWriter(val musicInfo: MusicInfo, val oneDifficulty: OneDifficulty) {
                 )
             )
         }
-        val gson = Gson()
+        val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.toJson(twFile)
     }
 }

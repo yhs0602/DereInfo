@@ -88,10 +88,10 @@ class SongDetailFragment : Fragment() {
                         position: Int,
                         id: Long
                     ) {
-                        val tw5Difficulty = TW5Difficulty.fromIndex(position)
+                        difficulty = TW5Difficulty.fromIndex(position)
                         val statistic =
                             DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(
-                                tw5Difficulty
+                                difficulty
                             )
                                 ?: return
                         rootView.detailedLayout.visibility = View.VISIBLE
@@ -162,7 +162,7 @@ class SongDetailFragment : Fragment() {
                                 statistic[StatisticIndex.Slide]?.formatCleanPercent(2) ?: "-"
 
 
-                            bitmap = createFumenBitmap(musicInfo, tw5Difficulty)
+                            bitmap = createFumenBitmap(musicInfo, difficulty)
                             bitmap?.let { bm ->
                                 iv_song_detail.setImageBitmap(bm)
                                 val lp = iv_song_detail.layoutParams
@@ -173,7 +173,7 @@ class SongDetailFragment : Fragment() {
                                     val photoView = PhotoView(context)
                                     photoView.setImageBitmap(bitmap)
                                     val alertDialog = AlertDialog.Builder(context)
-                                        .setTitle("${musicInfo.name} (${tw5Difficulty})")
+                                        .setTitle("${musicInfo.name} (${difficulty})")
                                         .setView(photoView).show()
 //                                        .setOnCancelListener {
 ////                                            bm.recycle()
@@ -315,8 +315,9 @@ class SongDetailFragment : Fragment() {
                         difficulty
                     )]?.difficulties?.get(difficulty)
                 val json = TWWriter(this.item!!, oneDifficulty!!).write()
+                val fileName = "${this.item?.name}-${difficulty.name}___"
                 val temp =
-                    File.createTempFile(this.item?.name ?: "temp", ".txt", context!!.cacheDir)
+                    File.createTempFile(fileName, ".txt", context!!.cacheDir)
                 temp.printWriter().use {
                     it.print(json)
                 }
