@@ -194,7 +194,7 @@ class DereDatabaseHelper(context: Context) {
                     break
                 }
             } catch (e: SQLException) {
-                Log.e(TAG, "indexFumen", e)
+                Log.e(TAG, "indexFumen ${file.name}", e)
                 continue
             } finally {
                 fumenDB?.close()
@@ -229,7 +229,7 @@ class DereDatabaseHelper(context: Context) {
     private fun saveToCache() {
 //        searchMainDB()
 //        parseDatabases()
-        fumensDBFile.delete()
+//        fumensDBFile.delete()
         musicInfoFile.delete()
         indexToFumenFileFile.delete()
         musicNumberToMusicIDFile.delete()
@@ -590,6 +590,8 @@ class DereDatabaseHelper(context: Context) {
         return notes
     }
 
+    // Long note has no group ID.
+    // Flick note without group ID finishes a previous long note.
     private fun parseDereFumen(
         fumenStr: String,
         musicInfo: MusicInfo
@@ -599,30 +601,29 @@ class DereDatabaseHelper(context: Context) {
 
         val prevIDs = HashMap<Int, Int>()
         val longnoteIDs = HashMap<Float, Int>()
-        val IDToNotes = HashMap<Int, Note>()
+        val IDToNote = HashMap<Int, Note>()
         val notes = ArrayList<Note>()
         var prevID = 0
-        var idd = 0
+        var currentNoteId = 0
         for (row in parsedFumen) {
             prevID = 0
-            var gid = row["groupId"]!!.toInt()
-            var mode = row["type"]!!.toInt()
+            val groupId = row["groupId"]!!.toInt()
+            val mode = row["type"]!!.toInt()
             if (mode > 3 && mode != 8)
                 continue
-            idd++
+            currentNoteId++
             var twMode = getTWMode(mode)
             val endpos = row["finishPos"]!!.toFloat()
-            val flick =
-                getTW5Flick(row["status"]!!.toInt())
-            if (gid == 0) {
-                //...
-            } else {
-                if (prevIDs.containsKey(gid)) {
-                    prevID = prevIDs[gid]!!
+            val flick = getTW5Flick(row["status"]!!.toInt())
+
+            if (groupId != 0) {
+                if (prevIDs.containsKey(groupId)) {
+                    prevID = prevIDs[groupId]!!
+//                    prevIDs.remove(groupId)
                 } else {
                     //...
                 }
-                prevIDs[gid] = idd
+                prevIDs[groupId] = currentNoteId
             }
             if (longnoteIDs.containsKey(endpos)) {
                 //롱노트 중이었다면 해제한다. 자신의 prev를 그 롱노트로 설정한다.
@@ -632,14 +633,14 @@ class DereDatabaseHelper(context: Context) {
             } else if (mode == 2) {
                 //롱노트 중이 아니었고 자신이 롱노트라면 등록한다.
                 prevID = 0
-                longnoteIDs[endpos] = idd
+                longnoteIDs[endpos] = currentNoteId
             }
-            //롱노트 중도 아니었고 자신도 롱노트가 아니다
-            else if ((mode == 1) and (IDToNotes[prevID]?.isFlick() == false) /*and (flick == FlickMode.None)*/) {
-                prevID = 0
+            // 내가 일반 노트고 기존이 플릭이 아니고 자신도 롱노트가 아니다
+            else if ((mode == 1) and (IDToNote[prevID]?.isFlick() == false) /*and (flick == FlickMode.None)*/) { // ((mode == 1) and (IDToNote[prevID]?.isFlick() == false) /*and (flick == FlickMode.None)*/) {
+//                prevID = 0
             }
             val theNote = Note(
-                idd,
+                currentNoteId,
                 0,
                 getColor(musicInfo.circleType),
                 twMode,
@@ -651,11 +652,12 @@ class DereDatabaseHelper(context: Context) {
                 arrayOf(prevID),
                 row["sync"]?.toInt() == 1
             )
-            IDToNotes[idd] = theNote
+            IDToNote[currentNoteId] = theNote
             for (id in theNote.previds) {
-                IDToNotes[id]?.addNext(theNote)
+                IDToNote[id]?.addNext(theNote)
             }
             notes.add(theNote)
+            //...
         }
         return notes
     }

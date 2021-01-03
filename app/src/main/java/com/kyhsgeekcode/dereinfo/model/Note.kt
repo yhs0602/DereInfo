@@ -16,7 +16,7 @@ class Note(
     val sync: Boolean = false,
     val tick: Int = 10
 ) {
-    val nextNotes = arrayListOf<Note>()
+    var nextNote: Note? = null // arrayListOf<Note>()
 
     fun isFlick(): Boolean = flick != FlickMode.None
     fun isLong(): Boolean = twMode == TWMode.Hold
@@ -40,7 +40,7 @@ class Note(
     }
 
     fun addNext(nextNote: Note) {
-        nextNotes.add(nextNote)
+        this.nextNote = nextNote //s.add(nextNote)
     }
 
 }

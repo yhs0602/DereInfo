@@ -302,26 +302,51 @@ class SongDetailFragment : Fragment() {
                 if (file == null) {
                     Toast.makeText(requireActivity(), "No db file", Toast.LENGTH_SHORT).show()
                 } else {
-                    val temp =
-                        File.createTempFile(this.item?.name ?: "temp", ".zip", context!!.cacheDir)
-                    val out = ZipOutputStream(BufferedOutputStream(FileOutputStream(temp)))
-                    val entry = ZipEntry(file.name)
-                    out.putNextEntry(entry)
-                    file.inputStream().copyTo(out)
-                    out.close()
-                    val shareIntent = Intent(Intent.ACTION_SEND)
-                    shareIntent.type = "application/zip"
-                    val contentUri: Uri = FileProvider.getUriForFile(
-                        requireContext().applicationContext,
-                        requireContext().packageName.toString() + ".fileprovider",
-                        temp
-                    )
-                    shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
-                    startActivity(Intent.createChooser(shareIntent, "share db zip file"))
+                    shareAsZip(file, "Share as db file")
                 }
+            }
+        } else if (item.itemId == R.id.action_detail_export_tw) {
+            if (this.item == null) {
+
+            } else {
+                val oneDifficulty =
+                    DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+                        this.item!!.id,
+                        difficulty
+                    )]?.difficulties?.get(difficulty)
+                val json = TWWriter(this.item!!, oneDifficulty!!).write()
+                val temp =
+                    File.createTempFile(this.item?.name ?: "temp", ".txt", context!!.cacheDir)
+                temp.printWriter().use {
+                    it.print(json)
+                }
+                shareFile(temp, "text/plain", "Share as tw file")
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun shareAsZip(file: File, message: String) {
+        val temp =
+            File.createTempFile(this.item?.name ?: "temp", ".zip", context!!.cacheDir)
+        val out = ZipOutputStream(BufferedOutputStream(FileOutputStream(temp)))
+        val entry = ZipEntry(file.name)
+        out.putNextEntry(entry)
+        file.inputStream().copyTo(out)
+        out.close()
+        shareFile(temp, "application/zip", message)
+    }
+
+    private fun shareFile(file: File, type: String, message: String) {
+        val shareIntent = Intent(Intent.ACTION_SEND)
+        shareIntent.type = type
+        val contentUri: Uri = FileProvider.getUriForFile(
+            requireContext().applicationContext,
+            requireContext().packageName.toString() + ".fileprovider",
+            file
+        )
+        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+        startActivity(Intent.createChooser(shareIntent, message))
     }
 
     private fun shouldEnable(child: Button): Boolean {

@@ -28,7 +28,7 @@ class FumenRenderer(
             return null
         }
         val isGrand = oneDifficulty.difficulty.isGrandMode()
-        val notes: List<Note> = oneDifficulty.notes ?: return null
+        val notes: List<Note> = oneDifficulty.notes
         val lastTime = notes.maxByOrNull {
             it.time
         }?.time ?: return null
@@ -84,8 +84,8 @@ class FumenRenderer(
             realX = coord.first
             realY = coord.second
             if (note.isFlick() || note.isSlide() || note.isLong()) {
-                if (!note.nextNotes.isNullOrEmpty()) {
-                    val nextNote = note.nextNotes[0]
+                note.nextNote?.let {
+                    val nextNote = it//s[0]
                     val nextNoteCoord = calcPos(nextNote)
                     var leftDy = (nextNote.time - note.time) * heightPerSec
                     if (coord.third < nextNoteCoord.third) {
@@ -214,13 +214,13 @@ class FumenRenderer(
         paint: Paint,
         color: Int
     ) {
-        paint.style = Paint.Style.FILL;
-        paint.color = color;
+        paint.style = Paint.Style.FILL
+        paint.color = color
         canvas.drawRoundRect(rectF, f1, fl1, paint)
 
         // border
-        paint.style = Paint.Style.STROKE;
-        paint.color = Color.WHITE;
+        paint.style = Paint.Style.STROKE
+        paint.color = Color.WHITE
         canvas.drawRoundRect(rectF, f1, fl1, paint)
     }
 

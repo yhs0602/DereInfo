@@ -6,4 +6,9 @@
     <item
         android:id="@+id/action_detail_export_db"
         android:title="Export as db" />
+
+    <item
+        android:id="@+id/action_detail_export_tw"
+        android:title="Export as twFile" />
+
 </menu>
