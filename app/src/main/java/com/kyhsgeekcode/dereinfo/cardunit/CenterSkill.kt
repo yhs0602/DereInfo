@@ -52,12 +52,24 @@ enum class CenterSkill(
         listOf(Pair(ApplyType.Vo, 1.3f), Pair(ApplyType.Dan, 1.3f), Pair(ApplyType.Vi, 1.3f)), null
     ),
     BrilliancePassionSSR(
-        "Passion Brilliance", Rarity.SSR, CenterSkillType.AllUp, null, null, listOf(CircleType.Passion),
-        listOf(Pair(ApplyType.Vo, 1.4f), Pair(ApplyType.Dan, 1.4f), Pair(ApplyType.Vi, 1.4f)), null
+        "Passion Brilliance",
+        Rarity.SSR,
+        CenterSkillType.AllUp,
+        null,
+        null,
+        listOf(CircleType.Passion),
+        listOf(Pair(ApplyType.Vo, 1.4f), Pair(ApplyType.Dan, 1.4f), Pair(ApplyType.Vi, 1.4f)),
+        null
     ),
     BrilliancePassionSR(
-        "Passion Brilliance", Rarity.SR, CenterSkillType.AllUp, null, null, listOf(CircleType.Passion),
-        listOf(Pair(ApplyType.Vo, 1.3f), Pair(ApplyType.Dan, 1.3f), Pair(ApplyType.Vi, 1.3f)), null
+        "Passion Brilliance",
+        Rarity.SR,
+        CenterSkillType.AllUp,
+        null,
+        null,
+        listOf(CircleType.Passion),
+        listOf(Pair(ApplyType.Vo, 1.3f), Pair(ApplyType.Dan, 1.3f), Pair(ApplyType.Vi, 1.3f)),
+        null
     ),
 
 }

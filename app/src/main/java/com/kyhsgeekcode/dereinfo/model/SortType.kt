@@ -29,8 +29,8 @@ enum class SortType(val value: Int) {
             Alphabetical -> if (musicInfo.nameKana.isBlank()) musicInfo.nameKana else musicInfo.name
             TotalNote -> statistic?.get(StatisticIndex.Total) ?: 0.0f
             LongRatio -> statistic?.get(StatisticIndex.Long) ?: 0.0f
-            FlickRatio -> statistic?.get(StatisticIndex.Flick) ?:0.0f
-            SlideRatio -> statistic?.get(StatisticIndex.Slide) ?:0.0f
+            FlickRatio -> statistic?.get(StatisticIndex.Flick) ?: 0.0f
+            SlideRatio -> statistic?.get(StatisticIndex.Slide) ?: 0.0f
             Long7 -> statistic?.get(StatisticIndex.Long7) ?: 0.0f
             Long9 -> statistic?.get(StatisticIndex.Long9) ?: 0.0f
             Long11 -> statistic?.get(StatisticIndex.Long11) ?: 0.0f
@@ -79,7 +79,7 @@ enum class SortType(val value: Int) {
     }
 
     companion object {
-        private val values = values();
+        private val values = values()
         fun getByValue(value: Int) = values.firstOrNull { it.value == value } ?: Data
     }
 }

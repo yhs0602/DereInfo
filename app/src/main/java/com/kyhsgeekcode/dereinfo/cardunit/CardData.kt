@@ -19,4 +19,4 @@ class CardData(
     val isLimited: Boolean,
     val isEvent: Boolean,
     val skill: Skill
-    )
+)

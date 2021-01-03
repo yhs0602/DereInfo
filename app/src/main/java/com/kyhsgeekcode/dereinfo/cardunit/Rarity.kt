@@ -7,7 +7,7 @@ enum class Rarity(val maxLevel: Int, val maxLove: Int) {
     SR(60, 100),
     R_(50, 150),
     R(40, 50),
-    N_(30,60),
+    N_(30, 60),
     N(20, 20);
 
     val isSpecialTrained by lazy {

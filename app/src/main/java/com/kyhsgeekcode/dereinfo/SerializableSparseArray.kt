@@ -29,7 +29,7 @@ class SerializableSparseArray<E> : SparseArray<E>, java.io.Serializable {
     private fun writeObject(oos: ObjectOutputStream) {
         val data = arrayOfNulls<Any>(size())
         for (i in data.indices) {
-            val pair = Pair<Int,E>(keyAt(i), valueAt(i))
+            val pair = Pair<Int, E>(keyAt(i), valueAt(i))
             data[i] = pair
         }
         oos.writeObject(data)
@@ -55,7 +55,7 @@ class SerializableSparseArray<E> : SparseArray<E>, java.io.Serializable {
     private fun readObject(ois: ObjectInputStream) {
         val data = ois.readObject() as Array<Any>
         for (i in data.indices) {
-            val pair = data[i] as Pair<Int,E>
+            val pair = data[i] as Pair<Int, E>
             this.append(pair.first, pair.second)
         }
         return

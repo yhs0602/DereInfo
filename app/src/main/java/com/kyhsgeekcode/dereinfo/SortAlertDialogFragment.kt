@@ -18,14 +18,14 @@ class SortAlertDialogFragment : DialogFragment() {
 
     lateinit var sortDialogListener: SortDialogListener
     lateinit var inflated: View
-    var sortTypeIndex : Int = 0
-    var sortOrderAsc : Boolean = true
+    var sortTypeIndex: Int = 0
+    var sortOrderAsc: Boolean = true
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         retainInstance = true
         return activity?.let {
             val builder = AlertDialog.Builder(it)
-            val inflater = requireActivity().layoutInflater;
+            val inflater = requireActivity().layoutInflater
             inflated = inflater.inflate(R.layout.dialog_sort, null)
             builder.setTitle(R.string.sort)
                 .setView(inflated)

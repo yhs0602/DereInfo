@@ -13,6 +13,7 @@ class FileDataCache<Key, Value>(
     val provider: providerType<Key, Value>
 ) where Key : Serializable, Value : Serializable {
     private lateinit var dataMap: HashMap<Key, Value> // = HashMap()
+
     init {
         try {
             ObjectInputStream(file.inputStream()).use {
@@ -22,7 +23,7 @@ class FileDataCache<Key, Value>(
         } catch (e: Exception) {
             Log.e("Cache load", "Er", e)
         } finally {
-            if(!this::dataMap.isInitialized) {
+            if (!this::dataMap.isInitialized) {
                 dataMap = HashMap()
             }
         }

@@ -8,13 +8,14 @@ enum class CircleType {
     Cool,
     Passion
     ;
+
     companion object {
-        fun fromInt(circleType: Int) : CircleType = when(circleType) {
-            1->Cute
-            2->Cool
-            3->Passion
-            4->All
-            else->throw IllegalArgumentException("CircleType should be in 1~4")
+        fun fromInt(circleType: Int): CircleType = when (circleType) {
+            1 -> Cute
+            2 -> Cool
+            3 -> Passion
+            4 -> All
+            else -> throw IllegalArgumentException("CircleType should be in 1~4")
         }
 
         fun getDesc(circleType: Int): String = when (circleType) {

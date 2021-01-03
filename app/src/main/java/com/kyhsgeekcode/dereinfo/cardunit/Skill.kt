@@ -1,4 +1,3 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-enum class Skill {
-}
+enum class Skill

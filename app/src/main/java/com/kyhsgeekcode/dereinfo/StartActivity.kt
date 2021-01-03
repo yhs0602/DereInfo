@@ -1,9 +1,6 @@
 package com.kyhsgeekcode.dereinfo
 
 import android.Manifest
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -19,8 +16,8 @@ class StartActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_start)
 
-        if(requestPermission())
-            launchActivity(this,SongListActivity::class.java)
+        if (requestPermission())
+            launchActivity(this, SongListActivity::class.java)
     }
 
     override fun onRequestPermissionsResult(
@@ -34,10 +31,14 @@ class StartActivity : AppCompatActivity() {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    launchActivity(this,SongListActivity::class.java)
+                    launchActivity(this, SongListActivity::class.java)
                 } else {
-                    Snackbar.make(start_default, "This app requires the permission to operate", Snackbar.LENGTH_LONG)
-                        .setAction("Ask permission again"){
+                    Snackbar.make(
+                        start_default,
+                        "This app requires the permission to operate",
+                        Snackbar.LENGTH_LONG
+                    )
+                        .setAction("Ask permission again") {
                             requestPermission()
                         }.show()
                 }
@@ -52,7 +53,7 @@ class StartActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestPermission() :Boolean {
+    private fun requestPermission(): Boolean {
         if (ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE

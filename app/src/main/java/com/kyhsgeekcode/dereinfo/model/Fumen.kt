@@ -1,10 +1,6 @@
 package com.kyhsgeekcode.dereinfo.model
 
-import android.util.JsonWriter
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import org.json.JSONStringer
-import java.io.StringWriter
 
 class Fumen(val notes: List<Note>) {
     fun toTWStr(): String {

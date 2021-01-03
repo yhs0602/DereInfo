@@ -5,7 +5,7 @@ import kotlin.math.max
 
 class OneDifficulty(val difficulty: TW5Difficulty, val notes: List<Note>?) {
     var noteCounts = arrayOf(0, 0, 0, 0)
-    val lanes: Int = notes?.maxBy {
+    val lanes: Int = notes?.maxByOrNull {
         max(it.startline, it.endline)
     }?.let {
         ceil(max(it.startline, it.endline)).toInt()

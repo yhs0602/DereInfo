@@ -7,13 +7,14 @@ enum class FlickMode(value: Int) {
     Right(2),
     Up(3),
     Down(4)
-;
+    ;
+
     companion object {
         fun fromStatus(status: Int): FlickMode = when (status) {
-            0->None
-            1->Left
-            2->Right
-            else->throw IllegalArgumentException("status=${status}")
+            0 -> None
+            1 -> Left
+            2 -> Right
+            else -> throw IllegalArgumentException("status=${status}")
         }
     }
 }

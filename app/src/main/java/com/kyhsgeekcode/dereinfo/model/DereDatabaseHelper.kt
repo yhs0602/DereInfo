@@ -375,7 +375,7 @@ class DereDatabaseHelper(context: Context) {
             return HashMap()
         }
         val fumenDB =
-            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+            SQLiteDatabase.openDatabase(fumenFile.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
             fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
         val result: MutableMap<TW5Difficulty, OneStatistic> = HashMap()
@@ -472,9 +472,8 @@ class DereDatabaseHelper(context: Context) {
 
     // Music ID
     val parsedFumenCache: FileDataCache<Pair<musicID, TW5Difficulty>, OneMusic> =
-        FileDataCache(context.filesDir.resolve("parsedFumen").let {
-            it.createNewFile()
-            it
+        FileDataCache(context.filesDir.resolve("parsedFumen").apply {
+            createNewFile()
         }) { key ->
             val musicInfo = musicIDToInfo[key.first] ?: return@FileDataCache null
             parseFumen(musicInfo, key.second)

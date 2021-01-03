@@ -156,7 +156,7 @@ object CGCalc {
             // find the earliest event time
             val nextSkillUpdateIndex = lastWorkTiming.withIndex()
                 .filter { it.value + (skillModels[it.index]?.condition ?: 0) > time }
-                .minBy {
+                .minByOrNull {
                     it.value + (skillModels[it.index]?.condition ?: 0)
                 }?.index // 현재로부터 가장 먼저 발생하는 패널티의 타이밍
             val nextSkillUpdateTiming: Float = if (nextSkillUpdateIndex != null) {
@@ -167,7 +167,7 @@ object CGCalc {
             }
             val nextSkillFinishIndex = lastWorkTiming.withIndex()
                 .filter { it.value + unit.cards[it.index].getSkillDuration() > time }
-                .minBy { it.value + unit.cards[it.index].getSkillDuration() }?.index
+                .minByOrNull { it.value + unit.cards[it.index].getSkillDuration() }?.index
             val nextSkillFinishTiming: Float = if (nextSkillFinishIndex != null) {
                 lastWorkTiming[nextSkillFinishIndex] + unit.cards[nextSkillFinishIndex].getSkillDuration()
             } else {
@@ -194,13 +194,13 @@ object CGCalc {
             val boostValues = getBoostValues(workingBoostSkills, skillModel, attributes)
             val boost1 = boostValues.map {
                 it.first
-            }.max()?.div(100f)
+            }.maxOrNull()?.div(100f)
             val boost2 = boostValues.map {
                 it.second
-            }.max()?.div(100f)
+            }.maxOrNull()?.div(100f)
             val boost3 = boostValues.map {
                 it.third
-            }.max()?.div(100f)
+            }.maxOrNull()?.div(100f)
             val bonus = skillModel.getBonus(
                 note,
                 Judge.PERFECT,
@@ -216,13 +216,13 @@ object CGCalc {
         }
         val scoreBonus = totalAvailableBonus.map {
             it.first
-        }.max()?.div(100f) ?: 1f
+        }.maxOrNull()?.div(100f) ?: 1f
         val comboBonus = totalAvailableBonus.map {
             it.second
-        }.max()?.div(100f) ?: 1f
+        }.maxOrNull()?.div(100f) ?: 1f
         val lifeBonus = totalAvailableBonus.map {
             it.third
-        }.max()?.div(100f)?.roundToInt() ?: 0
+        }.maxOrNull()?.div(100f)?.roundToInt() ?: 0
         return Triple(scoreBonus, comboBonus, lifeBonus)
     }
 
@@ -259,13 +259,13 @@ object CGCalc {
             val boostValues = getBoostValues(workingBoostSkills, skillModel, attributes)
             val boost1 = boostValues.sumBy {
                 it.first
-            }?.div(100f)
+            }.div(100f)
             val boost2 = boostValues.sumBy {
                 it.second
-            }?.div(100f)
+            }.div(100f)
             val boost3 = boostValues.sumBy {
                 it.third
-            }?.div(100f)
+            }.div(100f)
             val bonus = skillModel.getBonus(
                 note,
                 Judge.PERFECT,
@@ -281,13 +281,13 @@ object CGCalc {
         }
         val scoreBonus = totalAvailableBonus.sumByDouble {
             it.first.toDouble()
-        }?.div(100f) //?: 1f
+        }.div(100f) //?: 1f
         val comboBonus = totalAvailableBonus.sumByDouble {
             it.second.toDouble()
-        }?.div(100f) // ?: 1f
+        }.div(100f) // ?: 1f
         val lifeBonus = totalAvailableBonus.sumByDouble {
             it.third.toDouble()
-        }?.div(100f)?.roundToInt() // ?: 0
+        }?.div(100f).roundToInt() // ?: 0
         return Triple(scoreBonus.toFloat(), comboBonus.toFloat(), lifeBonus)
     }
 

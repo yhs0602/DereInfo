@@ -1,7 +1,6 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
 import kotlin.math.max
-import kotlin.reflect.jvm.internal.impl.resolve.constants.IntegerLiteralTypeConstructor
 
 data class LeaderSkillModel(
     val id: Int,
@@ -41,7 +40,7 @@ data class LeaderSkillModel(
         return true
     }
 
-    fun countSkills(unit: CardUnit, guest: Card) : Int {
+    fun countSkills(unit: CardUnit, guest: Card): Int {
         val cards = unit.cards.map { it.skillModel.id }.toMutableList()
         cards.add(guest.cardData.skill_id)
         return cards.groupBy { it }.size

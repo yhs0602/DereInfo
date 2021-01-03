@@ -7,12 +7,13 @@ enum class TWMode(value: Int) {
     Damage(3),
     Hidden(4)
     ;
+
     companion object {
-        fun fromType(type:Int) : TWMode = when(type) {
-            1->Tap
-            2->Hold
-            3->Slide
-            else-> throw IllegalArgumentException("type=${type}")
+        fun fromType(type: Int): TWMode = when (type) {
+            1 -> Tap
+            2 -> Hold
+            3 -> Slide
+            else -> throw IllegalArgumentException("type=${type}")
         }
     }
 }

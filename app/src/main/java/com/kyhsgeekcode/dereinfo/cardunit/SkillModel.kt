@@ -215,7 +215,7 @@ data class SkillModel(
                         null,
                         null
                     ).first
-                }.max() ?: return Triple(100f, 100f, 0f)
+                }.maxOrNull() ?: return Triple(100f, 100f, 0f)
                 Triple(
                     (bestScoreModelBonus * (value_2 / 100.0f) * (boost2 ?: 1f)),
                     value * (boost1 ?: 1f),

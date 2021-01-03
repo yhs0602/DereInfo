@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.CompoundButton
-import android.widget.RadioGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.dialog_filter.view.*
@@ -27,7 +26,7 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
         return activity?.let {
             val builder = AlertDialog.Builder(it)
             // Get the layout inflater
-            val inflater = requireActivity().layoutInflater;
+            val inflater = requireActivity().layoutInflater
             inflated = inflater.inflate(R.layout.dialog_filter, null)
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
@@ -57,7 +56,7 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
             val result = builder.create()
 
             inflated.filterCBTypeAllCheck.setOnCheckedChangeListener { button, isChecked ->
-                if(button.isPressed) {
+                if (button.isPressed) {
                     inflated.filterCBCute.isChecked = isChecked
                     inflated.filterCBCool.isChecked = isChecked
                     inflated.filterCBPassion.isChecked = isChecked
@@ -75,8 +74,8 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
             inflated.filterCBStarred.isChecked = checkedMap[R.id.filterCBStarred] ?: false
             inflated.filterCBSmart.isChecked = checkedMap[R.id.filterCBSmart] ?: false
 
-            val allCheckNotifier = CompoundButton.OnCheckedChangeListener { _ , isChecked ->
-                if(!isChecked)
+            val allCheckNotifier = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+                if (!isChecked)
                     inflated.filterCBTypeAllCheck.isChecked = false
             }
             with(inflated) {
