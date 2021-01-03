@@ -3,25 +3,25 @@ package com.kyhsgeekcode.dereinfo
 import com.google.gson.GsonBuilder
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
-import com.kyhsgeekcode.dereinfo.model.OneDifficulty
+import com.kyhsgeekcode.dereinfo.model.OneDifficultyData
 import com.kyhsgeekcode.dereinfo.model.StatisticIndex
 
-class TWWriter(val musicInfo: MusicInfo, val oneDifficulty: OneDifficulty) {
+class TWWriter(val musicInfo: MusicInfo, val oneDifficultyData: OneDifficultyData) {
     val statistic =
-        DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(oneDifficulty.difficulty)
+        DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(oneDifficultyData.difficulty)
 
     fun write(): String {
         val builder = StringBuilder()
 
         val twFile = TWFile(
             TWFile.TWMetadata(
-                oneDifficulty.difficulty.ordinal,
+                oneDifficultyData.difficulty.ordinal,
                 musicInfo.composer,
                 "Deresute",
                 statistic?.get(StatisticIndex.Level)?.toInt() ?: 1,
             )
         )
-        for (note in oneDifficulty.notes!!) {
+        for (note in oneDifficultyData.notes!!) {
             twFile.notes.add(
                 TWFile.TWNote(
                     note.id,

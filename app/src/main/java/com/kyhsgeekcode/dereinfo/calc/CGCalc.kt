@@ -1,23 +1,52 @@
 package com.kyhsgeekcode.dereinfo.calc
 
-import com.kyhsgeekcode.dereinfo.cardunit.Card
-import com.kyhsgeekcode.dereinfo.cardunit.CardUnit
-import com.kyhsgeekcode.dereinfo.cardunit.SkillModel
+import com.kyhsgeekcode.dereinfo.cardunit.*
 import com.kyhsgeekcode.dereinfo.equalsDelta
 import com.kyhsgeekcode.dereinfo.model.*
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 object CGCalc {
 
-    fun calculateBestUnit(cardPool: List<Card>, difficulty: OneDifficulty, type: CircleType) {
+    fun calculateBestUnit(
+        cardPool: List<Card>,
+        difficultyData: OneDifficultyData,
+        type: CircleType
+    ) {
         // 경우의 수: 센터 찾기, 나머지 4개 고르기
         // O(n* n-1C4) = O(n^5)
     }
 
-    fun calcualteScore(
+    class RoomBonus {
+        var cute: Int = 0
+        var cool: Int = 0
+        var passion: Int = 0
+        operator fun get(circleType: CircleType): Int = when (circleType) {
+            CircleType.All -> 0
+            CircleType.Cute -> cute
+            CircleType.Cool -> cool
+            CircleType.Passion -> passion
+        }
+    }
+
+    class EffectiveCard(
+        val card: Card,
+        songCircleType: CircleType,
+        roomBonus: RoomBonus,
+        centerSkill: LeaderSkillModel,
+        guestCenterSkill: LeaderSkillModel?
+    ) {
+        val songBonus = if (card.circleType == songCircleType) 30 else 0
+        val totalBonus = songBonus + roomBonus[card.circleType]
+        val vocal: Int = ceil(card.vocal * ((100 + totalBonus) / 100.0f)).toInt()
+
+    }
+
+
+    fun calculateScore(
         unit: CardUnit,
         guest: Card,
-        difficulty: OneDifficulty,
+        difficultyData: OneDifficultyData,
         type: CircleType,
         roomBonus: Array<Int>,
         support: Int,
@@ -29,7 +58,7 @@ object CGCalc {
         }.toTypedArray()
         val isResonance = unit.isResonanceApplied(guest)
         val totalAppeal = appeals[0] + appeals[1] + appeals[2] + support
-        val notes = difficulty.notes!!
+        val notes = difficultyData.notes!!
         val totalNotes = notes.size
         val scorePerNote = ((ratio * totalAppeal) / totalNotes).roundToInt()
         life = appeals[4]
@@ -60,7 +89,7 @@ object CGCalc {
             val skillsToDeactivate = skillModels.withIndex().filter { theValue ->
                 val index = theValue.index
                 val skillModel = theValue.value
-                (time - lastWorkTiming[index]).equalsDelta(unit.cards[index].getSkillDuration())
+                (time - lastWorkTiming[index]).equalsDelta(unit.cards[index].skillDuration)
             }
             for (skill in skillsToDeactivate) {
                 // make working false
@@ -166,10 +195,10 @@ object CGCalc {
                 Float.MAX_VALUE
             }
             val nextSkillFinishIndex = lastWorkTiming.withIndex()
-                .filter { it.value + unit.cards[it.index].getSkillDuration() > time }
-                .minByOrNull { it.value + unit.cards[it.index].getSkillDuration() }?.index
+                .filter { it.value + unit.cards[it.index].skillDuration > time }
+                .minByOrNull { it.value + unit.cards[it.index].skillDuration }?.index
             val nextSkillFinishTiming: Float = if (nextSkillFinishIndex != null) {
-                lastWorkTiming[nextSkillFinishIndex] + unit.cards[nextSkillFinishIndex].getSkillDuration()
+                lastWorkTiming[nextSkillFinishIndex] + unit.cards[nextSkillFinishIndex].skillDuration
             } else {
                 Float.MAX_VALUE
             }
@@ -388,3 +417,5 @@ object CGCalc {
     private val workedSkills = mutableSetOf<SkillModel>()
 
 }
+
+

@@ -24,7 +24,7 @@ data class CardModel(
     val vocal_max: Int,
     val dance_max: Int,
     val visual_max: Int,
-    val bonus_hp: Int,
+    val bonus_hp: Int, //
     val bonus_vocal: Int,
     val bonus_dance: Int,
     val bonus_visual: Int

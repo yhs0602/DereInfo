@@ -7,7 +7,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap
 import com.kyhsgeekcode.dereinfo.model.Note
-import com.kyhsgeekcode.dereinfo.model.OneDifficulty
+import com.kyhsgeekcode.dereinfo.model.OneDifficultyData
 import kotlin.math.ceil
 
 
@@ -18,17 +18,17 @@ class FumenRenderer(
     val heightPerSec: Int = 600,
     val maxHeight: Int = 7500
 ) {
-    fun render(oneDifficulty: OneDifficulty): Bitmap? {
-        if (oneDifficulty.notes == null) {
+    fun render(oneDifficultyData: OneDifficultyData): Bitmap? {
+        if (oneDifficultyData.notes == null) {
             Log.d("Renderer", "Notes are null")
             return null
         }
-        if (oneDifficulty.notes.isEmpty()) {
+        if (oneDifficultyData.notes.isEmpty()) {
             Log.d("Renderer", "Size is 0")
             return null
         }
-        val isGrand = oneDifficulty.difficulty.isGrandMode()
-        val notes: List<Note> = oneDifficulty.notes
+        val isGrand = oneDifficultyData.difficulty.isGrandMode()
+        val notes: List<Note> = oneDifficultyData.notes
         val lastTime = notes.maxByOrNull {
             it.time
         }?.time ?: return null

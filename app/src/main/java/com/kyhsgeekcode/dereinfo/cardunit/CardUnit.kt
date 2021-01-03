@@ -1,19 +1,20 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
+import com.kyhsgeekcode.dereinfo.calc.CGCalc
 import com.kyhsgeekcode.dereinfo.model.CircleType
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 
 class CardUnit(
     val cards: MutableList<Card>
 ) : IUnit {
-    override fun calculateAppeal(guest: Card, type: CircleType, roomBonus: Array<Int>): Array<Int> {
+    override fun calculateAppeal(
+        guest: Card,
+        type: CircleType,
+        roomBonus: CGCalc.RoomBonus
+    ): Array<Int> {
         val leader = cards[0]
-        val leaderSkillModel = DereDatabaseHelper.theInstance.leaderSkillModels.find {
-            it.id == leader.cardData.leader_skill_id
-        }
-        val guestSkillModel = DereDatabaseHelper.theInstance.leaderSkillModels.find {
-            it.id == guest.cardData.leader_skill_id
-        }
+        val leaderSkillModel = leader.leaderSkillModel
+        val guestSkillModel = guest.leaderSkillModel
         // vo, vi, da, total, lif, skill; 1, 2, 3, 4, 5, 6
         val totalBoni = initBoniFromRoom()
         if (leaderSkillModel?.canApply(this, guest) == true) {

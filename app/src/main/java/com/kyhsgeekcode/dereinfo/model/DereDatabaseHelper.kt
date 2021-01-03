@@ -487,7 +487,7 @@ class DereDatabaseHelper(context: Context) {
             SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
             fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
-        val difficulties: MutableMap<TW5Difficulty, OneDifficulty> = HashMap()
+        val difficulties: MutableMap<TW5Difficulty, OneDifficultyData> = HashMap()
         val info = musicInfo
         while (cursorFumens.moveToNext()) {
             var name = cursorFumens.getString(0)
@@ -513,7 +513,7 @@ class DereDatabaseHelper(context: Context) {
                 notes = parseDereFumenWitch(fumenStr, info)
             else
                 notes = parseDereFumen(fumenStr, info)
-            difficulties[twDifficulty] = OneDifficulty(twDifficulty, notes)
+            difficulties[twDifficulty] = OneDifficultyData(twDifficulty, notes)
         }
         cursorFumens.close()
         return OneMusic(difficulties, info)
