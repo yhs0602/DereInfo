@@ -16,24 +16,23 @@ class Card(
     val maxLevel = theRarity.maxLevel
     val isSpecialTrained = Rarity.fromInt(cardData.rarity).isSpecialTrained
 
-    var isMaxLove: Boolean = false
+    val isMaxLove: Boolean
         get() = love == theRarity.maxLove
-        private set
-    var vocal: Int = 0
+
+    val vocal: Int
         get() = ceil(cardData.vocal_min + (cardData.vocal_max - cardData.vocal_min) * level / (maxLevel - 1.0)).toInt() +
                 potential.vo + (if (isMaxLove) cardData.bonus_vocal else 0)
-        private set
-    var dance: Int = 0
+
+    val dance: Int
         get() = ceil(cardData.dance_min + (cardData.dance_max - cardData.dance_min) * level / (maxLevel - 1.0)).toInt() +
                 potential.dan + (if (isMaxLove) cardData.bonus_dance else 0)
-        private set
-    var visual: Int = 0
+
+    val visual: Int
         get() = ceil(cardData.visual_min + (cardData.visual_max - cardData.visual_min) * level / (maxLevel - 1.0)).toInt() +
                 potential.vi + (if (isMaxLove) cardData.bonus_visual else 0)
-        private set
-    var life: Int = 0
+
+    val life: Int
         get() = cardData.hp_min + if (isMaxLove) cardData.bonus_hp else 0
-        private set
 
     val skillModel: SkillModel? =
         DereDatabaseHelper.theInstance.skillModels.find { it.id == cardData.skill_id }
@@ -41,10 +40,8 @@ class Card(
     val leaderSkillModel: LeaderSkillModel? =
         DereDatabaseHelper.theInstance.leaderSkillModels.find { it.id == cardData.leader_skill_id }
 
-
-    var skillDuration: Float = 0.0f
+    val skillDuration: Float
         get() = if (skillModel == null) 0.0f else (skillModel.available_time_type + 1) * (1.0f + 0.05f * skillLevel)
-        private set
 
     val circleType = CircleType.fromInt(cardData.attribute)
 
@@ -69,6 +66,4 @@ class Card(
         val offset = time.rem(skillModel.condition)
         return offset in 0.0f..skillDuration
     }
-
-
 }

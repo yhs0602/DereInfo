@@ -48,7 +48,7 @@ object CGCalc {
         guest: Card,
         difficultyData: OneDifficultyData,
         type: CircleType,
-        roomBonus: Array<Int>,
+        roomBonus: RoomBonus,
         support: Int,
         ratio: Float
     ): Int {

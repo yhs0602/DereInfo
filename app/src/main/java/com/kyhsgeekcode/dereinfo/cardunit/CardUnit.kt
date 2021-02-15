@@ -4,6 +4,34 @@ import com.kyhsgeekcode.dereinfo.calc.CGCalc
 import com.kyhsgeekcode.dereinfo.model.CircleType
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 
+class Appeal(
+    val vocal: Int,
+    val dance: Int,
+    val visual: Int,
+    val life: Int,
+    val skill: Int
+) {
+    val total = vocal + dance + visual
+    operator fun get(index: Int) = when (index) {
+        1 -> vocal
+        2 -> visual
+        3 -> dance
+        4 -> total
+        5 -> life
+        6 -> skill
+        else -> throw IndexOutOfBoundsException("Index: $index")
+    }
+
+    // other, vo, vi, dan, all, life, skill
+    constructor(list: Array<Int>) : this(
+        vocal = list[1],
+        dance = list[3],
+        visual = list[2],
+        life = list[5],
+        skill = list[6]
+    )
+}
+
 class CardUnit(
     val cards: MutableList<Card>
 ) : IUnit {
@@ -37,7 +65,6 @@ class CardUnit(
     fun hasAttr(attribute: Int): Boolean = cards.any { it.cardData.attribute == attribute }
     fun hasOnlyAttr(attribute: Int): Boolean = cards.all { it.cardData.attribute == attribute }
 
-
     fun countSkills(): Int = cards.groupBy { it.cardData.skill_id }.size
     fun isResonanceApplied(guest: Card): Boolean {
         val leader = cards[0]
@@ -65,11 +92,11 @@ class CardUnit(
     var calculatedDan: Int = 0
     var calculatedVi: Int = 0
     var calculatedLife: Int = 0
-    override fun setCard(order: Int, card: Card) {
+    override operator fun set(order: Int, card: Card) {
         cards[order] = card
     }
 
-    override fun getCard(order: Int): Card {
+    override operator fun get(order: Int): Card {
         return cards[order]
     }
 
@@ -89,7 +116,4 @@ class CardUnit(
         return cards
     }
 
-    override fun getAppeal(): Array<Int> {
-        TODO("Not yet implemented")
-    }
 }
