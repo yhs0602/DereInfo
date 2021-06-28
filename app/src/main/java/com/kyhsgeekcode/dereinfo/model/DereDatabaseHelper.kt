@@ -23,7 +23,7 @@ class DereDatabaseHelper(context: Context) {
     }
 
     val TAG = "DereDBHelper"
-    val manifestFile: File
+//    val manifestFile: File
     var fumensDBFile: File = File("")
     val fumenFolder: File
 
@@ -35,7 +35,8 @@ class DereDatabaseHelper(context: Context) {
     init {
         val datadir = context.getExternalFilesDir(null)!!.parentFile.parentFile
         val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
-        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
+
+//        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
         fumenFolder = File(dereFilesDir, "a/")
         AssetDownloader.download()
         try {
@@ -73,8 +74,8 @@ class DereDatabaseHelper(context: Context) {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
-        val manifestDB =
-            SQLiteDatabase.openDatabase(manifestFile.path, null, SQLiteDatabase.OPEN_READONLY)
+//        val manifestDB =
+//            SQLiteDatabase.openDatabase(manifestFile.path, null, SQLiteDatabase.OPEN_READONLY)
 
         val cursorLiveData =
             fumensDB.rawQuery(

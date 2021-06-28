@@ -121,7 +121,15 @@ class SongListActivity : AppCompatActivity(),
         }
         adapter = setupRecyclerView(song_list)
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
-        dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
+        try {
+            dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to find database", e)
+            Toast.makeText(this, "Failed to find database", Toast.LENGTH_SHORT).show()
+            guideInstallDeresute()
+            finish()
+            return
+        }
         DereDatabaseHelper.theInstance = dereDatabaseHelper
         CoroutineScope(Dispatchers.IO).launch {
             if (!dereDatabaseHelper.load(this@SongListActivity, false, publisher, onFinish)) {
