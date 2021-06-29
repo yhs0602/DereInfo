@@ -1,5 +1,6 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import com.kyhsgeekcode.dereinfo.TWWriter
 import kotlin.math.ceil
 import kotlin.math.max
 
@@ -35,4 +36,8 @@ class OneDifficultyData(val difficulty: TW5Difficulty, val notes: List<Note>?) {
 //        }
 //        return res
 //    }
+}
+
+fun OneDifficultyData.toJson(musicInfo: MusicInfo): String {
+    return TWWriter(musicInfo, this).write()
 }

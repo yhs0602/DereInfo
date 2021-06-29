@@ -23,7 +23,8 @@ class DereDatabaseHelper(context: Context) {
     }
 
     val TAG = "DereDBHelper"
-//    val manifestFile: File
+
+    //    val manifestFile: File
     var fumensDBFile: File = File("")
     val fumenFolder: File
 
@@ -870,6 +871,24 @@ class DereDatabaseHelper(context: Context) {
             1 -> model.type_01_value
             2 -> model.type_02_value
             else -> model.type_01_value
+        }
+    }
+
+    fun exportTW(context: Context, musicList: List<MusicInfo>, difficulties: List<TW5Difficulty>) {
+        musicList.forEach { mi ->
+            difficulties.forEach { diffi ->
+                val oneDifficulty = theInstance.parsedFumenCache[Pair(
+                    mi.id,
+                    diffi
+                )]?.difficulties?.get(diffi)
+                val json = oneDifficulty!!.toJson(mi)
+                val fileName = "${mi.name}-${diffi.name}___"
+                val temp = File.createTempFile(fileName, ".txt", context.cacheDir)
+                temp.printWriter().use { pw ->
+                    pw.print(json)
+                }
+                // TODO : ZIP
+            }
         }
     }
 

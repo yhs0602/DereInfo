@@ -9,6 +9,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -249,6 +250,24 @@ class SongListActivity : AppCompatActivity(),
             }
             app_bar_units -> {
                 startActivity(Intent(this, UnitListActivity::class.java))
+            }
+            export_all_tw -> {
+                val items = TW5Difficulty.values().map { it.name }.toTypedArray()
+                val checked = BooleanArray(items.size)
+                AlertDialog.Builder(this).setTitle("Select difficulty")
+                    .setMultiChoiceItems(items, checked) { dlg, which, check ->
+                        checked[which] = check
+                    }.setPositiveButton("OK") { dlg, which ->
+                        val checkedDifficulties = checked.withIndex().filter { it.value }
+                            .map { TW5Difficulty.values()[it.index] }
+                        CoroutineScope(Dispatchers.IO).launch {
+                            dereDatabaseHelper.exportTW(
+                                this@SongListActivity,
+                                adapter.getImmutableItemList(),
+                                checkedDifficulties
+                            )
+                        }
+                    }
             }
         }
         return super.onOptionsItemSelected(item)

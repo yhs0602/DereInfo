@@ -156,6 +156,8 @@ class SongRecyclerViewAdapter(
 
     override fun getItemCount() = filteredItemList.size
 
+    fun getImmutableItemList() = filteredItemList.toList()
+
     fun scrollToIndex() {
         val realIndex = filteredItemList.indexOfFirst {
             it.id == currentMusicIDIndex

@@ -314,10 +314,9 @@ class SongDetailFragment : Fragment() {
                         this.item!!.id,
                         difficulty
                     )]?.difficulties?.get(difficulty)
-                val json = TWWriter(this.item!!, oneDifficulty!!).write()
+                val json = oneDifficulty!!.toJson(this.item!!)
                 val fileName = "${this.item?.name}-${difficulty.name}___"
-                val temp =
-                    File.createTempFile(fileName, ".txt", context!!.cacheDir)
+                val temp = File.createTempFile(fileName, ".txt", context!!.cacheDir)
                 temp.printWriter().use {
                     it.print(json)
                 }
@@ -326,6 +325,7 @@ class SongDetailFragment : Fragment() {
         }
         return super.onOptionsItemSelected(item)
     }
+
 
     private fun shareAsZip(file: File, message: String) {
         val temp =
