@@ -11,8 +11,12 @@ import com.kyhsgeekcode.dereinfo.*
 import com.kyhsgeekcode.dereinfo.cardunit.*
 import com.kyhsgeekcode.dereinfo.dereclient.AssetDownloader
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.nio.charset.Charset
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.collections.set
 
 
@@ -874,7 +878,14 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 
-    fun exportTW(context: Context, musicList: List<MusicInfo>, difficulties: List<TW5Difficulty>) {
+    fun exportTW(
+        musicList: List<MusicInfo>,
+        difficulties: List<TW5Difficulty>,
+        fileOutputStream: FileOutputStream
+    ) {
+        val bos = BufferedOutputStream(fileOutputStream)
+        val zos = ZipOutputStream(bos)
+
         musicList.forEach { mi ->
             difficulties.forEach { diffi ->
                 val oneDifficulty = theInstance.parsedFumenCache[Pair(
@@ -883,13 +894,12 @@ class DereDatabaseHelper(context: Context) {
                 )]?.difficulties?.get(diffi)
                 val json = oneDifficulty!!.toJson(mi)
                 val fileName = "${mi.name}-${diffi.name}___"
-                val temp = File.createTempFile(fileName, ".txt", context.cacheDir)
-                temp.printWriter().use { pw ->
-                    pw.print(json)
-                }
-                // TODO : ZIP
+                zos.putNextEntry(ZipEntry(fileName))
+                json.byteInputStream().copyTo(zos)
+                zos.closeEntry()
             }
         }
+        zos.close()
     }
 
 //    fun initSkillToBoostModel() {

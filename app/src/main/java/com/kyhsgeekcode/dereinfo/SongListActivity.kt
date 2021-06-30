@@ -1,5 +1,6 @@
 package com.kyhsgeekcode.dereinfo
 
+import android.app.Instrumentation
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -22,9 +23,10 @@ import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.Serializable
 
 
@@ -52,6 +54,32 @@ class SongListActivity : AppCompatActivity(),
             .setAllowUserInput(false)
     private lateinit var dereDatabaseHelper: DereDatabaseHelper
     private lateinit var adapter: SongRecyclerViewAdapter
+
+    val RC_ACTIVITY_FOR_RESULT = 101
+    internal var deffered = CompletableDeferred<Instrumentation.ActivityResult>()
+
+    private fun startForResultAsync(intent: Intent): Deferred<Instrumentation.ActivityResult> {
+        if (deffered.isActive)
+            deffered.cancel()
+        deffered = CompletableDeferred()
+        startActivityForResult(intent, RC_ACTIVITY_FOR_RESULT)
+        return deffered
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_ACTIVITY_FOR_RESULT) {
+            deffered.complete(
+                Instrumentation.ActivityResult(
+                    resultCode,
+                    data
+                )
+            )
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -260,14 +288,40 @@ class SongListActivity : AppCompatActivity(),
                     }.setPositiveButton("OK") { dlg, which ->
                         val checkedDifficulties = checked.withIndex().filter { it.value }
                             .map { TW5Difficulty.values()[it.index] }
-                        CoroutineScope(Dispatchers.IO).launch {
-                            dereDatabaseHelper.exportTW(
-                                this@SongListActivity,
-                                adapter.getImmutableItemList(),
-                                checkedDifficulties
-                            )
+                        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            type = "application/zip"
+                            putExtra(Intent.EXTRA_TITLE, "twFiles.zip")
+
+                            // Optionally, specify a URI for the directory that should be opened in
+                            // the system file picker before your app creates the document.
+//                            putExtra(DocumentsContract.EXTRA_INITIAL_URI, null)
                         }
-                    }
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val activityResult = startForResultAsync(intent).await()
+                            val code = activityResult.resultCode
+                            val data = activityResult.resultData
+                            data?.data?.also { uri ->
+                                withContext(Dispatchers.IO) {
+                                    try {
+                                        contentResolver.openFileDescriptor(uri, "w")?.use {
+                                            FileOutputStream(it.fileDescriptor).use { fos ->
+                                                dereDatabaseHelper.exportTW(
+                                                    adapter.getImmutableItemList(),
+                                                    checkedDifficulties,
+                                                    fos
+                                                )
+                                            }
+                                        }
+                                    } catch (e: FileNotFoundException) {
+                                        Log.d(TAG, "File not found", e)
+                                    } catch (e: IOException) {
+                                        Log.d(TAG, "IOExcpetipon", e)
+                                    }
+                                }
+                            }
+                        }
+                    }.show()
             }
         }
         return super.onOptionsItemSelected(item)
