@@ -86,18 +86,19 @@ class SongListActivity : AppCompatActivity(),
      * device.
      */
     private var twoPane: Boolean = false
-    val publisher: (Int, Int, MusicInfo?, String?) -> Unit = { total, progress, info, message ->
-        CoroutineScope(Dispatchers.Main).launch {
-            circularType.setProgressMax(total)
-            if (info != null)
-                adapter.addItem(info)
-            snackProgressBarManager.setProgress(progress)
-            if (message != null) {
-                circularType.setMessage(message)
+    private val publisher: (Int, Int, MusicInfo?, String?) -> Unit =
+        { total, progress, info, message ->
+            CoroutineScope(Dispatchers.Main).launch {
+                circularType.setProgressMax(total)
+                if (info != null)
+                    adapter.addItem(info)
+                snackProgressBarManager.setProgress(progress)
+                if (message != null) {
+                    circularType.setMessage(message)
+                }
+                snackProgressBarManager.updateTo(circularType)
             }
-            snackProgressBarManager.updateTo(circularType)
         }
-    }
     val onFinish: () -> Unit = {
         runOnUiThread {
             adapter.notifyDataSetChanged()
@@ -280,51 +281,69 @@ class SongListActivity : AppCompatActivity(),
                 startActivity(Intent(this, UnitListActivity::class.java))
             }
             export_all_tw -> {
-                val items = TW5Difficulty.values().map { it.name }.toTypedArray()
-                val checked = BooleanArray(items.size)
-                AlertDialog.Builder(this).setTitle("Select difficulty")
-                    .setMultiChoiceItems(items, checked) { dlg, which, check ->
-                        checked[which] = check
-                    }.setPositiveButton("OK") { dlg, which ->
-                        val checkedDifficulties = checked.withIndex().filter { it.value }
-                            .map { TW5Difficulty.values()[it.index] }
-                        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "application/zip"
-                            putExtra(Intent.EXTRA_TITLE, "twFiles.zip")
-
-                            // Optionally, specify a URI for the directory that should be opened in
-                            // the system file picker before your app creates the document.
-//                            putExtra(DocumentsContract.EXTRA_INITIAL_URI, null)
-                        }
-                        CoroutineScope(Dispatchers.Main).launch {
-                            val activityResult = startForResultAsync(intent).await()
-                            val code = activityResult.resultCode
-                            val data = activityResult.resultData
-                            data?.data?.also { uri ->
-                                withContext(Dispatchers.IO) {
-                                    try {
-                                        contentResolver.openFileDescriptor(uri, "w")?.use {
-                                            FileOutputStream(it.fileDescriptor).use { fos ->
-                                                dereDatabaseHelper.exportTW(
-                                                    adapter.getImmutableItemList(),
-                                                    checkedDifficulties,
-                                                    fos
-                                                )
-                                            }
-                                        }
-                                    } catch (e: FileNotFoundException) {
-                                        Log.d(TAG, "File not found", e)
-                                    } catch (e: IOException) {
-                                        Log.d(TAG, "IOExcpetipon", e)
-                                    }
-                                }
-                            }
-                        }
-                    }.show()
+                exportTw()
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun exportTw() {
+        val items = TW5Difficulty.values().map { it.name }.toTypedArray()
+        val checked = BooleanArray(items.size)
+        AlertDialog.Builder(this).setTitle("Select difficulty")
+            .setMultiChoiceItems(items, checked) { dlg, which, check ->
+                checked[which] = check
+            }.setPositiveButton("OK") { dlg, which ->
+                val checkedDifficulties = checked.withIndex().filter { it.value }
+                    .map { TW5Difficulty.values()[it.index] }
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "application/zip"
+                    putExtra(Intent.EXTRA_TITLE, "twFiles.zip")
+
+                    // Optionally, specify a URI for the directory that should be opened in
+                    // the system file picker before your app creates the document.
+                    //                            putExtra(DocumentsContract.EXTRA_INITIAL_URI, null)
+                }
+                CoroutineScope(Dispatchers.Main).launch {
+                    val activityResult = startForResultAsync(intent).await()
+                    val code = activityResult.resultCode
+                    val data = activityResult.resultData
+                    data?.data?.also { uri ->
+                        snackProgressBarManager.show(
+                            circularType,
+                            SnackProgressBarManager.LENGTH_INDEFINITE
+                        )
+                        withContext(Dispatchers.IO) {
+                            try {
+                                contentResolver.openFileDescriptor(uri, "w")?.use {
+                                    FileOutputStream(it.fileDescriptor).use { fos ->
+                                        val list = adapter.getImmutableItemList()
+                                        dereDatabaseHelper.exportTW(
+                                            list,
+                                            checkedDifficulties,
+                                            fos
+                                        ) { progress, message ->
+                                            withContext(Dispatchers.Main) {
+                                                circularType.setProgressMax(list.size)
+                                                snackProgressBarManager.setProgress(progress)
+                                                if (message != null) {
+                                                    circularType.setMessage(message)
+                                                }
+                                                snackProgressBarManager.updateTo(circularType)
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (e: FileNotFoundException) {
+                                Log.d(TAG, "File not found", e)
+                            } catch (e: IOException) {
+                                Log.d(TAG, "IOExcpetipon", e)
+                            }
+                        }
+                    }
+                }
+            }.show()
     }
 
 

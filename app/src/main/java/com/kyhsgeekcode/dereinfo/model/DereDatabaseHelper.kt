@@ -487,10 +487,11 @@ class DereDatabaseHelper(context: Context) {
 
 
     //5개를 파싱해라.
-    fun parseFumen(musicInfo: MusicInfo, wantedDifficulty: TW5Difficulty): OneMusic {
-        val fumenFile = musicNumberToFumenFile[musicIDTomusicNumber[musicInfo.id]]//wrong
+    fun parseFumen(musicInfo: MusicInfo, wantedDifficulty: TW5Difficulty): OneMusic? {
+        val fumenFile =
+            musicNumberToFumenFile[musicIDTomusicNumber[musicInfo.id]] ?: return null//wrong
         val fumenDB =
-            SQLiteDatabase.openDatabase(fumenFile!!.path, null, SQLiteDatabase.OPEN_READONLY)
+            SQLiteDatabase.openDatabase(fumenFile.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
             fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
         val difficulties: MutableMap<TW5Difficulty, OneDifficultyData> = HashMap()
@@ -878,26 +879,33 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 
-    fun exportTW(
+    suspend fun exportTW(
         musicList: List<MusicInfo>,
         difficulties: List<TW5Difficulty>,
-        fileOutputStream: FileOutputStream
+        fileOutputStream: FileOutputStream,
+        progressHandler: suspend (Int, String?) -> Unit
     ) {
         val bos = BufferedOutputStream(fileOutputStream)
         val zos = ZipOutputStream(bos)
-
+        var count = 0
         musicList.forEach { mi ->
             difficulties.forEach { diffi ->
                 val oneDifficulty = theInstance.parsedFumenCache[Pair(
                     mi.id,
                     diffi
                 )]?.difficulties?.get(diffi)
-                val json = oneDifficulty!!.toJson(mi)
-                val fileName = "${mi.name}-${diffi.name}___"
-                zos.putNextEntry(ZipEntry(fileName))
-                json.byteInputStream().copyTo(zos)
-                zos.closeEntry()
+                oneDifficulty?.toJson(mi)?.run {
+                    val fileName = "${mi.id}___${mi.name}___${diffi.name}"
+                    zos.putNextEntry(ZipEntry(fileName))
+                    byteInputStream().copyTo(zos)
+                    zos.closeEntry()
+                } ?: run {
+                    Log.d(TAG, "No such difficulty exists: ${diffi.name}")
+                    progressHandler(count, "No ${diffi.name} of ${mi.name}")
+                }
             }
+            progressHandler(count, mi.name)
+            count++
         }
         zos.close()
     }
