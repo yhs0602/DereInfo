@@ -341,6 +341,7 @@ class SongListActivity : AppCompatActivity(),
                                 Log.d(TAG, "IOExcpetipon", e)
                             }
                         }
+                        snackProgressBarManager.dismiss()
                     }
                 }
             }.show()
