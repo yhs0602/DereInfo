@@ -126,31 +126,119 @@ IFS=$'\n'; (for name in $(file a/* | grep SQLite | cut -d: -f1); do echo $name; 
 38. 심포니
 39. 얼터네이트          콤보 스코어
 40. refrain
+41. Cinderella Magic 
 
 ## leader_skill type
 
-1. Cute voice
-2. Cute step
-3. Cute makeup
-4. Cute brilliance
-5. Cute energy
-6. Cool voice
-7. Cool step
-8. Cool makeup
-9. Cool brilliance
-10. Cool energy
-11. Passion voice
-12. Passion step
-13. Passion makeup
-14. Passion brilliance
-15. Passion energy
-16. Shiny voice
-17. Shiny step
-18. Shiny makeup
-19. Shiny brilliance
-20. Shiny energy
-21. Cute ability
-22. Cool ability
-23. Passion ability
+1. Cute voice30
+2. Cute step30
+3. Cute makeup30
+4. Cute brilliance10
+5. Cute energy10
+6. Cool voice30
+7. Cool step30
+8. Cool makeup30
+9. Cool brilliance10
+10. Cool energy10
+11. Passion voice30
+12. Passion step30
+13. Passion makeup30
+14. Passion brilliance10
+15. Passion energy10
+16. Shiny voice24
+17. Shiny step24
+18. Shiny makeup24
+19. Shiny brilliance8
+20. Shiny energy8
+21. Cute ability15
+22. Cool ability15
+23. Passion ability15
 24. Cute voice60
-25. blah
+25. Cute step60
+26. Cute make60
+27. Cute brilliance30
+28. Cute energy20
+29. Cool voice60 
+30. Cool step60 
+31. Cool make60 
+32. Cool brilliance30 
+33. Cool energy20 
+34. Passion voice60 
+35. Passion step60
+36. Passion make60
+37. Passion brilliance30
+38. Passion energy20
+39. Shiny voice48 
+40. Shiny step48 
+41. Shiny makeup48 
+42. Shiny brilliance16 
+43. Shiny energy16 
+44. Cute ability30
+45. Cool ability30
+46. Passion ability30
+47. Cute voice90
+48. Cute step90
+49. Cute make90
+50. Cute brilliance40
+51. Cute energy30
+52. Cool voice90
+53. Cool step90
+54. Cool make90
+55. Cool brilliance40
+56. Cool energy30
+57. Passion voice90
+58. Passion step90
+59. Passion make90
+60. Passion brilliance40
+61. Passion energy30
+62. Shiny voice90
+63. Shiny step90
+64. Shiny makeup90
+65. Shiny brilliance40
+66. Shiny energy30
+67. Cute ability40
+68. Cool ability40
+69. Passion ability40
+70. Tricolor voice100
+71. Tricolor step100
+72. Tricolor makeup100
+73. Tricolor ability50
+74. Cute princess50
+75. Cool princess50
+76. Passion princess50
+77. Cute cheer40
+78. Cool cheer40
+79. Passion cheer40
+80. Fortune Present
+81. Cinderella charm40
+82. Tricolor voice80
+83. Tricolor step80
+84. Tricolor makeup80
+85. Christmas Present
+86. Cute princess35
+87. Cool princess35
+88. Passion princess35
+89. Cute cross cool
+90. Cute cross passion
+91. Cool cross cute
+92. Cool cross passion
+93. Passion cross cute
+94. Passion cross cool
+101. Cute unizon55
+102. Cool unizon55
+103. Passion unizon55
+104. Resonance Voice
+105. Resonance Step
+106. Resonance Make
+107. Cute cross cool
+108. Cute cross passion
+109. Cool cross cute
+110. Cool cross passion
+111. Passion cross cute
+112. Passion cross cool
+113. Cinderella yell
+114. Tricolor ability40
+115. Cinderella charm32
+116. World level
+117. Cinderella with you
+118. Cinderella breath
