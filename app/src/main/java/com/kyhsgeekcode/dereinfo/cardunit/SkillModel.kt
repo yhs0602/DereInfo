@@ -227,8 +227,21 @@ data class SkillModel(
         }
     }
 
-    fun isBoost(): Boolean {
+    // TODO : Encore, Magic..
+    fun isPureBoost(): Boolean {
         return arrayOf(20, 32, 33, 34, 38).contains(skill_type)
+    }
+
+    fun canEncoreBoost(): Boolean {
+        return arrayOf(16, 41).contains(skill_type)
+    }
+
+    fun isEncore(): Boolean {
+        return skill_type == 16
+    }
+
+    fun isMagic(): Boolean {
+        return skill_type == 41
     }
 //     skill_type에 대한 가설
 //     1, 2 : 스코어, 스/ 쓰알    스코어
@@ -257,5 +270,6 @@ data class SkillModel(
 //     35~37: 모티프           스코어
 //     38: 심포니
 //     39: 얼터네이트          콤보 스코어
-//     그런 거 없었다.
+//     40: 리프레인
+//     41: 매직
 }

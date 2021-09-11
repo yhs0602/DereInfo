@@ -23,6 +23,22 @@ class Note(
     fun isSlide(): Boolean = twMode == TWMode.Slide
     fun isDamage(): Boolean = twMode == TWMode.Damage
     fun chaos(): Float = abs(startline - endline)
+
+    val cgNoteType: CGNoteType = when {
+        isDamage() -> {
+            CGNoteType.DAMAGE
+        }
+        isFlick() -> {
+            CGNoteType.FLICK
+        }
+        isLong() -> {
+            CGNoteType.HOLD
+        }
+        else -> {
+            CGNoteType.NORMAL
+        }
+    }
+
     fun getBitmap(): String {
         if (isFlick()) {
             return "Flick${flick.name}note"
@@ -43,4 +59,13 @@ class Note(
         this.nextNote = nextNote //s.add(nextNote)
     }
 
+}
+
+
+enum class CGNoteType {
+    NORMAL,
+    HOLD,
+    FLICK,
+    SLIDE,
+    DAMAGE;
 }

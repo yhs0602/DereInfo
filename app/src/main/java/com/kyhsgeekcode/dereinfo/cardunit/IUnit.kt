@@ -4,6 +4,8 @@ import com.kyhsgeekcode.dereinfo.calc.CGCalc
 import com.kyhsgeekcode.dereinfo.model.CircleType
 
 interface IUnit {
+    fun skills(): List<SkillModel>
+
     operator fun set(order: Int, card: Card)
     operator fun get(order: Int): Card
     fun setLeader(card: Card)

@@ -6,7 +6,7 @@ data class LeaderSkillModel(
     val id: Int,
     val name: String,
     val explain: String,
-    val type: Int,  // 20: appeal 30: present, 40: fan 50: cross 60: unizon 70: resonance 80: yell
+    val type: Int,  // 20: appeal 30: present, 40: fan 50: cross 60: unizon 70: resonance 80: yell 90: World level 100: Breath
     val need_cute: Int,
     val need_cool: Int,
     val need_passion: Int,
@@ -88,6 +88,7 @@ data class LeaderSkillModel(
         val ID_RESONANCE_VOICE = 104
         val ID_RESONANCE_STEP = 105
         val ID_RESONANCE_MAKE = 106
+        val ID_CINDERELLA_BREATH = 118
         val ATTR_CUTE = 1
         val ATTR_COOL = 2
         val ATTR_PASSION = 3

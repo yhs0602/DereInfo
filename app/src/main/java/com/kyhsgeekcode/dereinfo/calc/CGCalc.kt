@@ -43,6 +43,156 @@ object CGCalc {
     }
 
 
+    class LiveParameter(val totalNotes: Int, val unit: CardUnitWithGuest) {
+        val appeals: Array<Int> = unit.appeals
+        val isResonance: Boolean = unit.isResonance()
+    }
+
+    class LiveContext(val liveParameter: LiveParameter) {
+        fun isDamageGuard(): Boolean = skillsNow.any { skillModel: SkillModel ->
+            skillModel.skill_type == 12
+        }
+
+        fun addActivatedSkill(skill: SkillModel) {
+            skillsNow.add(skill)
+            skillsEver.add(skill)
+            if (!skill.isEncore()) {
+                lastSkill = skill
+            }
+        }
+
+        fun removeActivatedSkill(skill: SkillModel) {
+            skillsNow.remove(skill)
+        }
+
+        fun canAlternateActivate() = maxScoreBonus.any {
+            it.value > 0
+        }
+
+        fun canRefrainActivate() = maxComboBonus > 0 || maxScoreBonus.any {
+            it.value > 0
+        }
+
+        fun canEncoreActivate(): Boolean = lastSkill != null
+
+        fun comboBonus(): Float = baseComboBonus(liveParameter.totalNotes, combo)
+        val isResonance: Boolean = liveParameter.isResonance
+
+        val appeals = liveParameter.appeals
+        var totalScore: Int = 0
+        var combo: Int = 0
+        var life: Int = 0
+        val skillsNow = HashSet<SkillModel>()
+        val skillsEver = HashSet<SkillModel>()
+        val skillsAll = liveParameter.unit.skills
+        var lastSkill: SkillModel? = null
+        val maxScoreBonus: MutableMap<CGNoteType, Int> = mutableMapOf(
+            CGNoteType.NORMAL to 0,
+            CGNoteType.HOLD to 0,
+            CGNoteType.FLICK to 0,
+            CGNoteType.SLIDE to 0,
+            CGNoteType.DAMAGE to 0
+        )
+
+        var maxComboBonus: Int = 0
+
+        var maxBoost = Triple(100, 100, 0)
+    }
+
+    interface LiveEvent {
+        fun applySelf(context: LiveContext)
+    }
+
+    // CORE.
+    class NoteEvent(val note: Note) : LiveEvent {
+        override fun applySelf(context: LiveContext) {
+            val skills = context.skillsNow
+            val baseComboBonus = context.comboBonus()
+            val isResonance = context.isResonance
+
+            val pureBoosts = skills.filter {
+                it.isPureBoost()
+            }
+            val encoreBoosts = skills.filter {
+                if (it.canEncoreBoost()) {
+                    when {
+                        it.isEncore() -> {
+                            context.lastSkill?.isPureBoost() == true // what if last skill was encore?
+                        }
+                        it.isMagic() -> {
+                            pureBoosts.isNotEmpty()
+                        }
+                        else -> {
+                            false
+                        }
+                    }
+                } else {
+                    false
+                }
+            }
+            val boosts = pureBoosts + encoreBoosts
+
+            // check boost values
+            val boost1: Float?
+            val boost2: Float?
+            val boost3: Float?
+            skills.map {
+                it.getBonus(
+                    note,
+                    Judge.PERFECT,
+                    context.life,
+                    context.appeals,
+                    context.lastSkill,
+                    context.skillsEver,
+                    boost1,
+                    boost2,
+                    boost3
+                )
+            }
+            if (isResonance) {
+
+            } else {
+
+            }
+        }
+    }
+
+    // Pre calculate whether the skill can activate in given deck
+// condition to activate changes : Overload, alternate, refrain, encore
+    class SkillActivateEvent(private val skill: SkillModel) : LiveEvent {
+        override fun applySelf(context: LiveContext) {
+            if (skill.skill_trigger_type == 1) { // overload
+                if (context.life > skill.skill_trigger_value) {
+                    if (!context.isDamageGuard()) {
+                        context.life -= skill.skill_trigger_value
+                    }
+                    context.addActivatedSkill(skill)
+                }
+            } else if (skill.skill_type == 39) { // alternate needs any score bonus activated
+                if (context.canAlternateActivate()) {
+                    context.addActivatedSkill(skill)
+                }
+            } else if (skill.skill_type == 40) { // refrain
+                if (context.canRefrainActivate()) {
+                    context.addActivatedSkill(skill)
+                }
+            } else if (skill.skill_type == 16) { // encore
+                if (context.canEncoreActivate()) {
+                    context.addActivatedSkill(skill)
+                }
+            } else {
+                context.addActivatedSkill(skill) // register to activated skills
+            } // Improve: Check for life for life related skills
+        }
+    }
+
+    class SkillDeactivateEvent(private val skill: SkillModel) : LiveEvent {
+        override fun applySelf(context: LiveContext) {
+            context.removeActivatedSkill(skill)
+        }
+    }
+
+
     fun calculateScore(
         unit: CardUnit,
         guest: Card,
@@ -139,21 +289,11 @@ object CGCalc {
 
 
             val workingSkills = skillModels.withIndex().filter { isWorking[it.index] }
-            val workingBoostSkills = workingSkills.filter { it.value?.isBoost() == true }
+            val workingBoostSkills = workingSkills.filter { it.value?.isPureBoost() == true }
             // process notes
             var note = notes[processedNotes]
             while (note.time >= time) {
-                val comboBonusBase = when ((processedNotes + 1) * 100 / totalNotes) {
-                    in 0 until 5 -> 1.0f
-                    in 5 until 10 -> 1.1f
-                    in 10 until 25 -> 1.2f
-                    in 25 until 50 -> 1.3f
-                    in 50 until 70 -> 1.4f
-                    in 70 until 80 -> 1.5f
-                    in 80 until 90 -> 1.7f
-                    in 90..100 -> 2.0f
-                    else -> 2.0f
-                }
+                val comboBonusBase = baseComboBonus(processedNotes, totalNotes)
                 val scoreByCombo = (scorePerNote * comboBonusBase).roundToInt()
                 val finalScore: Float
                 if (isResonance) {
@@ -210,6 +350,19 @@ object CGCalc {
         return totalScore
     }
 
+    private fun baseComboBonus(processedNotes: Int, totalNotes: Int): Float =
+        when ((processedNotes + 1) * 100 / totalNotes) {
+            in 0 until 5 -> 1.0f
+            in 5 until 10 -> 1.1f
+            in 10 until 25 -> 1.2f
+            in 25 until 50 -> 1.3f
+            in 50 until 70 -> 1.4f
+            in 70 until 80 -> 1.5f
+            in 80 until 90 -> 1.7f
+            in 90..100 -> 2.0f
+            else -> 2.0f
+        }
+
     private fun calculateBonus(
         note: Note,
         workingSkills: List<IndexedValue<SkillModel?>>,
@@ -218,7 +371,7 @@ object CGCalc {
     ): Triple<Float, Float, Int> {
         val totalAvailableBonus = workingSkills.map { it ->
             val skillModel = it.value ?: return@map Triple(100f, 100f, 0f)
-            if (skillModel.isBoost())
+            if (skillModel.isPureBoost())
                 return@map Triple(100f, 100f, 0f)
             val boostValues = getBoostValues(workingBoostSkills, skillModel, attributes)
             val boost1 = boostValues.map {
@@ -283,7 +436,7 @@ object CGCalc {
     ): Triple<Float, Float, Int> {
         val totalAvailableBonus = workingSkills.map { it ->
             val skillModel = it.value ?: return@map Triple(100f, 100f, 0f)
-            if (skillModel.isBoost())
+            if (skillModel.isPureBoost())
                 return@map Triple(100f, 100f, 0f)
             val boostValues = getBoostValues(workingBoostSkills, skillModel, attributes)
             val boost1 = boostValues.sumBy {

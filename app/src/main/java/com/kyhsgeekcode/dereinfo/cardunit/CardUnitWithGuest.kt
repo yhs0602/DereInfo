@@ -1,4 +1,10 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-class CardUnitWithGuest {
+class CardUnitWithGuest(val cardUnit: CardUnit, val guest: Card) {
+    val appeals: Array<Int> = 0
+    val skills = cardUnit.skills
+
+    fun isResonance(): Boolean {
+        if (guest.leaderSkillModel.)
+    }
 }
