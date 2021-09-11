@@ -17,12 +17,11 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
-import com.kyhsgeekcode.dereinfo.R.id.*
+import com.kyhsgeekcode.dereinfo.databinding.ActivitySongListBinding
+import com.kyhsgeekcode.dereinfo.databinding.SongListBinding
 import com.kyhsgeekcode.dereinfo.model.*
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
-import kotlinx.android.synthetic.main.activity_song_list.*
-import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.*
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -42,9 +41,13 @@ class SongListActivity : AppCompatActivity(),
     FilterAlertDialogFragment.FilterDialogListener,
     SortAlertDialogFragment.SortDialogListener {
     val TAG = "SongListActivity"
+
+    private lateinit var binding: ActivitySongListBinding
+    private lateinit var listbinding: SongListBinding
+
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
-            mainListLayout,
+            binding.mainListLayout,
             lifecycleOwner = this
         )
     }
@@ -108,48 +111,52 @@ class SongListActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivitySongListBinding.inflate(layoutInflater)
+
         setContentView(R.layout.activity_song_list)
 
-        setSupportActionBar(toolbar)
-        toolbar.title = title
+        with(binding) {
+            setSupportActionBar(binding.toolbar)
+            binding.toolbar.title = title
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
-        if (twoPane) {
-            fab.hide()
-        } else {
-            fab.show()
-        }
-
-        pullToRefresh.setOnRefreshListener {
-            pullToRefresh.isRefreshing = false
-//            refreshCache(publisher, onFinish)
-        }
-
-        tl_song_list_modes.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d(TAG, "OnSelectedTab")
-//                val tag = tab?.view?.id as? String ?: "normal"
-                val gamemode = GameMode.fromTabIndex(tab?.position ?: 0)
-                Log.d(TAG, "GameMode: $gamemode")
-                refreshMode(gamemode ?: GameMode.NORMAL)
+            binding.fab.setOnClickListener { view ->
+                Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show()
+            }
+            if (twoPane) {
+                binding.fab.hide()
+            } else {
+                binding.fab.show()
             }
 
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            pullToRefresh.setOnRefreshListener {
+                pullToRefresh.isRefreshing = false
+//            refreshCache(publisher, onFinish)
+            }
 
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
+            tlSongListModes.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    Log.d(TAG, "OnSelectedTab")
+//                val tag = tab?.view?.id as? String ?: "normal"
+                    val gamemode = GameMode.fromTabIndex(tab?.position ?: 0)
+                    Log.d(TAG, "GameMode: $gamemode")
+                    refreshMode(gamemode ?: GameMode.NORMAL)
+                }
 
-        if (song_detail_container != null) {
+                override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+                override fun onTabReselected(tab: TabLayout.Tab?) {}
+            })
+        }
+
+        if (binding.insideList.songDetailContainer != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-w900dp).
             // If this view is present, then the
             // activity should be in two-pane mode.
             twoPane = true
         }
-        adapter = setupRecyclerView(song_list)
+        adapter = setupRecyclerView(binding.insideList.songList)
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
         try {
             dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
@@ -175,7 +182,7 @@ class SongListActivity : AppCompatActivity(),
         adapter.userFilter.shouldHaveWitch = gamemode == GameMode.WITCH
 
         adapter.gameMode = gamemode
-        song_list.adapter = adapter
+        binding.insideList.songList.adapter = adapter
         adapter.notifyDataSetChanged()
         adapter.filter?.filter("")
 
@@ -195,14 +202,14 @@ class SongListActivity : AppCompatActivity(),
             ) {
                 onFailedLoadDatabase()
             }
-            pullToRefresh.isRefreshing = false
+            binding.pullToRefresh.isRefreshing = false
         }
     }
 
     private fun onFailedLoadDatabase() {
         runOnUiThread {
             Snackbar.make(
-                mainListLayout,
+                binding.mainListLayout,
                 "Please install deresute first and download resources.",
                 Snackbar.LENGTH_LONG
             )
@@ -240,7 +247,7 @@ class SongListActivity : AppCompatActivity(),
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean { // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main_menu, menu)
-        val search_item = menu.findItem(app_bar_search)
+        val search_item = menu.findItem(R.id.app_bar_search)
         val searchView: SearchView = search_item.actionView as SearchView
         searchView.isFocusable = false
         searchView.queryHint = "Search"
@@ -266,21 +273,21 @@ class SongListActivity : AppCompatActivity(),
         // as you specify a parent activity in AndroidManifest.xml.
         val id: Int = item.itemId
         when (id) {
-            app_bar_sort -> {
+            R.id.app_bar_sort -> {
                 val sortAlertDialogFragment = SortAlertDialogFragment()
                 sortAlertDialogFragment.show(supportFragmentManager, "sortFragment")
             }
-            app_bar_filter -> {
+            R.id.app_bar_filter -> {
                 val filterAlertDialogFragment = FilterAlertDialogFragment(checkedFilters)
                 filterAlertDialogFragment.show(supportFragmentManager, "filterFragment")
             }
-            app_bar_refresh -> {
+            R.id.app_bar_refresh -> {
                 refreshCache(publisher, onFinish)
             }
-            app_bar_units -> {
+            R.id.app_bar_units -> {
                 startActivity(Intent(this, UnitListActivity::class.java))
             }
-            export_all_tw -> {
+            R.id.export_all_tw -> {
                 exportTw()
             }
         }
@@ -376,24 +383,24 @@ class SongListActivity : AppCompatActivity(),
         checkedFilters = HashMap()
         checkedFilters!!.putAll(checked)
         val permittedType: MutableList<CircleType> = ArrayList()
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBAllType]!!) {
+        if (checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBAllType]!!) {
             permittedType.add(CircleType.All)
         }
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCute]!!) {
+        if (checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBCute]!!) {
             permittedType.add(CircleType.Cute)
         }
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCool]!!) {
+        if (checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBCool]!!) {
             permittedType.add(CircleType.Cool)
         }
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBPassion]!!) {
+        if (checked[R.id.filterCBTypeAllCheck]!! || checked[R.id.filterCBPassion]!!) {
             permittedType.add(CircleType.Passion)
         }
         Log.d(TAG, "Permitted2:${permittedType.toTypedArray().joinToString()}")
         adapter.userFilter.addFilter(*permittedType.toTypedArray())
-        adapter.userFilter.shouldHaveMasterPlus = checked[filterCBMasterPlus] ?: false
-        adapter.userFilter.shouldHaveSmart = checked[filterCBSmart] ?: false
-        adapter.userFilter.shouldHaveGrand = checked[filterCBGrand] ?: false
-        adapter.userFilter.shouldBeStarred = checked[filterCBStarred] ?: false
+        adapter.userFilter.shouldHaveMasterPlus = checked[R.id.filterCBMasterPlus] ?: false
+        adapter.userFilter.shouldHaveSmart = checked[R.id.filterCBSmart] ?: false
+        adapter.userFilter.shouldHaveGrand = checked[R.id.filterCBGrand] ?: false
+        adapter.userFilter.shouldBeStarred = checked[R.id.filterCBStarred] ?: false
         adapter.filter?.filter(constraint)
         //sortList()
     }
@@ -416,12 +423,12 @@ class SongListActivity : AppCompatActivity(),
             if (checkedFilters == null)
                 checkedFilters = HashMap()
             if (checkedFilters?.isEmpty() == true) {
-                checkedFilters!![filterCBTypeAllCheck] = true
-                checkedFilters!![filterCBCute] = true
-                checkedFilters!![filterCBCool] = true
-                checkedFilters!![filterCBPassion] = true
-                checkedFilters!![filterCBAllType] = true
-                checkedFilters!![filterCBMasterPlus] = true
+                checkedFilters!![R.id.filterCBTypeAllCheck] = true
+                checkedFilters!![R.id.filterCBCute] = true
+                checkedFilters!![R.id.filterCBCool] = true
+                checkedFilters!![R.id.filterCBPassion] = true
+                checkedFilters!![R.id.filterCBAllType] = true
+                checkedFilters!![R.id.filterCBMasterPlus] = true
             }
             onDialogPositiveClick(null, checkedFilters!!)
             adapter.filter?.filter(constraint)

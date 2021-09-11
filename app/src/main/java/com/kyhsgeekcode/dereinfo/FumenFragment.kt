@@ -9,10 +9,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.github.chrisbanes.photoview.PhotoView
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
 import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
-import kotlinx.android.synthetic.main.fumen_fragment.view.*
 
 class FumenFragment : Fragment() {
 
@@ -37,7 +37,7 @@ class FumenFragment : Fragment() {
         val context = requireContext()
         val musicInfo: MusicInfo
         val tw5Difficulty: TW5Difficulty
-        arguments!!.let {
+        requireArguments().let {
             musicInfo = it.getSerializable("musicInfo") as MusicInfo
             tw5Difficulty = it.getSerializable("tw5Difficulty") as TW5Difficulty
             Log.d("TAG", "musicInfo:$musicInfo, tw5Difficulty:$tw5Difficulty")
@@ -71,7 +71,7 @@ class FumenFragment : Fragment() {
             return root
         }
         Log.d("TAG", "Bitmap: $bitmap")
-        root.pv_fumen.setImageBitmap(bitmap)
+        root.findViewById<PhotoView>(R.id.pv_fumen).setImageBitmap(bitmap)
 //        saveImage(bitmap!!, requireContext(), "dereinfo")
         return root
     }
@@ -81,10 +81,9 @@ class FumenFragment : Fragment() {
         bitmap?.recycle()
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(FumenViewModel::class.java)
-        // TODO: Use the ViewModel
     }
 
 }

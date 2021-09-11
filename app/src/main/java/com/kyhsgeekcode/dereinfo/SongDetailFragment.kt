@@ -14,9 +14,8 @@ import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.github.chrisbanes.photoview.PhotoView
+import com.kyhsgeekcode.dereinfo.databinding.SongDetailBinding
 import com.kyhsgeekcode.dereinfo.model.*
-import kotlinx.android.synthetic.main.activity_song_detail.*
-import kotlinx.android.synthetic.main.song_detail.view.*
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -37,6 +36,11 @@ class SongDetailFragment : Fragment() {
     private var oneMusic: OneMusic? = null
     private var difficulty: TW5Difficulty = TW5Difficulty.Debut
     private var bitmap: Bitmap? = null
+
+    private var _binding: SongDetailBinding? = null
+    private val binding get() = _binding!!
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -47,8 +51,8 @@ class SongDetailFragment : Fragment() {
                 // arguments. In a real-world scenario, use a Loader
                 // to load content from a content provider.
                 item = DereDatabaseHelper.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
-                activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
-                activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
+//                activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
+//                activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
                 val musicNumber = DereDatabaseHelper.theInstance.musicIDTomusicNumber[item!!.id]
                 Log.w(TAG, "Item.id:${item!!.id}, musicNumber:${musicNumber}")
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
@@ -65,18 +69,20 @@ class SongDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val rootView = inflater.inflate(R.layout.song_detail, container, false)
+        _binding = SongDetailBinding.inflate(inflater, container, false)
+        
+        val rootView = binding.root// inflater.inflate(R.layout.song_detail, container, false)
 
         // Show the dummy content as text in a TextView.
         item?.let { musicInfo ->
-            rootView.song_detail.text = musicInfo.toString()
+            binding.songDetail.text = musicInfo.toString()
             val adapter: ArrayAdapter<String> = ArrayAdapter(
-                context!!,
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 resources.getStringArray(R.array.difficulties)
             )
-            rootView.spinnerDifficulty.adapter = adapter
-            rootView.spinnerDifficulty.onItemSelectedListener =
+            binding.spinnerDifficulty.adapter = adapter
+            binding.spinnerDifficulty.onItemSelectedListener =
                 object : AdapterView.OnItemSelectedListener {
                     override fun onNothingSelected(parent: AdapterView<*>?) {
 
@@ -94,8 +100,8 @@ class SongDetailFragment : Fragment() {
                                 difficulty
                             )
                                 ?: return
-                        rootView.detailedLayout.visibility = View.VISIBLE
-                        with(rootView) {
+                        binding.detailedLayout.visibility = View.VISIBLE
+                        with(binding) {
 //                            buttonStatisticsShowFumen.isEnabled = true
 //                            buttonStatisticsShowFumen.setOnClickListener {
 ////                                showFumen(musicInfo, tw5Difficulty)
@@ -164,12 +170,12 @@ class SongDetailFragment : Fragment() {
 
                             bitmap = createFumenBitmap(musicInfo, difficulty)
                             bitmap?.let { bm ->
-                                iv_song_detail.setImageBitmap(bm)
-                                val lp = iv_song_detail.layoutParams
-                                lp.height = bm.height / bm.width * iv_song_detail.width
-                                iv_song_detail.layoutParams = lp
+                                ivSongDetail.setImageBitmap(bm)
+                                val lp = ivSongDetail.layoutParams
+                                lp.height = bm.height / bm.width * ivSongDetail.width
+                                ivSongDetail.layoutParams = lp
 
-                                iv_song_detail.setOnClickListener {
+                                ivSongDetail.setOnClickListener {
                                     val photoView = PhotoView(context)
                                     photoView.setImageBitmap(bitmap)
                                     val alertDialog = AlertDialog.Builder(context)
@@ -185,7 +191,7 @@ class SongDetailFragment : Fragment() {
                         }
                     }
                 }
-            rootView.spinnerDifficulty.setSelection(difficulty.ordinal)
+            binding.spinnerDifficulty.setSelection(difficulty.ordinal)
         }
         return rootView
     }
@@ -316,7 +322,7 @@ class SongDetailFragment : Fragment() {
                     )]?.difficulties?.get(difficulty)
                 val json = oneDifficulty!!.toJson(this.item!!)
                 val fileName = "${this.item?.name}-${difficulty.name}___"
-                val temp = File.createTempFile(fileName, ".txt", context!!.cacheDir)
+                val temp = File.createTempFile(fileName, ".txt", requireContext().cacheDir)
                 temp.printWriter().use {
                     it.print(json)
                 }
@@ -329,7 +335,7 @@ class SongDetailFragment : Fragment() {
 
     private fun shareAsZip(file: File, message: String) {
         val temp =
-            File.createTempFile(this.item?.name ?: "temp", ".zip", context!!.cacheDir)
+            File.createTempFile(this.item?.name ?: "temp", ".zip", requireContext().cacheDir)
         val out = ZipOutputStream(BufferedOutputStream(FileOutputStream(temp)))
         val entry = ZipEntry(file.name)
         out.putNextEntry(entry)

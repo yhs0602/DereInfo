@@ -3,18 +3,22 @@ package com.kyhsgeekcode.dereinfo
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.CompoundButton
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.dialog_filter.view.*
+import com.kyhsgeekcode.dereinfo.databinding.DialogFilterBinding
 
 
 class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragment() {
     lateinit var filterDialogListener: FilterDialogListener
-    lateinit var inflated: View
     val checkedMap = initMap ?: HashMap()
     val CHECKED_KEY = "Checkeds"
+
+    private var _binding: DialogFilterBinding? = null
+    private val binding get() = _binding!!
+
 
     interface FilterDialogListener {
         fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>)
@@ -26,25 +30,27 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
         return activity?.let {
             val builder = AlertDialog.Builder(it)
             // Get the layout inflater
-            val inflater = requireActivity().layoutInflater
-            inflated = inflater.inflate(R.layout.dialog_filter, null)
+//            val inflater = requireActivity().layoutInflater
+//            binding = inflater.inflate(R.layout.dialog_filter, null)
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
-            builder.setView(inflated)
+            _binding = DialogFilterBinding.inflate(LayoutInflater.from(context))
+
+            builder.setView(binding.root)
                 // Add action buttons
                 .setPositiveButton(
                     android.R.string.ok
                 ) { _, _ ->
                     checkedMap[R.id.filterCBTypeAllCheck] =
-                        inflated.filterCBTypeAllCheck.isChecked
-                    checkedMap[R.id.filterCBCute] = inflated.filterCBCute.isChecked
-                    checkedMap[R.id.filterCBCool] = inflated.filterCBCool.isChecked
-                    checkedMap[R.id.filterCBPassion] = inflated.filterCBPassion.isChecked
-                    checkedMap[R.id.filterCBAllType] = inflated.filterCBAllType.isChecked
-                    checkedMap[R.id.filterCBMasterPlus] = inflated.filterCBMasterPlus.isChecked
-                    checkedMap[R.id.filterCBGrand] = inflated.filterCBGrand.isChecked
-                    checkedMap[R.id.filterCBSmart] = inflated.filterCBSmart.isChecked
-                    checkedMap[R.id.filterCBStarred] = inflated.filterCBStarred.isChecked
+                        binding.filterCBTypeAllCheck.isChecked
+                    checkedMap[R.id.filterCBCute] = binding.filterCBCute.isChecked
+                    checkedMap[R.id.filterCBCool] = binding.filterCBCool.isChecked
+                    checkedMap[R.id.filterCBPassion] = binding.filterCBPassion.isChecked
+                    checkedMap[R.id.filterCBAllType] = binding.filterCBAllType.isChecked
+                    checkedMap[R.id.filterCBMasterPlus] = binding.filterCBMasterPlus.isChecked
+                    checkedMap[R.id.filterCBGrand] = binding.filterCBGrand.isChecked
+                    checkedMap[R.id.filterCBSmart] = binding.filterCBSmart.isChecked
+                    checkedMap[R.id.filterCBStarred] = binding.filterCBStarred.isChecked
                     filterDialogListener.onDialogPositiveClick(this, checkedMap)
                 }
                 .setNegativeButton(
@@ -55,30 +61,30 @@ class FilterAlertDialogFragment(initMap: HashMap<Int, Boolean>?) : DialogFragmen
                 }
             val result = builder.create()
 
-            inflated.filterCBTypeAllCheck.setOnCheckedChangeListener { button, isChecked ->
+            binding.filterCBTypeAllCheck.setOnCheckedChangeListener { button, isChecked ->
                 if (button.isPressed) {
-                    inflated.filterCBCute.isChecked = isChecked
-                    inflated.filterCBCool.isChecked = isChecked
-                    inflated.filterCBPassion.isChecked = isChecked
-                    inflated.filterCBAllType.isChecked = isChecked
+                    binding.filterCBCute.isChecked = isChecked
+                    binding.filterCBCool.isChecked = isChecked
+                    binding.filterCBPassion.isChecked = isChecked
+                    binding.filterCBAllType.isChecked = isChecked
                     checkedMap[R.id.filterCBTypeAllCheck] = isChecked
                 }
             }
-            inflated.filterCBCute.isChecked = checkedMap[R.id.filterCBCute] ?: true
-            inflated.filterCBCool.isChecked = checkedMap[R.id.filterCBCool] ?: true
-            inflated.filterCBPassion.isChecked = checkedMap[R.id.filterCBPassion] ?: true
-            inflated.filterCBAllType.isChecked = checkedMap[R.id.filterCBAllType] ?: true
-            inflated.filterCBTypeAllCheck.isChecked = checkedMap[R.id.filterCBTypeAllCheck] ?: true
-            inflated.filterCBMasterPlus.isChecked = checkedMap[R.id.filterCBMasterPlus] ?: false
-            inflated.filterCBGrand.isChecked = checkedMap[R.id.filterCBGrand] ?: false
-            inflated.filterCBStarred.isChecked = checkedMap[R.id.filterCBStarred] ?: false
-            inflated.filterCBSmart.isChecked = checkedMap[R.id.filterCBSmart] ?: false
+            binding.filterCBCute.isChecked = checkedMap[R.id.filterCBCute] ?: true
+            binding.filterCBCool.isChecked = checkedMap[R.id.filterCBCool] ?: true
+            binding.filterCBPassion.isChecked = checkedMap[R.id.filterCBPassion] ?: true
+            binding.filterCBAllType.isChecked = checkedMap[R.id.filterCBAllType] ?: true
+            binding.filterCBTypeAllCheck.isChecked = checkedMap[R.id.filterCBTypeAllCheck] ?: true
+            binding.filterCBMasterPlus.isChecked = checkedMap[R.id.filterCBMasterPlus] ?: false
+            binding.filterCBGrand.isChecked = checkedMap[R.id.filterCBGrand] ?: false
+            binding.filterCBStarred.isChecked = checkedMap[R.id.filterCBStarred] ?: false
+            binding.filterCBSmart.isChecked = checkedMap[R.id.filterCBSmart] ?: false
 
             val allCheckNotifier = CompoundButton.OnCheckedChangeListener { _, isChecked ->
                 if (!isChecked)
-                    inflated.filterCBTypeAllCheck.isChecked = false
+                    binding.filterCBTypeAllCheck.isChecked = false
             }
-            with(inflated) {
+            with(binding) {
                 filterCBCute.setOnCheckedChangeListener(allCheckNotifier)
                 filterCBCool.setOnCheckedChangeListener(allCheckNotifier)
                 filterCBPassion.setOnCheckedChangeListener(allCheckNotifier)

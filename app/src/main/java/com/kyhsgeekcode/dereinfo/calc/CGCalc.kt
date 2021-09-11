@@ -133,9 +133,9 @@ object CGCalc {
             val boosts = pureBoosts + encoreBoosts
 
             // check boost values
-            val boost1: Float?
-            val boost2: Float?
-            val boost3: Float?
+            val boost1: Float? = 0.0f
+            val boost2: Float? = 0.0f
+            val boost3: Float? = 0.0f
             skills.map {
                 it.getBonus(
                     note,

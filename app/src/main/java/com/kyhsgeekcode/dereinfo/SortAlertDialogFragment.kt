@@ -3,11 +3,12 @@ package com.kyhsgeekcode.dereinfo
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import kotlinx.android.synthetic.main.dialog_sort.view.*
+import com.kyhsgeekcode.dereinfo.databinding.DialogSortBinding
 
 
 class SortAlertDialogFragment : DialogFragment() {
@@ -20,18 +21,23 @@ class SortAlertDialogFragment : DialogFragment() {
     lateinit var inflated: View
     var sortTypeIndex: Int = 0
     var sortOrderAsc: Boolean = true
+    private var _binding: DialogSortBinding? = null
+    private val binding get() = _binding!!
+
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         retainInstance = true
         return activity?.let {
+            _binding = DialogSortBinding.inflate(LayoutInflater.from(context))
+
             val builder = AlertDialog.Builder(it)
-            val inflater = requireActivity().layoutInflater
-            inflated = inflater.inflate(R.layout.dialog_sort, null)
+//            val inflater = requireActivity().layoutInflater
+//            inflated = inflater.inflate(R.layout.dialog_sort, null)
             builder.setTitle(R.string.sort)
                 .setView(inflated)
                 .setPositiveButton(android.R.string.ok) { _, _ ->
-                    sortTypeIndex = inflated.sortSpinner.selectedItemPosition
-                    sortOrderAsc = inflated.sortRBAscending.isChecked
+                    sortTypeIndex = binding.sortSpinner.selectedItemPosition
+                    sortOrderAsc = binding.sortRBAscending.isChecked
                     sortDialogListener.onDialogPositiveClick(
                         this,
                         sortTypeIndex,
@@ -44,14 +50,14 @@ class SortAlertDialogFragment : DialogFragment() {
                     dialog?.cancel()
                     sortDialogListener.onDialogNegativeClick(this)
                 }
-            inflated.sortRBAscending.isChecked = true
+            binding.sortRBAscending.isChecked = true
             val adapter: ArrayAdapter<String> = ArrayAdapter<String>(
-                context!!,
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 resources.getStringArray(R.array.sort_conditions)
             )
-            inflated.sortSpinner.adapter = adapter
-            inflated.sortSpinner.setSelection(sortTypeIndex)
+            binding.sortSpinner.adapter = adapter
+            binding.sortSpinner.setSelection(sortTypeIndex)
             builder.create()
         } ?: throw IllegalStateException("Activity cannot be null")
     }

@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_song_detail.*
+import com.kyhsgeekcode.dereinfo.databinding.ActivitySongDetailBinding
 
 /**
  * An activity representing a single Song detail screen. This
@@ -15,12 +15,16 @@ import kotlinx.android.synthetic.main.activity_song_detail.*
  */
 class SongDetailActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySongDetailBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_song_detail)
-        setSupportActionBar(detail_toolbar)
+        binding = ActivitySongDetailBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+        setSupportActionBar(binding.detailToolbar)
 
-        fab.setOnClickListener { view ->
+        binding.fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
