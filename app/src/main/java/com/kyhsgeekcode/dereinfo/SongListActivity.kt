@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.FrameLayout
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -149,14 +150,14 @@ class SongListActivity : AppCompatActivity(),
             })
         }
 
-        if (binding.insideList.songDetailContainer != null) {
+        if (findViewById<FrameLayout>(R.id.song_detail_container) != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-w900dp).
             // If this view is present, then the
             // activity should be in two-pane mode.
             twoPane = true
         }
-        adapter = setupRecyclerView(binding.insideList.songList)
+        adapter = setupRecyclerView(findViewById<RecyclerView>(R.id.song_list))
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
         try {
             dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
@@ -182,7 +183,7 @@ class SongListActivity : AppCompatActivity(),
         adapter.userFilter.shouldHaveWitch = gamemode == GameMode.WITCH
 
         adapter.gameMode = gamemode
-        binding.insideList.songList.adapter = adapter
+        findViewById<RecyclerView>(R.id.song_list).adapter = adapter
         adapter.notifyDataSetChanged()
         adapter.filter?.filter("")
 

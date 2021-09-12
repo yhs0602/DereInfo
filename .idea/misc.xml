@@ -10,9 +10,12 @@
       <map>
         <entry key="app/src/main/res/layout-w900dp/song_list.xml" value="0.10553278688524591" />
         <entry key="app/src/main/res/layout-w900dp/unit_list.xml" value="0.121875" />
+        <entry key="app/src/main/res/layout/activity_song_detail.xml" value="0.15881458966565348" />
         <entry key="app/src/main/res/layout/activity_song_list.xml" value="0.13994565217391305" />
         <entry key="app/src/main/res/layout/activity_unit_list.xml" value="0.1625" />
+        <entry key="app/src/main/res/layout/card_list.xml" value="0.1625" />
         <entry key="app/src/main/res/layout/song_list.xml" value="0.13994565217391305" />
+        <entry key="app/src/main/res/layout/song_list_content.xml" value="0.13994565217391305" />
         <entry key="app/src/main/res/layout/unit_detail.xml" value="0.13994565217391305" />
         <entry key="app/src/main/res/layout/unit_list.xml" value="0.1625" />
         <entry key="app/src/main/res/layout/unit_list_content.xml" value="0.13994565217391305" />

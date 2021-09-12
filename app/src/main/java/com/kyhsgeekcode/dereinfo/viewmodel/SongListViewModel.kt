@@ -10,7 +10,7 @@ import com.kyhsgeekcode.dereinfo.repository.SongListRepository
 
 class SongListViewModel(application: Application) : AndroidViewModel(application) {
     val repository: SongListRepository =
-        SongListRepository(SongDatabase.getDatabase(application, viewModelScope))
+        SongListRepository(SongDatabase.getDatabase(application))
     var allSongs: LiveData<List<SongEntity>> = repository.allSongs
 
 }
