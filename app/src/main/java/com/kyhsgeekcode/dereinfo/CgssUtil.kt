@@ -1,25 +1,33 @@
 package com.kyhsgeekcode.dereinfo
 
+import com.kyhsgeekcode.dereinfo.Secret.key1
+import com.kyhsgeekcode.dereinfo.Secret.key2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
 object CgssUtil {
-    suspend fun convertAllMusics(rootDir: File, outDir: File) = withContext(Dispatchers.IO) {
-        assert(rootDir.isDirectory)
-        assert(outDir.isDirectory)
-        rootDir.listFiles()?.forEach { file ->
-            convertAcbToWav(file, outDir)
+    suspend fun convertAllMusics(rootDir: File, outDir: File, callback: suspend (String) -> Unit) =
+        withContext(Dispatchers.IO) {
+            assert(rootDir.isDirectory)
+            assert(outDir.isDirectory)
+            rootDir.listFiles()?.forEach { file ->
+                val outPath = convertAcbToWav(file, outDir)
+                callback(outPath)
+            }
         }
-    }
 
-    fun convertAcbToWav(file: File, outDir: File) {
+    private fun convertAcbToWav(file: File, outDir: File): String {
+        Timber.d("Outdir: ${outDir.path}")
+        outDir.deleteRecursively()
+        outDir.mkdirs()
         val result = acb2wav(
             outDir.path,
-            arrayOf("acb2wavs", file.path, "-a", "f27e3b22", "-b", "3657", "-prependId")
+            arrayOf("acb2wavs", file.path, "-a", key1, "-b", key2, "-n")
         )
         Timber.d("acb2wav ${file.path}: $result")
+        return outDir.listFiles()?.first()?.listFiles()?.first()?.listFiles()?.first()?.path ?: ""
     }
 
     private external fun acb2wav(outDir: String, args: Array<String>): Int

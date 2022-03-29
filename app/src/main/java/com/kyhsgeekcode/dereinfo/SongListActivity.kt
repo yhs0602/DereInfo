@@ -10,20 +10,22 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.SearchView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.kyhsgeekcode.dereinfo.R.id.*
 import com.kyhsgeekcode.dereinfo.model.*
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
+import com.xeinebiu.suspend.dialogs.SuspendAlertDialog
 import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
@@ -283,70 +285,128 @@ class SongListActivity : AppCompatActivity(),
             export_all_tw -> {
                 exportTw()
             }
+            export_everything -> {
+                exportMusic()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private fun exportTw() {
-        val items = TW5Difficulty.values().map { it.name }.toTypedArray()
-        val checked = BooleanArray(items.size)
-        AlertDialog.Builder(this).setTitle("Select difficulty")
-            .setMultiChoiceItems(items, checked) { dlg, which, check ->
-                checked[which] = check
-            }.setPositiveButton("OK") { dlg, which ->
-                val checkedDifficulties = checked.withIndex().filter { it.value }
-                    .map { TW5Difficulty.values()[it.index] }
-                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "application/zip"
-                    putExtra(Intent.EXTRA_TITLE, "twFiles.zip")
+    private fun exportMusic() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/zip"
+                putExtra(Intent.EXTRA_TITLE, "music.zip")
 
-                    // Optionally, specify a URI for the directory that should be opened in
-                    // the system file picker before your app creates the document.
-                    //                            putExtra(DocumentsContract.EXTRA_INITIAL_URI, null)
-                }
-                CoroutineScope(Dispatchers.Main).launch {
-                    val activityResult = startForResultAsync(intent).await()
-                    val code = activityResult.resultCode
-                    val data = activityResult.resultData
-                    data?.data?.also { uri ->
-                        snackProgressBarManager.show(
-                            circularType,
-                            SnackProgressBarManager.LENGTH_INDEFINITE
-                        )
-                        withContext(Dispatchers.IO) {
-                            try {
-                                contentResolver.openFileDescriptor(uri, "w")?.use {
-                                    FileOutputStream(it.fileDescriptor).use { fos ->
-                                        val list = adapter.getImmutableItemList()
-                                        dereDatabaseHelper.exportTW(
-                                            list,
-                                            checkedDifficulties,
-                                            fos
-                                        ) { progress, message ->
-                                            withContext(Dispatchers.Main) {
-                                                circularType.setProgressMax(list.size)
-                                                snackProgressBarManager.setProgress(progress)
-                                                if (message != null) {
-                                                    circularType.setMessage(message)
-                                                }
-                                                snackProgressBarManager.updateTo(circularType)
-                                            }
+                // Optionally, specify a URI for the directory that should be opened in
+                // the system file picker before your app creates the document.
+                //                            putExtra(DocumentsContract.EXTRA_INITIAL_URI, null)
+            }
+            val activityResult = startForResultAsync(intent).await()
+            val code = activityResult.resultCode
+            val data = activityResult.resultData
+            data?.data?.also { uri ->
+                snackProgressBarManager.show(
+                    circularType,
+                    SnackProgressBarManager.LENGTH_INDEFINITE
+                )
+                withContext(Dispatchers.IO) {
+                    try {
+                        contentResolver.openFileDescriptor(uri, "w")?.use {
+                            FileOutputStream(it.fileDescriptor).use { fos ->
+                                val list = adapter.getImmutableItemList()
+                                dereDatabaseHelper.exportMusic(
+                                    context = this@SongListActivity,
+                                    fos
+                                ) { progress, message ->
+                                    withContext(Dispatchers.Main) {
+                                        circularType.setProgressMax(list.size)
+                                        snackProgressBarManager.setProgress(progress)
+                                        if (message != null) {
+                                            circularType.setMessage(message)
                                         }
+                                        snackProgressBarManager.updateTo(circularType)
                                     }
                                 }
-                            } catch (e: FileNotFoundException) {
-                                Log.d(TAG, "File not found", e)
-                            } catch (e: IOException) {
-                                Log.d(TAG, "IOExcpetipon", e)
                             }
                         }
-                        snackProgressBarManager.dismiss()
+                    } catch (e: FileNotFoundException) {
+                        Timber.d(e, "File not found")
+                    } catch (e: IOException) {
+                        Timber.d(e, "IOExcpetipon")
                     }
                 }
-            }.show()
+                snackProgressBarManager.dismiss()
+            }
+        }
     }
 
+
+    private fun exportTw() {
+        val items = TW5Difficulty.values().map { it.name }.toTypedArray()
+        val initialChecked = BooleanArray(items.size)
+        CoroutineScope(Dispatchers.Main).launch {
+            val checked = SuspendAlertDialog.setMultiChoiceItems(
+                positiveButtonText = "OK",
+                negativeButtonText = "Cancel",
+                items = SuspendAlertDialog.MultiChoiceItems(
+                    items = items.toList(),
+                    checked = initialChecked.toList()
+                )
+            ) {
+                MaterialAlertDialogBuilder(this@SongListActivity).setTitle("Select difficulty")
+            }
+            val checkedDifficulties = checked.checked.withIndex().filter { it.value }
+                .map { TW5Difficulty.values()[it.index] }
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/zip"
+                putExtra(Intent.EXTRA_TITLE, "twFiles.zip")
+
+                // Optionally, specify a URI for the directory that should be opened in
+                // the system file picker before your app creates the document.
+                //                            putExtra(DocumentsContract.EXTRA_INITIAL_URI, null)
+            }
+            val activityResult = startForResultAsync(intent).await()
+            val code = activityResult.resultCode
+            val data = activityResult.resultData
+            data?.data?.also { uri ->
+                snackProgressBarManager.show(
+                    circularType,
+                    SnackProgressBarManager.LENGTH_INDEFINITE
+                )
+                withContext(Dispatchers.IO) {
+                    try {
+                        contentResolver.openFileDescriptor(uri, "w")?.use {
+                            FileOutputStream(it.fileDescriptor).use { fos ->
+                                val list = adapter.getImmutableItemList()
+                                dereDatabaseHelper.exportTW(
+                                    list,
+                                    checkedDifficulties,
+                                    fos
+                                ) { progress, message ->
+                                    withContext(Dispatchers.Main) {
+                                        circularType.setProgressMax(list.size)
+                                        snackProgressBarManager.setProgress(progress)
+                                        if (message != null) {
+                                            circularType.setMessage(message)
+                                        }
+                                        snackProgressBarManager.updateTo(circularType)
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: FileNotFoundException) {
+                        Timber.d(e, "File not found")
+                    } catch (e: IOException) {
+                        Timber.d(e, "IOExcpetipon")
+                    }
+                }
+                snackProgressBarManager.dismiss()
+            }
+        }
+    }
 
     private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
         val adapter = SongRecyclerViewAdapter(this, twoPane)

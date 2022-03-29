@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
+import android.os.Environment
 import android.util.Log
 import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
@@ -19,6 +20,14 @@ import java.nio.charset.Charset
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.collections.set
+import androidx.core.app.ActivityCompat.startActivityForResult
+
+import android.content.Intent
+
+import android.os.Build
+
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 
 
 //This allows access to dere database
@@ -40,7 +49,7 @@ class DereDatabaseHelper(context: Context) {
     var musicIDTomusicNumber = HashMap<Int, Int>() //  = SerializableSparseIntArray()
 
     init {
-        val datadir = context.getExternalFilesDir(null)!!.parentFile.parentFile
+        val datadir = "/sdcard/Android/data/" //context.getExternalFilesDir(null)!!.parentFile.parentFile
         val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
 
 //        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
@@ -58,6 +67,7 @@ class DereDatabaseHelper(context: Context) {
     private fun searchMainDB() {
         var maxlen = 0L
         var fumensDBFileTmp: File? = null
+        Timber.d("fumenFolder:$fumenFolder")
         for (file in fumenFolder.listFiles()) {
             //Log.d(TAG, file.name)
             val len = file.length()
@@ -310,11 +320,11 @@ class DereDatabaseHelper(context: Context) {
                 saveToCache()
                 publisher(100, 100, null, "Done")
             }
-            Log.d(TAG, "size of databases:${musicIDToInfo.size}")
-            Log.d(TAG, "Number of fumens:${musicNumberToFumenFile.size}")
+            Timber.d("size of databases:" + musicIDToInfo.size)
+            Timber.d("Number of fumens:" + musicNumberToFumenFile.size)
             onFinish()
         } catch (e: java.lang.Exception) {
-            Log.e(TAG, "Error load", e)
+            Timber.e(e, "Error load")
             return false
         }
         return true
@@ -880,6 +890,27 @@ class DereDatabaseHelper(context: Context) {
             2 -> model.type_02_value
             else -> model.type_01_value
         }
+    }
+
+    suspend fun exportMusic(
+        context: Context,
+        fileOutputStream: FileOutputStream,
+        progressHandler: suspend (Int, String?) -> Unit
+    ) {
+        val bos = BufferedOutputStream(fileOutputStream)
+        val zos = ZipOutputStream(bos)
+        var count = 0
+        val outTmpFolder = context.cacheDir
+        CgssUtil.convertAllMusics(musicFolder, outDir = outTmpFolder) { converted ->
+            val convertedFile = File(converted)
+            val fileName = convertedFile.name
+            zos.putNextEntry(ZipEntry(fileName))
+            convertedFile.inputStream().copyTo(zos)
+            zos.closeEntry()
+            progressHandler(count, converted)
+            count++
+        }
+        zos.close()
     }
 
     suspend fun exportTW(
