@@ -89,10 +89,4 @@ class StartActivity : AppCompatActivity() {
             return true
         }
     }
-
-    companion object {
-        init {
-            System.loadLibrary("dereinfo")
-        }
-    }
 }

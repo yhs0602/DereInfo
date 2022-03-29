@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <cinttypes>
+#include <vector>
 
 #include "cgssh.h"
 #include "lib/cgss_api.h"
@@ -34,6 +35,25 @@ static int DoWork(const string &inputFile, const Acb2WavsOptions &options);
 static int ProcessHca(AcbWalkCallbackParams *params);
 
 static int DecodeHca(IStream *hcaDataStream, IStream *waveStream, const HCA_DECODER_CONFIG &dc);
+
+int main(int argc, const char *argv[]);
+
+extern "C" JNIEXPORT jint JNICALL
+Java_com_kyhsgeekcode_dereinfo_CgssUtil_acb2wav(JNIEnv *env, jobject thiz, jobjectArray args) {
+    int stringCount = env->GetArrayLength(args);
+    std::vector<const char *> cpp_args;
+    for (int i = 0; i < stringCount; i++) {
+        auto string = (jstring) (env->GetObjectArrayElement(args, i));
+        const char *rawString = env->GetStringUTFChars(string, nullptr);
+        auto arg = std::string(rawString);
+        cpp_args.push_back(arg.c_str());
+        // Don't forget to call `ReleaseStringUTFChars` when you're done.
+        env->ReleaseStringUTFChars(string, rawString);
+    }
+
+    return main(stringCount, (const char **) &cpp_args[0]);
+}
+
 
 int main(int argc, const char *argv[]) {
     string inputFile;
@@ -72,9 +92,12 @@ static void PrintHelp() {
 #endif
 
     cerr << "Usage:\n" << endl;
-    cerr << "acb2wavs <acb file> [-a <key1 = " << hex << k1 << ">[ [-b <key2 = " << hex << k2 << ">] [-n] [-discovery:<default|track|cue>] [-prependId]" << endl << endl;
+    cerr << "acb2wavs <acb file> [-a <key1 = " << hex << k1 << ">[ [-b <key2 = " << hex << k2
+         << ">] [-n] [-discovery:<default|track|cue>] [-prependId]" << endl << endl;
     cerr << "\t-n\tUse cue names for output waveforms" << endl;
-    cerr << "\t-discovery\tSpecify waveform discovery method (default: default/classic strategy; track: by tracks; cue: by cue group)" << endl;
+    cerr
+            << "\t-discovery\tSpecify waveform discovery method (default: default/classic strategy; track: by tracks; cue: by cue group)"
+            << endl;
     cerr << "\t-prependId\tPrepend file ID (cue ID, track index, etc.)" << endl;
 }
 
@@ -122,11 +145,13 @@ static int ParseArgs(int argc, const char *argv[], string &inputFile, Acb2WavsOp
             } else if (strcmp_ignore_case(argName, "n") == 0) {
                 options.useCueName = TRUE;
                 currentArgParsed = true;
-            } else if (strncmp_ignore_case(argName, "discovery:", DiscoveryOptionPrefixLength) == 0) {
+            } else if (strncmp_ignore_case(argName, "discovery:", DiscoveryOptionPrefixLength) ==
+                       0) {
                 if (strcmp_ignore_case(argName + DiscoveryOptionPrefixLength, "default") == 0) {
                     options.discovery = ACB_EXTRACT_DISCOVER_DEFAULT;
                     currentArgParsed = true;
-                } else if (strcmp_ignore_case(argName + DiscoveryOptionPrefixLength, "track") == 0) {
+                } else if (strcmp_ignore_case(argName + DiscoveryOptionPrefixLength, "track") ==
+                           0) {
                     options.discovery = ACB_EXTRACT_DISCOVER_BY_TRACK;
                     currentArgParsed = true;
                 } else if (strcmp_ignore_case(argName + DiscoveryOptionPrefixLength, "cue") == 0) {
@@ -167,14 +192,16 @@ static int ProcessHca(AcbWalkCallbackParams *params) {
     const auto isHca = CHcaFormatReader::IsPossibleHcaStream(params->entryDataStream);
 
     fprintf(stdout, "Processing %s AFS: #%" PRIu32 " (offset=%" PRIu32 ", size=%" PRIu32 ")",
-            afsSource, (uint32_t)params->cueInfo.id, (uint32_t)params->cueInfo.offset, (uint32_t)params->cueInfo.size);
+            afsSource, (uint32_t) params->cueInfo.id, (uint32_t) params->cueInfo.offset,
+            (uint32_t) params->cueInfo.size);
 
     int r;
 
     if (isHca) {
         HCA_DECODER_CONFIG decoderConfig = params->walkOptions->decoderConfig;
 
-        const string extractFilePath = common_utils::ReplaceAnyExtension(params->extractPathHint, ".wav");
+        const string extractFilePath = common_utils::ReplaceAnyExtension(params->extractPathHint,
+                                                                         ".wav");
         fprintf(stdout, ": decoding to %s...\n", extractFilePath.c_str());
 
         try {
@@ -192,7 +219,8 @@ static int ProcessHca(AcbWalkCallbackParams *params) {
                 CFileSystem::RmFile(extractFilePath);
             }
 
-            fprintf(stdout, "errored: %s (%d)\n", ex.GetExceptionMessage().c_str(), ex.GetOpResult());
+            fprintf(stdout, "errored: %s (%d)\n", ex.GetExceptionMessage().c_str(),
+                    ex.GetOpResult());
         }
     } else {
         fprintf(stdout, "... skipped (not HCA)\n");
