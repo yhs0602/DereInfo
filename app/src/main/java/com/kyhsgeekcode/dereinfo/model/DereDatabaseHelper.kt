@@ -11,6 +11,7 @@ import com.kyhsgeekcode.dereinfo.*
 import com.kyhsgeekcode.dereinfo.cardunit.*
 import com.kyhsgeekcode.dereinfo.dereclient.AssetDownloader
 import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
+import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -31,6 +32,7 @@ class DereDatabaseHelper(context: Context) {
     //    val manifestFile: File
     var fumensDBFile: File = File("")
     val fumenFolder: File
+    val musicFolder: File
 
     var musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
     var musicNumberToMusicID =
@@ -43,6 +45,7 @@ class DereDatabaseHelper(context: Context) {
 
 //        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
         fumenFolder = File(dereFilesDir, "a/")
+        musicFolder = File(dereFilesDir, "l/")
         AssetDownloader.download()
         try {
             loadFumenDBFileFromCache()
@@ -67,7 +70,7 @@ class DereDatabaseHelper(context: Context) {
             }
             //Log.d(TAG, """$len""")
         }
-        Log.d(TAG, "maxlen=${maxlen / 1000}")
+        Timber.d("maxlen=" + maxlen / 1000)
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 

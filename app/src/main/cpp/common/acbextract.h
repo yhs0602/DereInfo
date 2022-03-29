@@ -55,4 +55,4 @@ struct AcbWalkOptions {
 
 };
 
-int AcbWalk(const std::string &inputAcbFile, AcbWalkOptions *options);
+int AcbWalk(const std::string &inputAcbFile, const std::string &outputDir, AcbWalkOptions *options);

@@ -30,16 +30,22 @@ static void PrintHelp();
 
 static int ParseArgs(int argc, const char *argv[], string &inputFile, Acb2WavsOptions &options);
 
-static int DoWork(const string &inputFile, const Acb2WavsOptions &options);
+static int
+DoWork(const string &inputFile, const string &outputDirectory, const Acb2WavsOptions &options);
 
 static int ProcessHca(AcbWalkCallbackParams *params);
 
 static int DecodeHca(IStream *hcaDataStream, IStream *waveStream, const HCA_DECODER_CONFIG &dc);
 
-int main(int argc, const char *argv[]);
+int process(const std::string &outputDirectory, int argc, const char *argv[]);
 
 extern "C" JNIEXPORT jint JNICALL
-Java_com_kyhsgeekcode_dereinfo_CgssUtil_acb2wav(JNIEnv *env, jobject thiz, jobjectArray args) {
+Java_com_kyhsgeekcode_dereinfo_CgssUtil_acb2wav(JNIEnv *env, jobject thiz, jstring outputDirectory,
+                                                jobjectArray args) {
+    const char *rawString = env->GetStringUTFChars(outputDirectory, nullptr);
+    auto outputDir = std::string(rawString);
+    env->ReleaseStringUTFChars(outputDirectory, rawString);
+
     int stringCount = env->GetArrayLength(args);
     std::vector<const char *> cpp_args;
     for (int i = 0; i < stringCount; i++) {
@@ -51,11 +57,11 @@ Java_com_kyhsgeekcode_dereinfo_CgssUtil_acb2wav(JNIEnv *env, jobject thiz, jobje
         env->ReleaseStringUTFChars(string, rawString);
     }
 
-    return main(stringCount, (const char **) &cpp_args[0]);
+    return process(outputDir, stringCount, (const char **) &cpp_args[0]);
 }
 
 
-int main(int argc, const char *argv[]) {
+int process(const std::string &outputDirectory, int argc, const char *argv[]) {
     string inputFile;
     Acb2WavsOptions options = {0};
 
@@ -74,7 +80,7 @@ int main(int argc, const char *argv[]) {
         return -1;
     }
 
-    return DoWork(inputFile, options);
+    return DoWork(inputFile, outputDirectory, options);
 }
 
 static void PrintAppTitle(ostream &out) {
@@ -175,7 +181,8 @@ static int ParseArgs(int argc, const char *argv[], string &inputFile, Acb2WavsOp
     return 0;
 }
 
-static int DoWork(const string &inputFile, const Acb2WavsOptions &options) {
+static int
+DoWork(const string &inputFile, const string &outputDirectory, const Acb2WavsOptions &options) {
     AcbWalkOptions o;
 
     o.callback = ProcessHca;
@@ -184,7 +191,7 @@ static int DoWork(const string &inputFile, const Acb2WavsOptions &options) {
     o.discovery = options.discovery;
     o.prependId = options.prependId;
 
-    return AcbWalk(inputFile, &o);
+    return AcbWalk(inputFile, outputDirectory, &o);
 }
 
 static int ProcessHca(AcbWalkCallbackParams *params) {
