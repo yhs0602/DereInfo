@@ -92,6 +92,10 @@ class CardUnit(
     var calculatedDan: Int = 0
     var calculatedVi: Int = 0
     var calculatedLife: Int = 0
+    override fun skills(): List<SkillModel> {
+        TODO("Not yet implemented")
+    }
+
     override operator fun set(order: Int, card: Card) {
         cards[order] = card
     }

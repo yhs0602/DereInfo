@@ -25,6 +25,7 @@ class StartActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             MY_PERMISSIONS_REQUEST_READ_STORAGE -> {
                 // If request is cancelled, the result arrays are empty.
@@ -86,6 +87,12 @@ class StartActivity : AppCompatActivity() {
         } else {
             // Permission has already been granted
             return true
+        }
+    }
+
+    companion object {
+        init {
+            System.loadLibrary("dereinfo")
         }
     }
 }

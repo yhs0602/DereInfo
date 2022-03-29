@@ -84,7 +84,7 @@ object CGCalc {
         var life: Int = 0
         val skillsNow = HashSet<SkillModel>()
         val skillsEver = HashSet<SkillModel>()
-        val skillsAll = liveParameter.unit.skills
+//        val skillsAll = liveParameter.unit.skills
         var lastSkill: SkillModel? = null
         val maxScoreBonus: MutableMap<CGNoteType, Int> = mutableMapOf(
             CGNoteType.NORMAL to 0,
@@ -133,9 +133,9 @@ object CGCalc {
             val boosts = pureBoosts + encoreBoosts
 
             // check boost values
-            val boost1: Float?
-            val boost2: Float?
-            val boost3: Float?
+            val boost1: Float? = 0.0f
+            val boost2: Float? = 0.0f
+            val boost3: Float? = 0.0f
             skills.map {
                 it.getBonus(
                     note,
