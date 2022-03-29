@@ -1,7 +1,5 @@
 package com.kyhsgeekcode.dereinfo
 
-import com.kyhsgeekcode.dereinfo.Secret.key1
-import com.kyhsgeekcode.dereinfo.Secret.key2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -24,7 +22,7 @@ object CgssUtil {
         outDir.mkdirs()
         val result = acb2wav(
             outDir.path,
-            arrayOf("acb2wavs", file.path, "-a", key1, "-b", key2, "-n")
+            arrayOf("acb2wavs", file.path, "-n") // , "-a", key1, "-b", key2
         )
         Timber.d("acb2wav ${file.path}: $result")
         return outDir.listFiles()?.first()?.listFiles()?.first()?.listFiles()?.first()?.path ?: ""

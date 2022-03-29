@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cinttypes>
 #include <vector>
+#include <android/log.h>
 
 #include "cgssh.h"
 #include "lib/cgss_api.h"
@@ -52,6 +53,7 @@ Java_com_kyhsgeekcode_dereinfo_CgssUtil_acb2wav(JNIEnv *env, jobject thiz, jstri
         auto string = (jstring) (env->GetObjectArrayElement(args, i));
         const char *rawString = env->GetStringUTFChars(string, nullptr);
         auto arg = std::string(rawString);
+        __android_log_print(ANDROID_LOG_DEBUG, "DereInfo Arg", "arg %d: %s", i, arg.c_str());
         cpp_args.push_back(arg.c_str());
         // Don't forget to call `ReleaseStringUTFChars` when you're done.
         env->ReleaseStringUTFChars(string, rawString);
@@ -118,10 +120,8 @@ static int ParseArgs(int argc, const char *argv[], string &inputFile, Acb2WavsOp
     options.decoderConfig.waveHeaderEnabled = TRUE;
     options.decoderConfig.decodeFunc = CDefaultWaveGenerator::Decode16BitS;
 
-#if __COMPILE_WITH_CGSS_KEYS
     options.decoderConfig.cipherConfig.keyParts.key1 = g_CgssKey1;
     options.decoderConfig.cipherConfig.keyParts.key2 = g_CgssKey2;
-#endif
 
     options.decoderConfig.cipherConfig.keyModifier = 0;
 

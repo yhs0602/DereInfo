@@ -59,7 +59,7 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              dereinfo.cpp
 
-             ${SRCFILES1}
+        ${SRCFILES1}
 
              ${SRCFILES2}
              ${SRCFILES3}
