@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -344,7 +345,7 @@ class SongListActivity : AppCompatActivity(),
                     checked = initialChecked.toList()
                 )
             ) {
-                MaterialAlertDialogBuilder(this@SongListActivity).setTitle("Select difficulty")
+                AlertDialog.Builder(this@SongListActivity).setTitle("Select difficulty")
             }
             val checkedDifficulties = checked.checked.withIndex().filter { it.value }
                 .map { TW5Difficulty.values()[it.index] }
