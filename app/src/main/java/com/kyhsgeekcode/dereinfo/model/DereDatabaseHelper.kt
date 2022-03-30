@@ -16,6 +16,8 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
+import java.util.zip.Deflater
+import java.util.zip.Deflater.DEFLATED
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.collections.set
@@ -34,12 +36,13 @@ class DereDatabaseHelper(context: Context) {
         ) {
             val bos = BufferedOutputStream(fileOutputStream)
             val zos = ZipOutputStream(bos)
+            zos.setLevel(Deflater.BEST_COMPRESSION)
             var count = 0
             val outTmpFolder = context.cacheDir
             CgssUtil.convertAllMusics(musicFolder, outDir = outTmpFolder) { converted, all_count ->
                 val convertedFile = File(converted)
                 val fileName = convertedFile.name
-                zos.putNextEntry(ZipEntry(fileName))
+                zos.putNextEntry(ZipEntry(fileName).apply { method = DEFLATED })
                 convertedFile.inputStream().copyTo(zos)
                 zos.closeEntry()
                 progressHandler(count, all_count, convertedFile.name)
