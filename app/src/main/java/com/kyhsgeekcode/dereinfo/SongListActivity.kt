@@ -21,16 +21,13 @@ import com.google.android.material.tabs.TabLayout
 import com.kyhsgeekcode.dereinfo.R.id.*
 import com.kyhsgeekcode.dereinfo.model.*
 import com.kyhsgeekcode.dereinfo.worker.ExportMusicWorker
+import com.kyhsgeekcode.dereinfo.worker.ExportTwWorker
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import com.xeinebiu.suspend.dialogs.SuspendAlertDialog
 import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.*
-import timber.log.Timber
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
 import java.io.Serializable
 
 
@@ -331,6 +328,24 @@ class SongListActivity : AppCompatActivity(),
         }
     }
 
+    private fun exportTwBackground(uri: Uri) {
+        val list = adapter.getImmutableItemList()
+        val exportWorkRequest = OneTimeWorkRequestBuilder<ExportTwWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setInputData(
+                Data.Builder()
+                    .putString(ExportMusicWorker.KEY_OUTPUT_URI, uri.toString())
+                    .putString(
+                        ExportMusicWorker.KEY_INPUT_FOLDER,
+                        DereDatabaseHelper.theInstance.musicFolder.path
+                    )
+                    .build()
+            )
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork("tw export", ExistingWorkPolicy.REPLACE, exportWorkRequest)
+    }
+
 
     private fun exportTw() {
         val items = TW5Difficulty.values().map { it.name }.toTypedArray()
@@ -361,38 +376,7 @@ class SongListActivity : AppCompatActivity(),
             val code = activityResult.resultCode
             val data = activityResult.resultData
             data?.data?.also { uri ->
-                snackProgressBarManager.show(
-                    circularType,
-                    SnackProgressBarManager.LENGTH_INDEFINITE
-                )
-                withContext(Dispatchers.IO) {
-                    try {
-                        contentResolver.openFileDescriptor(uri, "w")?.use {
-                            FileOutputStream(it.fileDescriptor).use { fos ->
-                                val list = adapter.getImmutableItemList()
-                                dereDatabaseHelper.exportTW(
-                                    list,
-                                    checkedDifficulties,
-                                    fos
-                                ) { progress, message ->
-                                    withContext(Dispatchers.Main) {
-                                        circularType.setProgressMax(list.size)
-                                        snackProgressBarManager.setProgress(progress)
-                                        if (message != null) {
-                                            circularType.setMessage(message)
-                                        }
-                                        snackProgressBarManager.updateTo(circularType)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e: FileNotFoundException) {
-                        Timber.d(e, "File not found")
-                    } catch (e: IOException) {
-                        Timber.d(e, "IOExcpetipon")
-                    }
-                }
-                snackProgressBarManager.dismiss()
+                exportTwBackground(uri)
             }
         }
     }

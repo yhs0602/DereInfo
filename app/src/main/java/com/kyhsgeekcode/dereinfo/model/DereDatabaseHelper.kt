@@ -50,6 +50,37 @@ class DereDatabaseHelper(context: Context) {
             }
             zos.close()
         }
+
+        suspend fun exportTW(
+            musicList: List<MusicInfo>,
+            difficulties: List<TW5Difficulty>,
+            fileOutputStream: FileOutputStream,
+            progressHandler: suspend (Int, String?) -> Unit
+        ) {
+            val bos = BufferedOutputStream(fileOutputStream)
+            val zos = ZipOutputStream(bos)
+            var count = 0
+            musicList.forEach { mi ->
+                difficulties.forEach { diffi ->
+                    val oneDifficulty = theInstance.parsedFumenCache[Pair(
+                        mi.id,
+                        diffi
+                    )]?.difficulties?.get(diffi)
+                    oneDifficulty?.toJson(mi)?.run {
+                        val fileName = "${mi.id}___${mi.name}___${diffi.name}"
+                        zos.putNextEntry(ZipEntry(fileName))
+                        byteInputStream().copyTo(zos)
+                        zos.closeEntry()
+                    } ?: run {
+                        Timber.d("No such difficulty exists: " + diffi.name)
+                        progressHandler(count, "No ${diffi.name} of ${mi.name}")
+                    }
+                }
+                progressHandler(count, mi.name)
+                count++
+            }
+            zos.close()
+        }
     }
 
     val TAG = "DereDBHelper"
@@ -907,38 +938,6 @@ class DereDatabaseHelper(context: Context) {
             2 -> model.type_02_value
             else -> model.type_01_value
         }
-    }
-
-
-    suspend fun exportTW(
-        musicList: List<MusicInfo>,
-        difficulties: List<TW5Difficulty>,
-        fileOutputStream: FileOutputStream,
-        progressHandler: suspend (Int, String?) -> Unit
-    ) {
-        val bos = BufferedOutputStream(fileOutputStream)
-        val zos = ZipOutputStream(bos)
-        var count = 0
-        musicList.forEach { mi ->
-            difficulties.forEach { diffi ->
-                val oneDifficulty = theInstance.parsedFumenCache[Pair(
-                    mi.id,
-                    diffi
-                )]?.difficulties?.get(diffi)
-                oneDifficulty?.toJson(mi)?.run {
-                    val fileName = "${mi.id}___${mi.name}___${diffi.name}"
-                    zos.putNextEntry(ZipEntry(fileName))
-                    byteInputStream().copyTo(zos)
-                    zos.closeEntry()
-                } ?: run {
-                    Log.d(TAG, "No such difficulty exists: ${diffi.name}")
-                    progressHandler(count, "No ${diffi.name} of ${mi.name}")
-                }
-            }
-            progressHandler(count, mi.name)
-            count++
-        }
-        zos.close()
     }
 
 //    fun initSkillToBoostModel() {

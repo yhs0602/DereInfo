@@ -16,12 +16,11 @@ import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 
-class ExportMusicWorker(appContext: Context, workerParams: WorkerParameters) :
+class ExportTwWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     private val notificationManager =
@@ -30,7 +29,9 @@ class ExportMusicWorker(appContext: Context, workerParams: WorkerParameters) :
     private var lastForegroundInfo: ForegroundInfo? = null
 
     override suspend fun doWork(): Result {
-        val inputFolder = inputData.getString(KEY_INPUT_FOLDER) ?: return Result.failure()
+        val inputList = inputData.getStringArray(KEY_INPUT_LIST) ?: return Result.failure()
+        val difficultyList =
+            inputData.getStringArray(KEY_DIFFICULTY_LIST) ?: return Result.failure()
         val outputUri = inputData.getString(KEY_OUTPUT_URI)?.let { Uri.parse(it) }
             ?: return Result.failure()
 
@@ -41,16 +42,15 @@ class ExportMusicWorker(appContext: Context, workerParams: WorkerParameters) :
         } catch (e: IllegalStateException) {
             Timber.e(e, "Failed to set foreground")
         }
-        val musicFolder = File(inputFolder)
         withContext(Dispatchers.IO) {
             try {
                 applicationContext.contentResolver.openFileDescriptor(outputUri, "w")?.use {
                     FileOutputStream(it.fileDescriptor).use { fos ->
-                        DereDatabaseHelper.exportMusic(
-                            context = applicationContext,
-                            musicFolder,
+                        DereDatabaseHelper.exportTW(
+                            inputList,
+                            difficultyList,
                             fos
-                        ) { progress, total, message ->
+                        ) { progress, message ->
                             try {
                                 setForeground(createForegroundInfo("$message ($progress/$total)"))
                             } catch (e: IllegalStateException) {
@@ -60,12 +60,11 @@ class ExportMusicWorker(appContext: Context, workerParams: WorkerParameters) :
                     }
                 }
             } catch (e: FileNotFoundException) {
-                Timber.e(e, "File not found")
+                Timber.d(e, "File not found")
             } catch (e: IOException) {
-                Timber.e(e, "IOExcpetipon")
+                Timber.d(e, "IOExcpetipon")
             }
         }
-
         return Result.success()
     }
 
@@ -110,12 +109,13 @@ class ExportMusicWorker(appContext: Context, workerParams: WorkerParameters) :
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
-        if (lastForegroundInfo == null) lastForegroundInfo = createForegroundInfo("Exporting music")
+        if (lastForegroundInfo == null) lastForegroundInfo = createForegroundInfo("Exporting Tw5")
         return lastForegroundInfo!!
     }
 
     companion object {
         const val KEY_OUTPUT_URI = "KEY_OUTPUT_URI"
-        const val KEY_INPUT_FOLDER = "KEY_INPUT_FOLDER"
+        const val KEY_INPUT_LIST = "KEY_INPUT_LIST"
+        const val KEY_DIFFICULTY_LIST = "KEY_DIFFICULTY_LIST"
     }
 }
