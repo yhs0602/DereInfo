@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -15,8 +14,10 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.github.chrisbanes.photoview.PhotoView
 import com.kyhsgeekcode.dereinfo.model.*
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_song_detail.*
 import kotlinx.android.synthetic.main.song_detail.view.*
+import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -30,9 +31,8 @@ import java.util.zip.ZipOutputStream
  * in two-pane mode (on tablets) or a [SongDetailActivity]
  * on handsets.
  */
+@AndroidEntryPoint
 class SongDetailFragment : Fragment() {
-    val TAG = "SongDetailFrag"
-
     private var item: MusicInfo? = null
     private var oneMusic: OneMusic? = null
     private var difficulty: TW5Difficulty = TW5Difficulty.Debut
@@ -50,12 +50,12 @@ class SongDetailFragment : Fragment() {
                 activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
                 activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
                 val musicNumber = DereDatabaseHelper.theInstance.musicIDTomusicNumber[item!!.id]
-                Log.w(TAG, "Item.id:${item!!.id}, musicNumber:${musicNumber}")
+                Timber.w("Item.id:${item!!.id}, musicNumber:$musicNumber")
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
             if (it.containsKey(ARG_ITEM_DIFFICULTY)) {
                 difficulty = it[ARG_ITEM_DIFFICULTY] as TW5Difficulty
-                Log.d(TAG, "Contains key, key is:${difficulty.name}")
+                Timber.d("Contains key, key is:" + difficulty.name)
                 //spinnerDifficulty.setSelection(difficulty.ordinal)
             }
         }
@@ -71,7 +71,7 @@ class SongDetailFragment : Fragment() {
         item?.let { musicInfo ->
             rootView.song_detail.text = musicInfo.toString()
             val adapter: ArrayAdapter<String> = ArrayAdapter(
-                context!!,
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 resources.getStringArray(R.array.difficulties)
             )
@@ -295,10 +295,10 @@ class SongDetailFragment : Fragment() {
                 Toast.makeText(requireActivity(), "No Item", Toast.LENGTH_SHORT).show()
 
             } else {
-                Log.d(TAG, "id:${this.item?.id}")
+                Timber.d("id:" + this.item?.id)
                 val file =
                     DereDatabaseHelper.theInstance.musicNumberToFumenFile[DereDatabaseHelper.theInstance.musicIDTomusicNumber[this.item?.id]]
-                Log.d(TAG, "Size=${DereDatabaseHelper.theInstance.musicNumberToFumenFile.size}")
+                Timber.d("Size=" + DereDatabaseHelper.theInstance.musicNumberToFumenFile.size)
                 if (file == null) {
                     Toast.makeText(requireActivity(), "No db file", Toast.LENGTH_SHORT).show()
                 } else {
@@ -316,7 +316,7 @@ class SongDetailFragment : Fragment() {
                     )]?.difficulties?.get(difficulty)
                 val json = oneDifficulty!!.toJson(this.item!!)
                 val fileName = "${this.item?.name}-${difficulty.name}___"
-                val temp = File.createTempFile(fileName, ".txt", context!!.cacheDir)
+                val temp = File.createTempFile(fileName, ".txt", requireContext().cacheDir)
                 temp.printWriter().use {
                     it.print(json)
                 }
@@ -329,7 +329,7 @@ class SongDetailFragment : Fragment() {
 
     private fun shareAsZip(file: File, message: String) {
         val temp =
-            File.createTempFile(this.item?.name ?: "temp", ".zip", context!!.cacheDir)
+            File.createTempFile(this.item?.name ?: "temp", ".zip", requireContext().cacheDir)
         val out = ZipOutputStream(BufferedOutputStream(FileOutputStream(temp)))
         val entry = ZipEntry(file.name)
         out.putNextEntry(entry)
