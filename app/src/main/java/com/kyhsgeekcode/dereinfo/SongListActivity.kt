@@ -14,11 +14,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.kyhsgeekcode.dereinfo.R.id.*
 import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.worker.ExportMusicWorker
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import com.xeinebiu.suspend.dialogs.SuspendAlertDialog
@@ -292,6 +294,23 @@ class SongListActivity : AppCompatActivity(),
         return super.onOptionsItemSelected(item)
     }
 
+    private fun exportMusicBackground(uri: Uri) {
+        val exportWorkRequest = OneTimeWorkRequestBuilder<ExportMusicWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setInputData(
+                Data.Builder()
+                    .putString(ExportMusicWorker.KEY_OUTPUT_URI, uri.toString())
+                    .putString(
+                        ExportMusicWorker.KEY_INPUT_FOLDER,
+                        DereDatabaseHelper.theInstance.musicFolder.path
+                    )
+                    .build()
+            )
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork("music export", ExistingWorkPolicy.REPLACE, exportWorkRequest)
+    }
+
     private fun exportMusic() {
         CoroutineScope(Dispatchers.Main).launch {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -307,37 +326,7 @@ class SongListActivity : AppCompatActivity(),
             val code = activityResult.resultCode
             val data = activityResult.resultData
             data?.data?.also { uri ->
-                snackProgressBarManager.show(
-                    circularType,
-                    SnackProgressBarManager.LENGTH_INDEFINITE
-                )
-                withContext(Dispatchers.IO) {
-                    try {
-                        contentResolver.openFileDescriptor(uri, "w")?.use {
-                            FileOutputStream(it.fileDescriptor).use { fos ->
-                                val list = adapter.getImmutableItemList()
-                                dereDatabaseHelper.exportMusic(
-                                    context = this@SongListActivity,
-                                    fos
-                                ) { progress, message ->
-                                    withContext(Dispatchers.Main) {
-                                        circularType.setProgressMax(list.size)
-                                        snackProgressBarManager.setProgress(progress)
-                                        if (message != null) {
-                                            circularType.setMessage(message)
-                                        }
-                                        snackProgressBarManager.updateTo(circularType)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e: FileNotFoundException) {
-                        Timber.d(e, "File not found")
-                    } catch (e: IOException) {
-                        Timber.d(e, "IOExcpetipon")
-                    }
-                }
-                snackProgressBarManager.dismiss()
+                exportMusicBackground(uri)
             }
         }
     }

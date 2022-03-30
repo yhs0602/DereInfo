@@ -18,6 +18,7 @@ import androidx.core.database.getFloatOrNull
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.text.isDigitsOnly
+import androidx.work.Data
 import java.io.*
 import java.io.File.separator
 import kotlin.math.abs
@@ -220,5 +221,3 @@ inline fun <reified T> queryToList(
         return cur2List(it)
     }
 }
-
-

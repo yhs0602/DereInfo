@@ -6,13 +6,18 @@ import timber.log.Timber
 import java.io.File
 
 object CgssUtil {
-    suspend fun convertAllMusics(rootDir: File, outDir: File, callback: suspend (String) -> Unit) =
+    suspend fun convertAllMusics(
+        rootDir: File,
+        outDir: File,
+        callback: suspend (String, Int) -> Unit
+    ) =
         withContext(Dispatchers.IO) {
             assert(rootDir.isDirectory)
             assert(outDir.isDirectory)
+            val allFiles = rootDir.listFiles()
             rootDir.listFiles()?.forEach { file ->
                 val outPath = convertAcbToWav(file, outDir)
-                callback(outPath)
+                callback(outPath, allFiles?.size ?: 0)
             }
         }
 

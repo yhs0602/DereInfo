@@ -10,4 +10,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_unit_list">Units</string>
     <string name="title_unit_detail">Unit Detail</string>
+    <string name="notification_channel_id">MusicExportNotification</string>
+    <string name="notification_title">Exporting musics</string>
+    <string name="cancel_export">Cancel export</string>
 </resources>
