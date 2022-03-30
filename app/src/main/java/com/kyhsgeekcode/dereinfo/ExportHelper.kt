@@ -20,18 +20,21 @@ object ExportHelper {
         zos.setLevel(Deflater.BEST_COMPRESSION)
         var count = 0
         val outTmpFolder = context.cacheDir
-        CgssUtil.convertAllMusics(musicFolder, outDir = outTmpFolder) { converted, all_count ->
-            val convertedFile = File(converted)
-            val fileName = convertedFile.name
-            zos.putNextEntry(ZipEntry(fileName).apply { method = Deflater.DEFLATED })
-            convertedFile.inputStream().use {
-                it.copyTo(zos)
+        try {
+            CgssUtil.convertAllMusics(musicFolder, outDir = outTmpFolder) { converted, all_count ->
+                val convertedFile = File(converted)
+                val fileName = convertedFile.name
+                zos.putNextEntry(ZipEntry(fileName).apply { method = Deflater.DEFLATED })
+                convertedFile.inputStream().use {
+                    it.copyTo(zos)
+                }
+                zos.closeEntry()
+                progressHandler(count, all_count, convertedFile.name)
+                count++
             }
-            zos.closeEntry()
-            progressHandler(count, all_count, convertedFile.name)
-            count++
+        } finally {
+            zos.close()
+            bos.close()
         }
-        zos.close()
-        bos.close()
     }
 }

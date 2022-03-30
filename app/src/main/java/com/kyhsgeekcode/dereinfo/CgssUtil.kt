@@ -16,12 +16,12 @@ object CgssUtil {
             assert(outDir.isDirectory)
             val allFiles = rootDir.listFiles()
             rootDir.listFiles()?.forEach { file ->
-                val outPath = convertAcbToWav(file, outDir)
+                val outPath = convertAcbToWav(file, outDir) ?: return@forEach
                 callback(outPath, allFiles?.size ?: 0)
             }
         }
 
-    private fun convertAcbToWav(file: File, outDir: File): String {
+    private fun convertAcbToWav(file: File, outDir: File): String? {
         Timber.d("Outdir: ${outDir.path}")
         outDir.deleteRecursively()
         outDir.mkdirs()
@@ -30,6 +30,9 @@ object CgssUtil {
             arrayOf("acb2wavs", file.path, "-n") // , "-a", key1, "-b", key2
         )
         Timber.d("acb2wav ${file.path}: $result")
+        if (result != 0) {
+            return null
+        }
         return outDir.listFiles()?.first()?.listFiles()?.first()?.listFiles()?.first()?.path ?: ""
     }
 
