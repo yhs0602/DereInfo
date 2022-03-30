@@ -12,8 +12,10 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.github.chrisbanes.photoview.PhotoView
 import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.viewmodel.SongDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_song_detail.*
 import kotlinx.android.synthetic.main.song_detail.view.*
@@ -37,6 +39,8 @@ class SongDetailFragment : Fragment() {
     private var oneMusic: OneMusic? = null
     private var difficulty: TW5Difficulty = TW5Difficulty.Debut
     private var bitmap: Bitmap? = null
+    private val songDetailViewModel: SongDetailViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

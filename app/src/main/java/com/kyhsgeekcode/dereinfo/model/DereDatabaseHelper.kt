@@ -16,21 +16,16 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
-import java.util.zip.Deflater
-import java.util.zip.Deflater.DEFLATED
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.collections.set
 
 
 //This allows access to dere database
-class DereDatabaseHelper(context: Context) {
-    companion object {
-        lateinit var theInstance: DereDatabaseHelper
-
-
-    }
-
+@Singleton
+class DereDatabaseHelper @Inject constructor(private val context: Context) {
     val TAG = "DereDBHelper"
 
     //    val manifestFile: File
@@ -289,13 +284,11 @@ class DereDatabaseHelper(context: Context) {
     }
 
     suspend fun refreshCache(
-        context: Context,
         publisher: (Int, Int, MusicInfo?, String?) -> Unit,
         onFinish: () -> Unit
-    ): Boolean = load(context, true, publisher, onFinish)
+    ): Boolean = load(true, publisher, onFinish)
 
     suspend fun load(
-        context: Context,
         refresh: Boolean = false,
         publisher: (Int, Int, MusicInfo?, String?) -> Unit,
         onFinish: () -> Unit
@@ -900,7 +893,7 @@ class DereDatabaseHelper(context: Context) {
         var count = 0
         musicList.forEach { mi ->
             difficulties.forEach { diffi ->
-                val oneDifficulty = theInstance.parsedFumenCache[Pair(
+                val oneDifficulty = parsedFumenCache[Pair(
                     mi.id,
                     diffi
                 )]?.difficulties?.get(diffi)
@@ -910,7 +903,7 @@ class DereDatabaseHelper(context: Context) {
                     byteInputStream().copyTo(zos)
                     zos.closeEntry()
                 } ?: run {
-                    Log.d(TAG, "No such difficulty exists: ${diffi.name}")
+                    Timber.d("No such difficulty exists: " + diffi.name)
                     progressHandler(count, "No ${diffi.name} of ${mi.name}")
                 }
             }
