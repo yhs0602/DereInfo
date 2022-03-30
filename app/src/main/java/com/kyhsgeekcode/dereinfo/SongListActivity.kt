@@ -25,6 +25,7 @@ import com.kyhsgeekcode.dereinfo.worker.ExportMusicWorker
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import com.xeinebiu.suspend.dialogs.SuspendAlertDialog
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.*
@@ -43,6 +44,7 @@ import java.io.Serializable
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
+@AndroidEntryPoint
 class SongListActivity : AppCompatActivity(),
     FilterAlertDialogFragment.FilterDialogListener,
     SortAlertDialogFragment.SortDialogListener {
