@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <android/log.h>
 
 #include "../cenum/CGSS_UTF_COLUMN_TYPE.h"
 #include "../cenum/CGSS_UTF_COLUMN_STORAGE.h"
@@ -38,6 +39,17 @@ typedef struct _UTF_FIELD {
         char *str;
     } value;
 
+    void killData() {
+//        __android_log_print(ANDROID_LOG_DEBUG, "Dereinfo", "Freeing ~field");
+        if (type == CGSS_UTF_COLUMN_TYPE_DATA && this->value.data.ptr) {
+            free(value.data.ptr);
+            value.data.ptr = nullptr;
+        }
+        if (type == CGSS_UTF_COLUMN_TYPE_STRING && this->value.str) {
+            free(value.str);
+            value.str = nullptr;
+        }
+    }
 } UTF_FIELD;
 
 #pragma pack(pop)

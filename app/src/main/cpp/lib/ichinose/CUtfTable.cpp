@@ -1,3 +1,4 @@
+#include <android/log.h>
 #include "../takamori/streams/CMemoryStream.h"
 #include "../takamori/streams/CBinaryReader.h"
 #include "../takamori/exceptions/CFormatException.h"
@@ -8,6 +9,7 @@
 #include "CAcbHelper.h"
 #include "CUtfField.h"
 #include "../cgss_cdata.h"
+#include "../cgss_capi.h"
 
 CGSS_NS_BEGIN
 
@@ -20,8 +22,10 @@ CGSS_NS_BEGIN
     }
 
     CUtfTable::~CUtfTable() {
+//        __android_log_print(ANDROID_LOG_DEBUG, "Dereinfo", "Freeing ~cutftable");
         for (auto &row : _rows) {
             for (auto pField : row.fields) {
+                pField -> killData();
                 delete pField;
             }
         }

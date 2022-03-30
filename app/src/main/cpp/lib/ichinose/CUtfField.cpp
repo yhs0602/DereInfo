@@ -19,6 +19,9 @@ CGSS_NS_BEGIN
         switch (type) {
             case CGSS_UTF_COLUMN_TYPE_DATA:
                 if (tpl.value.data.ptr && tpl.value.data.size > 0) {
+                    if (value.data.ptr) {
+                        free(value.data.ptr);
+                    }
                     value.data.ptr = malloc(tpl.value.data.size);
                     memcpy(value.data.ptr, tpl.value.data.ptr, tpl.value.data.size);
                 }
@@ -26,7 +29,7 @@ CGSS_NS_BEGIN
             case CGSS_UTF_COLUMN_TYPE_STRING: {
                 const auto strLength = tpl.value.str ? strlen(tpl.value.str) : 0;
                 if (strLength > 0) {
-                    value.str = (char *)malloc(strLength + 1);
+                    value.str = (char *) malloc(strLength + 1);
                     strncpy(value.str, tpl.value.str, strLength);
                     value.str[strLength] = '\0';
                 }
@@ -69,6 +72,9 @@ CGSS_NS_BEGIN
     void CUtfField::SetValue(const void *data, const uint32_t size, const uint32_t fieldOffset) {
         ReleaseData();
         if (data && size > 0) {
+            if (value.data.ptr) {
+                free(value.data.ptr);
+            }
             value.data.ptr = malloc(size);
             memcpy(value.data.ptr, data, size);
         }
@@ -81,7 +87,7 @@ CGSS_NS_BEGIN
         ReleaseData();
         const auto strLength = str ? strlen(str) : 0;
 
-        value.str = (char *)malloc(strLength + 1);
+        value.str = (char *) malloc(strLength + 1);
         strncpy(value.str, str, strLength);
         value.str[strLength] = '\0';
 

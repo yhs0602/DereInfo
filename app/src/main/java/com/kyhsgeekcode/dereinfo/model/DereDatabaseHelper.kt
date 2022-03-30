@@ -28,28 +28,7 @@ class DereDatabaseHelper(context: Context) {
     companion object {
         lateinit var theInstance: DereDatabaseHelper
 
-        suspend fun exportMusic(
-            context: Context,
-            musicFolder: File,
-            fileOutputStream: FileOutputStream,
-            progressHandler: suspend (Int, Int, String?) -> Unit // progress, total, message
-        ) {
-            val bos = BufferedOutputStream(fileOutputStream)
-            val zos = ZipOutputStream(bos)
-            zos.setLevel(Deflater.BEST_COMPRESSION)
-            var count = 0
-            val outTmpFolder = context.cacheDir
-            CgssUtil.convertAllMusics(musicFolder, outDir = outTmpFolder) { converted, all_count ->
-                val convertedFile = File(converted)
-                val fileName = convertedFile.name
-                zos.putNextEntry(ZipEntry(fileName).apply { method = DEFLATED })
-                convertedFile.inputStream().copyTo(zos)
-                zos.closeEntry()
-                progressHandler(count, all_count, convertedFile.name)
-                count++
-            }
-            zos.close()
-        }
+
     }
 
     val TAG = "DereDBHelper"

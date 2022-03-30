@@ -90,7 +90,8 @@ CGSS_API_IMPL(bool_t) cgssHelperFileExists(const char *fileName) {
     return CFileSystem::FileExists(fileName);
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamRead(CGSS_HANDLE handle, void *buffer, uint32_t bufferSize, size_t offset, uint32_t count, _OUT_ uint32_t *read) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamRead(CGSS_HANDLE handle, void *buffer, uint32_t bufferSize,
+                                             size_t offset, uint32_t count, _OUT_ uint32_t *read) {
     CHECK_HANDLE(handle);
     try {
         const auto r = to_stream(handle)->Read(buffer, bufferSize, offset, count);
@@ -105,7 +106,9 @@ CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamRead(CGSS_HANDLE handle, void *buffer, u
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamWrite(CGSS_HANDLE handle, void *buffer, uint32_t bufferSize, size_t offset, uint32_t count, _OUT_ uint32_t *written) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamWrite(CGSS_HANDLE handle, void *buffer, uint32_t bufferSize,
+                                              size_t offset, uint32_t count, _OUT_
+                                              uint32_t *written) {
     CHECK_HANDLE(handle);
     try {
         const auto w = to_stream(handle)->Write(buffer, bufferSize, offset, count);
@@ -120,7 +123,8 @@ CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamWrite(CGSS_HANDLE handle, void *buffer, 
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamSeek(CGSS_HANDLE handle, int64_t offset, CGSS_STREAM_SEEK_ORIGIN origin) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamSeek(CGSS_HANDLE handle, int64_t offset,
+                                             CGSS_STREAM_SEEK_ORIGIN origin) {
     CHECK_HANDLE(handle);
     try {
         to_stream(handle)->Seek(offset, static_cast<StreamSeekOrigin>(origin));
@@ -283,7 +287,8 @@ CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamCopyTo(CGSS_HANDLE source, CGSS_HANDLE d
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamCopyTo2(CGSS_HANDLE source, CGSS_HANDLE destination, uint32_t bufferSize) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssStreamCopyTo2(CGSS_HANDLE source, CGSS_HANDLE destination,
+                                                uint32_t bufferSize) {
     CHECK_HANDLE(source);
     CHECK_HANDLE(destination);
     try {
@@ -313,7 +318,8 @@ static void alloc_stream(CGSS_HANDLE *handle, IStream *stream, HandleType type) 
     *handle = h;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream(const char *fileName, _OUT_ CGSS_HANDLE *stream) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream(const char *fileName, _OUT_
+                                                   CGSS_HANDLE *stream) {
     if (!stream) {
         return CGSS_OP_INVALID_ARGUMENT;
     }
@@ -321,46 +327,59 @@ CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream(const char *fileName, _OUT_ C
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream2(const char *fileName, CGSS_FILE_MODE fileMode, _OUT_ CGSS_HANDLE *stream) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream2(const char *fileName, CGSS_FILE_MODE fileMode,
+                                                    _OUT_ CGSS_HANDLE *stream) {
     if (!stream) {
         return CGSS_OP_INVALID_ARGUMENT;
     }
-    alloc_stream(stream, new CFileStream(fileName, static_cast<FileMode>(fileMode)), HandleType::CStream);
+    alloc_stream(stream, new CFileStream(fileName, static_cast<FileMode>(fileMode)),
+                 HandleType::CStream);
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream3(const char *fileName, CGSS_FILE_MODE fileMode, CGSS_FILE_ACCESS fileAccess, _OUT_ CGSS_HANDLE *stream) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateFileStream3(const char *fileName, CGSS_FILE_MODE fileMode,
+                                                    CGSS_FILE_ACCESS fileAccess, _OUT_
+                                                    CGSS_HANDLE *stream) {
     if (!stream) {
         return CGSS_OP_INVALID_ARGUMENT;
     }
-    alloc_stream(stream, new CFileStream(fileName, static_cast<FileMode>(fileMode), static_cast<FileAccess>(fileAccess)), HandleType::CStream);
+    alloc_stream(stream, new CFileStream(fileName, static_cast<FileMode>(fileMode),
+                                         static_cast<FileAccess>(fileAccess)), HandleType::CStream);
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateHcaDecoder(CGSS_HANDLE baseStream, _OUT_ CGSS_HANDLE *decoder) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateHcaDecoder(CGSS_HANDLE baseStream, _OUT_
+                                                   CGSS_HANDLE *decoder) {
     CHECK_HANDLE(baseStream);
     if (!decoder) {
         return CGSS_OP_INVALID_ARGUMENT;
     }
-    alloc_stream(decoder, new CHcaDecoder(to_stream(baseStream)), HandleType::CStream | HandleType::CHcaReaderBase);
+    alloc_stream(decoder, new CHcaDecoder(to_stream(baseStream)),
+                 HandleType::CStream | HandleType::CHcaReaderBase);
     return CGSS_OP_OK;
 }
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateHcaDecoder2(CGSS_HANDLE baseStream, const HCA_DECODER_CONFIG *decoderConfig, _OUT_ CGSS_HANDLE *decoder) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateHcaDecoder2(CGSS_HANDLE baseStream,
+                                                    const HCA_DECODER_CONFIG *decoderConfig, _OUT_
+                                                    CGSS_HANDLE *decoder) {
     CHECK_HANDLE(baseStream);
     if (!decoderConfig || !decoder) {
         return CGSS_OP_INVALID_ARGUMENT;
     }
-    alloc_stream(decoder, new CHcaDecoder(to_stream(baseStream), *decoderConfig), HandleType::CStream | HandleType::CHcaReaderBase);
+    alloc_stream(decoder, new CHcaDecoder(to_stream(baseStream), *decoderConfig),
+                 HandleType::CStream | HandleType::CHcaReaderBase);
     return CGSS_OP_OK;
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateCipherConverter(CGSS_HANDLE baseStream, const HCA_CIPHER_CONFIG *cryptFrom, const HCA_CIPHER_CONFIG *cryptTo,
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssCreateCipherConverter(CGSS_HANDLE baseStream,
+                                                        const HCA_CIPHER_CONFIG *cryptFrom,
+                                                        const HCA_CIPHER_CONFIG *cryptTo,
                                                         _OUT_ CGSS_HANDLE *converter) {
     CHECK_HANDLE(baseStream);
     if (!cryptFrom || !cryptTo || !converter) {
         return CGSS_OP_INVALID_ARGUMENT;
     }
-    alloc_stream(converter, new CHcaCipherConverter(to_stream(baseStream), *cryptFrom, *cryptTo), HandleType::CStream | HandleType::CHcaReaderBase);
+    alloc_stream(converter, new CHcaCipherConverter(to_stream(baseStream), *cryptFrom, *cryptTo),
+                 HandleType::CStream | HandleType::CHcaReaderBase);
     return CGSS_OP_OK;
 }
 
@@ -373,7 +392,8 @@ CGSS_API_IMPL(CGSS_OP_RESULT) cgssGetHcaInfo(CGSS_HANDLE handle, HCA_INFO *info)
     if ((handleType & HandleType::CHcaReaderBase) == HandleType::None) {
         return CGSS_OP_INVALID_OPERATION;
     }
-    auto *reader = dynamic_cast<CHcaFormatReader *>(CHandleManager::getInstance()->getHandlePtr(handle));
+    auto *reader = dynamic_cast<CHcaFormatReader *>(CHandleManager::getInstance()->getHandlePtr(
+            handle));
     HCA_INFO &i = *info;
     reader->GetHcaInfo(i);
     return CGSS_OP_OK;
@@ -407,6 +427,9 @@ static void copy_utf_field(UTF_FIELD *dest, const UTF_FIELD *src) {
     switch (dest->type) {
         case CGSS_UTF_COLUMN_TYPE_DATA:
             if (src->value.data.ptr && src->value.data.size > 0) {
+                if (dest->value.data.ptr) {
+                    free(dest->value.data.ptr);
+                }
                 dest->value.data.ptr = malloc(src->value.data.size);
                 memcpy(dest->value.data.ptr, src->value.data.ptr, src->value.data.size);
             }
@@ -414,7 +437,10 @@ static void copy_utf_field(UTF_FIELD *dest, const UTF_FIELD *src) {
         case CGSS_UTF_COLUMN_TYPE_STRING: {
             const auto strLength = src->value.str ? strlen(src->value.str) : 0;
             if (strLength > 0) {
-                dest->value.str = (char *)malloc(strLength + 1);
+                if (dest->value.str) {
+                    free(dest->value.str);
+                }
+                dest->value.str = (char *) malloc(strLength + 1);
                 strncpy(dest->value.str, src->value.str, strLength);
                 dest->value.str[strLength] = '\0';
             }
@@ -425,7 +451,8 @@ static void copy_utf_field(UTF_FIELD *dest, const UTF_FIELD *src) {
     }
 }
 
-CGSS_API_IMPL(CGSS_OP_RESULT) cgssUtfReadTable(CGSS_HANDLE stream, uint64_t offset, UTF_TABLE **table) {
+CGSS_API_IMPL(CGSS_OP_RESULT) cgssUtfReadTable(CGSS_HANDLE stream, uint64_t offset,
+                                               UTF_TABLE **table) {
     CHECK_HANDLE(stream);
 
     if (!table) {
@@ -464,7 +491,22 @@ CGSS_API_IMPL(CGSS_OP_RESULT) cgssUtfReadTable(CGSS_HANDLE stream, uint64_t offs
     uint32_t i = 0;
     for (auto &row : rows) {
         auto &utfRow = utfTable->rows[i];
+        for (const auto &f: fieldList) {
+            if (f.value.data.ptr) {
+                free(f.value.data.ptr);
+            }
+            if (f.value.str) {
+                free(f.value.str);
+            }
+        }
         fieldList.clear();
+
+        if (utfRow.fields && utfRow.fields->value.data.ptr) {
+            free(utfRow.fields->value.data.ptr);
+        }
+        if (utfRow.fields && utfRow.fields->value.str) {
+            free(utfRow.fields->value.str);
+        }
 
         if (utfTable->header.fieldCount > 0) {
             utfRow.fields = new UTF_FIELD[utfTable->header.fieldCount];

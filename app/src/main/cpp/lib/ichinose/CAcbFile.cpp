@@ -1,5 +1,6 @@
 #include <string>
 #include <cinttypes>
+#include <android/log.h>
 
 #include "../cgss_cenum.h"
 #include "CAfs2Archive.h"
@@ -44,9 +45,11 @@ CAcbFile::CAcbFile(IStream *stream, uint64_t streamOffset, const char *fileName)
 }
 
 CAcbFile::~CAcbFile() {
+//    __android_log_print(ANDROID_LOG_DEBUG, "Dereinfo", "Freeing ~cacbfile");
     for (const auto &pair : _tables) {
         delete pair.second;
     }
+//    __android_log_print(ANDROID_LOG_DEBUG, "Dereinfo", "Freeing done ~cacbfile");
 
     delete _internalAwb;
     _internalAwb = nullptr;

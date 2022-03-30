@@ -11,6 +11,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.kyhsgeekcode.dereinfo.ExportHelper
 import com.kyhsgeekcode.dereinfo.R
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import kotlinx.coroutines.Dispatchers
@@ -46,12 +47,16 @@ class ExportMusicWorker(appContext: Context, workerParams: WorkerParameters) :
             try {
                 applicationContext.contentResolver.openFileDescriptor(outputUri, "w")?.use {
                     FileOutputStream(it.fileDescriptor).use { fos ->
-                        DereDatabaseHelper.exportMusic(
+                        ExportHelper.exportMusic(
                             context = applicationContext,
                             musicFolder,
                             fos
                         ) { progress, total, message ->
-                            setForeground(createForegroundInfo("$message ($progress/$total)"))
+                            try {
+                                setForeground(createForegroundInfo("$message ($progress/$total)"))
+                            } catch (e: IllegalStateException) {
+                                Timber.e(e, "Failed to set foreground")
+                            }
                         }
                     }
                 }

@@ -180,9 +180,9 @@ inline fun <reified T> cur2List(cursor: Cursor): List<T> {
                 Log.d("CursorToList", "CurToList", e)
             }
         }
-        Log.w(
-            "CurToList",
-            "paramToVal is " + paramToVal.entries.joinToString("/") { "${it.component1().name} = ${it.component2()}" })
+//        Log.w(
+//            "CurToList",
+//            "paramToVal is " + paramToVal.entries.joinToString("/") { "${it.component1().name} = ${it.component2()}" })
         try {
             val theObject: T =
                 T::class.constructors.toTypedArray()[0].callBy(paramToVal)

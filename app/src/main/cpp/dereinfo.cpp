@@ -9,6 +9,7 @@
 #include <cinttypes>
 #include <vector>
 #include <android/log.h>
+#include <jni.h>
 
 #include "cgssh.h"
 #include "lib/cgss_api.h"
@@ -53,13 +54,17 @@ Java_com_kyhsgeekcode_dereinfo_CgssUtil_acb2wav(JNIEnv *env, jobject thiz, jstri
         auto string = (jstring) (env->GetObjectArrayElement(args, i));
         const char *rawString = env->GetStringUTFChars(string, nullptr);
         auto arg = std::string(rawString);
-        __android_log_print(ANDROID_LOG_DEBUG, "DereInfo Arg", "arg %d: %s", i, arg.c_str());
+//        __android_log_print(ANDROID_LOG_DEBUG, "DereInfo Arg", "arg %d: %s", i, arg.c_str());
         cpp_args.push_back(arg.c_str());
-        // Don't forget to call `ReleaseStringUTFChars` when you're done.
         env->ReleaseStringUTFChars(string, rawString);
     }
-
-    return process(outputDir, stringCount, (const char **) &cpp_args[0]);
+    int result = 0;
+    try {
+        result = process(outputDir, stringCount, (const char **) &cpp_args[0]);
+    } catch (CFormatException) {
+        result = -100;
+    }
+    return result;
 }
 
 
@@ -75,7 +80,7 @@ int process(const std::string &outputDirectory, int argc, const char *argv[]) {
         return parsed;
     }
 
-    PrintAppTitle(cout);
+//    PrintAppTitle(cout);
 
     if (!cgssHelperFileExists(inputFile.c_str())) {
         fprintf(stderr, "File '%s' does not exist or cannot be opened.\n", inputFile.c_str());

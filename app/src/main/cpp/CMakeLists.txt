@@ -16,7 +16,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_EXE_LINKER_FLAGS "-Xlinker -v -v")
 
 
-add_compile_definitions(__CGSS_WITH_JNI__=ON)
+#add_compile_definitions(__CGSS_WITH_JNI__=ON)
 
 
 # Declares and names the project.
@@ -33,11 +33,11 @@ FILE(GLOB SRCFILES2 "lib/cdata/*.cpp")
 FILE(GLOB SRCFILES3 "lib/cenum/*.cpp")
 FILE(GLOB SRCFILES4 "lib/common/*.cpp")
 FILE(GLOB SRCFILES5 "lib/ichinose/*.cpp")
-FILE(GLOB SRCFILES6 "lib/jni/*.cpp")
-FILE(GLOB SRCFILES7 "lib/jni/helpers/*.cpp")
-FILE(GLOB SRCFILES8 "lib/jni/modules/*.cpp")
-FILE(GLOB SRCFILES9 "lib/jni/modules/kawashima/*.cpp")
-FILE(GLOB SRCFILES10 "lib/jni/modules/takamori/*.cpp")
+#FILE(GLOB SRCFILES6 "lib/jni/*.cpp")
+#FILE(GLOB SRCFILES7 "lib/jni/helpers/*.cpp")
+#FILE(GLOB SRCFILES8 "lib/jni/modules/*.cpp")
+#FILE(GLOB SRCFILES9 "lib/jni/modules/kawashima/*.cpp")
+#FILE(GLOB SRCFILES10 "lib/jni/modules/takamori/*.cpp")
 FILE(GLOB SRCFILES11 "lib/kawashima/*.cpp")
 FILE(GLOB SRCFILES12 "lib/kawashima/hca/*.cpp")
 FILE(GLOB SRCFILES13 "lib/kawashima/hca/internal/*.cpp")
@@ -65,11 +65,11 @@ add_library( # Sets the name of the library.
              ${SRCFILES3}
              ${SRCFILES4}
              ${SRCFILES5}
-             ${SRCFILES6}
-             ${SRCFILES7}
-             ${SRCFILES8}
-             ${SRCFILES9}
-             ${SRCFILES10}
+#             ${SRCFILES6}
+#             ${SRCFILES7}
+#             ${SRCFILES8}
+#             ${SRCFILES9}
+#             ${SRCFILES10}
              ${SRCFILES11}
              ${SRCFILES12}
              ${SRCFILES13}
