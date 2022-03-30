@@ -10,17 +10,18 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.kyhsgeekcode.dereinfo.R.id.*
 import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.viewmodel.SongListViewModel
 import com.kyhsgeekcode.dereinfo.worker.ExportMusicWorker
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
@@ -49,6 +50,9 @@ class SongListActivity : AppCompatActivity(),
     FilterAlertDialogFragment.FilterDialogListener,
     SortAlertDialogFragment.SortDialogListener {
     val TAG = "SongListActivity"
+
+    private val songListViewModel: SongListViewModel by viewModels()
+
     private val snackProgressBarManager by lazy {
         SnackProgressBarManager(
             mainListLayout,
@@ -59,7 +63,7 @@ class SongListActivity : AppCompatActivity(),
         SnackProgressBar(SnackProgressBar.TYPE_CIRCULAR, "Loading...")
             .setIsIndeterminate(false)
             .setAllowUserInput(false)
-    private lateinit var dereDatabaseHelper: DereDatabaseHelper
+
     private lateinit var adapter: SongRecyclerViewAdapter
 
     val RC_ACTIVITY_FOR_RESULT = 101
@@ -137,10 +141,10 @@ class SongListActivity : AppCompatActivity(),
 
         tl_song_list_modes.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d(TAG, "OnSelectedTab")
+                Timber.d("OnSelectedTab")
 //                val tag = tab?.view?.id as? String ?: "normal"
                 val gamemode = GameMode.fromTabIndex(tab?.position ?: 0)
-                Log.d(TAG, "GameMode: $gamemode")
+                Timber.d("GameMode: $gamemode")
                 refreshMode(gamemode ?: GameMode.NORMAL)
             }
 
@@ -159,20 +163,14 @@ class SongListActivity : AppCompatActivity(),
         adapter = setupRecyclerView(song_list)
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
         try {
-            dereDatabaseHelper = DereDatabaseHelper(this@SongListActivity)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to find database", e)
+            Timber.e(e, "Failed to find database")
             Toast.makeText(this, "Failed to find database", Toast.LENGTH_SHORT).show()
             guideInstallDeresute()
             finish()
             return
         }
-        DereDatabaseHelper.theInstance = dereDatabaseHelper
-        CoroutineScope(Dispatchers.IO).launch {
-            if (!dereDatabaseHelper.load(this@SongListActivity, false, publisher, onFinish)) {
-                onFailedLoadDatabase()
-            }
-        }
+        songListViewModel.loadDatabase()
     }
 
     private fun refreshMode(gamemode: GameMode) {
@@ -440,7 +438,7 @@ class SongListActivity : AppCompatActivity(),
         if (checked[filterCBTypeAllCheck]!! || checked[filterCBPassion]!!) {
             permittedType.add(CircleType.Passion)
         }
-        Log.d(TAG, "Permitted2:${permittedType.toTypedArray().joinToString()}")
+        Timber.d("Permitted2:" + permittedType.toTypedArray().joinToString())
         adapter.userFilter.addFilter(*permittedType.toTypedArray())
         adapter.userFilter.shouldHaveMasterPlus = checked[filterCBMasterPlus] ?: false
         adapter.userFilter.shouldHaveSmart = checked[filterCBSmart] ?: false

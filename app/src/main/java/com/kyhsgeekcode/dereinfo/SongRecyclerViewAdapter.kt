@@ -20,6 +20,7 @@ import com.kyhsgeekcode.dereinfo.model.*
 import com.wanakanajava.WanaKanaJava
 import kotlinx.android.synthetic.main.song_list_content.view.*
 import net.crizin.KoreanRomanizer
+import timber.log.Timber
 
 class SongRecyclerViewAdapter(
     private
@@ -256,10 +257,7 @@ class SongRecyclerViewAdapter(
             results: FilterResults
         ) { // update listview by filtered data list.
             filteredItemList = results.values as ArrayList<MusicInfo>
-            Log.d(
-                TAG,
-                """filtered:${filteredItemList.size}, original:${values.size}"""
-            )
+            Timber.d("filtered:${filteredItemList.size}, original:${values.size}")
 
             // notify
             if (results.count > 0) {
