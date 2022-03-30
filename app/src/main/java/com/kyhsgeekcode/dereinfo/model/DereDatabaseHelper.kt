@@ -16,8 +16,6 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
-import java.util.zip.Deflater
-import java.util.zip.Deflater.DEFLATED
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.collections.set
@@ -521,7 +519,7 @@ class DereDatabaseHelper(context: Context) {
             val fumenStr = cursorFumens.getBlob(1).toString(
                 Charset.defaultCharset()
             )
-            Log.d(TAG, "FumenStr: $fumenStr")
+//            Log.d(TAG, "FumenStr: $fumenStr")
             val notes: List<Note>
             if (twDifficulty == TW5Difficulty.Piano || twDifficulty == TW5Difficulty.Forte)
                 notes = parseDereFumenGrand(fumenStr, info)
@@ -905,7 +903,8 @@ class DereDatabaseHelper(context: Context) {
                     diffi
                 )]?.difficulties?.get(diffi)
                 oneDifficulty?.toJson(mi)?.run {
-                    val fileName = "${mi.id}___${mi.name}___${diffi.name}"
+                    val fileName = "${mi.id}___${mi.name}___${diffi.name}".replace("/", "-")
+                        .replace("\\n", "-")
                     zos.putNextEntry(ZipEntry(fileName))
                     byteInputStream().copyTo(zos)
                     zos.closeEntry()
