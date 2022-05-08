@@ -15,7 +15,7 @@
         app:layout_constraintBottom_toTopOf="@id/spinnerDifficulty"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:context=".SongDetailFragment" />
+        tools:context=".ui.SongDetailFragment" />
 
     <Spinner
         android:id="@+id/spinnerDifficulty"

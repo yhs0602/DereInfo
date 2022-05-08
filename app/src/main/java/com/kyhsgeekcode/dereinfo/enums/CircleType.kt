@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo.model
+package com.kyhsgeekcode.dereinfo.enums
 
 import android.graphics.Color
 

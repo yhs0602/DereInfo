@@ -1,7 +1,7 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
 import com.kyhsgeekcode.dereinfo.calc.CGCalc
-import com.kyhsgeekcode.dereinfo.model.CircleType
+import com.kyhsgeekcode.dereinfo.enums.CircleType
 
 interface IUnit {
     fun skills(): List<SkillModel>

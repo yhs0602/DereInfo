@@ -1,5 +1,6 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import com.kyhsgeekcode.dereinfo.enums.CircleType
 import com.wanakanajava.WanaKanaJava
 import java.io.Serializable
 

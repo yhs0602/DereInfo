@@ -1,6 +1,7 @@
 package com.kyhsgeekcode.dereinfo.calc
 
 import com.kyhsgeekcode.dereinfo.cardunit.*
+import com.kyhsgeekcode.dereinfo.enums.CircleType
 import com.kyhsgeekcode.dereinfo.equalsDelta
 import com.kyhsgeekcode.dereinfo.model.*
 import kotlin.math.ceil
@@ -216,7 +217,7 @@ object CGCalc {
         val skillModels = arrayOfNulls<SkillModel>(5)
         for ((index, card) in unit.cards.withIndex()) {
             skillModels[index] =
-                DereDatabaseHelper.theInstance.skillModels.find { it.id == card.cardData.skill_id }
+                DereDatabaseService.theInstance.skillModels.find { it.id == card.cardData.skill_id }
         }
         val isWorking = booleanArrayOf(false, false, false, false, false)
         val lastWorkTiming = floatArrayOf(0f, 0f, 0f, 0f, 0f)
@@ -414,7 +415,7 @@ object CGCalc {
         attributes: Array<Int>
     ): List<Triple<Int, Int, Int>> {
         return workingBoostSkills.map { boostSkill ->
-            DereDatabaseHelper.theInstance.skillBoostModels.asSequence().filter { boostModel ->
+            DereDatabaseService.theInstance.skillBoostModels.asSequence().filter { boostModel ->
                 (boostModel.skill_value == boostSkill.value?.value)
                         && (boostModel.target_type == skillModel.skill_type)
                         && (boostModel.target_attribute == 0 || boostModel.target_attribute == attributes[boostSkill.index])

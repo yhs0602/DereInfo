@@ -23,7 +23,7 @@ enum class SortType(val value: Int) {
 
     fun condition(musicInfo: MusicInfo, difficulty: TW5Difficulty): Any {
         val statistic =
-            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(difficulty)
+            DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(difficulty)
         return when (this) {
             Data -> musicInfo.id
             Alphabetical -> if (musicInfo.nameKana.isBlank()) musicInfo.nameKana else musicInfo.name

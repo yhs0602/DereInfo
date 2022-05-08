@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
 import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
 import com.kyhsgeekcode.dereinfo.viewmodel.FumenViewModel
@@ -46,7 +46,7 @@ class FumenFragment : Fragment() {
         }
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
-            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+            DereDatabaseService.theInstance.parsedFumenCache[Pair(
                 musicInfo.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)

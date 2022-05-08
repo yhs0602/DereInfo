@@ -1,8 +1,8 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
 import com.kyhsgeekcode.dereinfo.calc.CGCalc
-import com.kyhsgeekcode.dereinfo.model.CircleType
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
 
 class Appeal(
     val vocal: Int,
@@ -68,10 +68,10 @@ class CardUnit(
     fun countSkills(): Int = cards.groupBy { it.cardData.skill_id }.size
     fun isResonanceApplied(guest: Card): Boolean {
         val leader = cards[0]
-        val leaderSkillModel = DereDatabaseHelper.theInstance.leaderSkillModels.find {
+        val leaderSkillModel = DereDatabaseService.theInstance.leaderSkillModels.find {
             it.id == leader.cardData.leader_skill_id
         }
-        val guestSkillModel = DereDatabaseHelper.theInstance.leaderSkillModels.find {
+        val guestSkillModel = DereDatabaseService.theInstance.leaderSkillModels.find {
             it.id == guest.cardData.leader_skill_id
         }
         if (LeaderSkillModel.RESONANCE_IDS.contains(leaderSkillModel?.id)) {

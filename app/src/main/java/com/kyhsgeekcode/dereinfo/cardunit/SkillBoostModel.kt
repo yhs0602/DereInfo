@@ -1,5 +1,8 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
+import androidx.room.Entity
+
+@Entity(tableName = "skill_boost_type")
 data class SkillBoostModel(
     val id: Int,
     val skill_value: Int, // this type (skill value)

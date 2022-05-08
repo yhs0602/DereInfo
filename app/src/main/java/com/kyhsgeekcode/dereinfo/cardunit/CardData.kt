@@ -1,7 +1,9 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.model.CircleType
+import androidx.room.Entity
+import com.kyhsgeekcode.dereinfo.enums.CircleType
 
+@Entity(tableName = "card_data")
 class CardData(
     val name: String,
     val type: CircleType,

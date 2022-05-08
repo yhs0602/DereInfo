@@ -1,9 +1,11 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import androidx.room.Entity
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
 import com.kyhsgeekcode.dereinfo.model.Judge
 import com.kyhsgeekcode.dereinfo.model.Note
 
+@Entity(tableName = "skill_data")
 data class SkillModel(
     val id: Int,
     val skill_name: String,
@@ -152,7 +154,7 @@ data class SkillModel(
             )
             25 -> Triple(
                 100f,
-                DereDatabaseHelper.theInstance.lifeSparkleBonus(life, value) * (boost1 ?: 1f),
+                DereDatabaseService.theInstance.lifeSparkleBonus(life, value) * (boost1 ?: 1f),
                 0f
             )
             26 -> Triple(
@@ -185,19 +187,19 @@ data class SkillModel(
             )
             31 -> Triple(100f, value * (boost1 ?: 1f), 0f)
             35 -> Triple(
-                if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
+                if (judge == Judge.PERFECT) DereDatabaseService.theInstance.motifBonus(
                     appeals[1],
                     value
                 ) * (boost1 ?: 1f) else 100f, 100f, 0f
             )
             36 -> Triple(
-                if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
+                if (judge == Judge.PERFECT) DereDatabaseService.theInstance.motifBonus(
                     appeals[3],
                     value
                 ) * (boost1 ?: 1f) else 100f, 100f, 0f
             )
             37 -> Triple(
-                if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
+                if (judge == Judge.PERFECT) DereDatabaseService.theInstance.motifBonus(
                     appeals[2],
                     value
                 ) * (boost1 ?: 1f) else 100f, 100f, 0f

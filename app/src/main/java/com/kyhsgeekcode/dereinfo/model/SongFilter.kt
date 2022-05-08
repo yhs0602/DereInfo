@@ -1,5 +1,7 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+
 class SongFilter {
     fun pass(musicInfo: MusicInfo): Boolean {
         val circleType = CircleType.fromInt(musicInfo.circleType)
@@ -7,21 +9,21 @@ class SongFilter {
         if (!permittedType.contains(circleType))
             return false
         if (shouldHaveMasterPlus) {
-            if (DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
+            if (DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
                     TW5Difficulty.MasterPlus
                 ) == false
             )
                 return false
         }
         if (shouldHaveGrand) {
-            if (DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
+            if (DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
                     TW5Difficulty.Piano
                 ) == false
             )
                 return false
         }
         if (shouldHaveSmart) {
-            if (DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
+            if (DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
                     TW5Difficulty.Light
                 ) == false
             )
@@ -29,7 +31,7 @@ class SongFilter {
         }
 
         if (shouldHaveWitch) {
-            if (DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
+            if (DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.containsKey(
                     TW5Difficulty.Witch
                 ) == false
             )

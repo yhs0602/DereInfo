@@ -1,7 +1,9 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
+import androidx.room.Entity
 import kotlin.math.max
 
+@Entity(tableName = "leader_skill_data")
 data class LeaderSkillModel(
     val id: Int,
     val name: String,

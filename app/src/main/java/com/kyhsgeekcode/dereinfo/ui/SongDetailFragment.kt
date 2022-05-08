@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.app.AlertDialog
 import android.content.Intent
@@ -14,7 +14,11 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.github.chrisbanes.photoview.PhotoView
+import com.kyhsgeekcode.dereinfo.FumenFragment
+import com.kyhsgeekcode.dereinfo.FumenRenderer
+import com.kyhsgeekcode.dereinfo.R
 import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.saveImage
 import com.kyhsgeekcode.dereinfo.viewmodel.SongDetailViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_song_detail.*
@@ -50,10 +54,10 @@ class SongDetailFragment : Fragment() {
                 // Load the dummy content specified by the fragment
                 // arguments. In a real-world scenario, use a Loader
                 // to load content from a content provider.
-                item = DereDatabaseHelper.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
+                item = DereDatabaseService.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
                 activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
                 activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
-                val musicNumber = DereDatabaseHelper.theInstance.musicIDTomusicNumber[item!!.id]
+                val musicNumber = DereDatabaseService.theInstance.musicIDTomusicNumber[item!!.id]
                 Timber.w("Item.id:${item!!.id}, musicNumber:$musicNumber")
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
@@ -94,7 +98,7 @@ class SongDetailFragment : Fragment() {
                     ) {
                         difficulty = TW5Difficulty.fromIndex(position)
                         val statistic =
-                            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(
+                            DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(
                                 difficulty
                             )
                                 ?: return
@@ -211,7 +215,7 @@ class SongDetailFragment : Fragment() {
         val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
-            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+            DereDatabaseService.theInstance.parsedFumenCache[Pair(
                 musicInfo.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
@@ -246,7 +250,7 @@ class SongDetailFragment : Fragment() {
         val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
-            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+            DereDatabaseService.theInstance.parsedFumenCache[Pair(
                 musicInfo.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
@@ -301,8 +305,8 @@ class SongDetailFragment : Fragment() {
             } else {
                 Timber.d("id:" + this.item?.id)
                 val file =
-                    DereDatabaseHelper.theInstance.musicNumberToFumenFile[DereDatabaseHelper.theInstance.musicIDTomusicNumber[this.item?.id]]
-                Timber.d("Size=" + DereDatabaseHelper.theInstance.musicNumberToFumenFile.size)
+                    DereDatabaseService.theInstance.musicNumberToFumenFile[DereDatabaseService.theInstance.musicIDTomusicNumber[this.item?.id]]
+                Timber.d("Size=" + DereDatabaseService.theInstance.musicNumberToFumenFile.size)
                 if (file == null) {
                     Toast.makeText(requireActivity(), "No db file", Toast.LENGTH_SHORT).show()
                 } else {
@@ -314,7 +318,7 @@ class SongDetailFragment : Fragment() {
 
             } else {
                 val oneDifficulty =
-                    DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+                    DereDatabaseService.theInstance.parsedFumenCache[Pair(
                         this.item!!.id,
                         difficulty
                     )]?.difficulties?.get(difficulty)

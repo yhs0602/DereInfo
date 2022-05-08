@@ -1,14 +1,14 @@
 package com.kyhsgeekcode.dereinfo
 
 import com.google.gson.GsonBuilder
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
 import com.kyhsgeekcode.dereinfo.model.MusicInfo
 import com.kyhsgeekcode.dereinfo.model.OneDifficultyData
 import com.kyhsgeekcode.dereinfo.model.StatisticIndex
 
 class TWWriter(val musicInfo: MusicInfo, val oneDifficultyData: OneDifficultyData) {
     val statistic =
-        DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(oneDifficultyData.difficulty)
+        DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(oneDifficultyData.difficulty)
 
     fun write(): String {
         val builder = StringBuilder()

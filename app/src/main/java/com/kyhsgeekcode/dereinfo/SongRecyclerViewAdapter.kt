@@ -16,7 +16,12 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.children
 import androidx.recyclerview.widget.RecyclerView
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+import com.kyhsgeekcode.dereinfo.enums.GameMode
 import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.ui.SongDetailActivity
+import com.kyhsgeekcode.dereinfo.ui.SongDetailFragment
+import com.kyhsgeekcode.dereinfo.ui.SongListActivity
 import com.wanakanajava.WanaKanaJava
 import kotlinx.android.synthetic.main.song_list_content.view.*
 import net.crizin.KoreanRomanizer
@@ -95,7 +100,7 @@ class SongRecyclerViewAdapter(
             tag = item
             setOnClickListener(onClickListener)
         }
-        val statistic = DereDatabaseHelper.theInstance.musicInfoIDToStatistic[item.id]
+        val statistic = DereDatabaseService.theInstance.musicInfoIDToStatistic[item.id]
         val currentStatistic = statistic?.get(currentDifficulty)
         Log.d(TAG, "statistic:${currentStatistic.toString()}")
         with(holder) {

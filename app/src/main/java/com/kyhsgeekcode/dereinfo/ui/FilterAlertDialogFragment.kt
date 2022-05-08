@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.app.Dialog
 import android.content.Context
@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.CompoundButton
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import com.kyhsgeekcode.dereinfo.R
 import kotlinx.android.synthetic.main.dialog_filter.view.*
 
 

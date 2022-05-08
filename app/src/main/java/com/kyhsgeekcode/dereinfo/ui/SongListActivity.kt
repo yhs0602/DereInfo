@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.app.Instrumentation
 import android.content.ActivityNotFoundException
@@ -16,13 +16,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.*
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.kyhsgeekcode.dereinfo.R
 import com.kyhsgeekcode.dereinfo.R.id.*
-import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.SongRecyclerViewAdapter
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+import com.kyhsgeekcode.dereinfo.enums.GameMode
+import com.kyhsgeekcode.dereinfo.model.MusicInfo
+import com.kyhsgeekcode.dereinfo.model.SortType
+import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
 import com.kyhsgeekcode.dereinfo.viewmodel.SongListViewModel
-import com.kyhsgeekcode.dereinfo.worker.ExportMusicWorker
 import com.tingyik90.snackprogressbar.SnackProgressBar
 import com.tingyik90.snackprogressbar.SnackProgressBarManager
 import com.xeinebiu.suspend.dialogs.SuspendAlertDialog
@@ -31,10 +37,8 @@ import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
 import java.io.Serializable
+import kotlin.collections.set
 
 
 /**
@@ -170,7 +174,7 @@ class SongListActivity : AppCompatActivity(),
             finish()
             return
         }
-        songListViewModel.loadDatabase()
+        songListViewModel.loadDatabase(publisher, onFinish)
     }
 
     private fun refreshMode(gamemode: GameMode) {
@@ -183,7 +187,6 @@ class SongListActivity : AppCompatActivity(),
         song_list.adapter = adapter
         adapter.notifyDataSetChanged()
         adapter.filter?.filter("")
-
     }
 
     private fun refreshCache(
@@ -191,17 +194,7 @@ class SongListActivity : AppCompatActivity(),
         onFinish: () -> Unit
     ) {
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
-        CoroutineScope(Dispatchers.IO).launch {
-            if (!dereDatabaseHelper.refreshCache(
-                    this@SongListActivity,
-                    publisher,
-                    onFinish
-                )
-            ) {
-                onFailedLoadDatabase()
-            }
-            pullToRefresh.isRefreshing = false
-        }
+        songListViewModel.refreshCache(publisher, onFinish)
     }
 
     private fun onFailedLoadDatabase() {
@@ -296,18 +289,7 @@ class SongListActivity : AppCompatActivity(),
     }
 
     private fun exportMusicBackground(uri: Uri) {
-        val exportWorkRequest = OneTimeWorkRequestBuilder<ExportMusicWorker>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .setInputData(
-                Data.Builder()
-                    .putString(ExportMusicWorker.KEY_OUTPUT_URI, uri.toString())
-                    .putString(
-                        ExportMusicWorker.KEY_INPUT_FOLDER,
-                        DereDatabaseHelper.theInstance.musicFolder.path
-                    )
-                    .build()
-            )
-            .build()
+        val exportWorkRequest = songListViewModel.exportWorkRequest(uri)
         WorkManager.getInstance(this)
             .enqueueUniqueWork("music export", ExistingWorkPolicy.REPLACE, exportWorkRequest)
     }
@@ -366,33 +348,7 @@ class SongListActivity : AppCompatActivity(),
                     circularType,
                     SnackProgressBarManager.LENGTH_INDEFINITE
                 )
-                withContext(Dispatchers.IO) {
-                    try {
-                        contentResolver.openFileDescriptor(uri, "w")?.use {
-                            FileOutputStream(it.fileDescriptor).use { fos ->
-                                val list = adapter.getImmutableItemList()
-                                dereDatabaseHelper.exportTW(
-                                    list,
-                                    checkedDifficulties,
-                                    fos
-                                ) { progress, message ->
-                                    withContext(Dispatchers.Main) {
-                                        circularType.setProgressMax(list.size)
-                                        snackProgressBarManager.setProgress(progress)
-                                        if (message != null) {
-                                            circularType.setMessage(message)
-                                        }
-                                        snackProgressBarManager.updateTo(circularType)
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e: FileNotFoundException) {
-                        Timber.d(e, "File not found")
-                    } catch (e: IOException) {
-                        Timber.d(e, "IOExcpetipon")
-                    }
-                }
+                songListViewModel.reallyExportTw(contentResolver, uri)
                 snackProgressBarManager.dismiss()
             }
         }
@@ -422,7 +378,7 @@ class SongListActivity : AppCompatActivity(),
     }
 
     override fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>) {
-        Log.d(TAG, "Permitted:${checked.toList().joinToString()}")
+        Timber.d("Permitted:" + checked.toList().joinToString())
         checkedFilters = HashMap()
         checkedFilters!!.putAll(checked)
         val permittedType: MutableList<CircleType> = ArrayList()

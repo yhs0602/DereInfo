@@ -1,6 +1,5 @@
 package com.kyhsgeekcode.dereinfo.model
 
-import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
@@ -10,7 +9,8 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.kyhsgeekcode.dereinfo.*
 import com.kyhsgeekcode.dereinfo.cardunit.*
 import com.kyhsgeekcode.dereinfo.dereclient.AssetDownloader
-import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
+import com.kyhsgeekcode.dereinfo.enums.CircleType.Companion.getColor
+import com.kyhsgeekcode.dereinfo.enums.FlickMode
 import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
@@ -25,7 +25,7 @@ import kotlin.collections.set
 
 //This allows access to dere database
 @Singleton
-class DereDatabaseHelper @Inject constructor(private val context: Context) {
+class DereDatabaseService @Inject constructor(filesDir: File) {
     val TAG = "DereDBHelper"
 
     //    val manifestFile: File
@@ -224,17 +224,17 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
 
 
     val mainDBFileCachename = "maindb.dat"
-    val mainDBFileCacheFile = File(context.filesDir, mainDBFileCachename)
+    val mainDBFileCacheFile = File(filesDir, mainDBFileCachename)
     val musicInfoFilename = "musicIDToInfo.dat"
     val indexToFumenFileFilename = "indexToFumenFile.dat"
-    val musicInfoFile = File(context.filesDir, musicInfoFilename)
-    val indexToFumenFileFile = File(context.filesDir, indexToFumenFileFilename)
+    val musicInfoFile = File(filesDir, musicInfoFilename)
+    val indexToFumenFileFile = File(filesDir, indexToFumenFileFilename)
     val musicNumberToMusicIDFileName = "musicNumberToMusicID.dat"
-    val musicNumberToMusicIDFile = File(context.filesDir, musicNumberToMusicIDFileName)
+    val musicNumberToMusicIDFile = File(filesDir, musicNumberToMusicIDFileName)
     val musicIDToMusicNumberFileName = "musicIDToMusicNumber.dat"
-    val musicIDToMusicNumberFile = File(context.filesDir, musicIDToMusicNumberFileName)
+    val musicIDToMusicNumberFile = File(filesDir, musicIDToMusicNumberFileName)
     val musicInfoIDToStatisticFileName = "musicInfoIDToStatistic.dat"
-    val musicInfoIDToStatisticFile = File(context.filesDir, musicInfoIDToStatisticFileName)
+    val musicInfoIDToStatisticFile = File(filesDir, musicInfoIDToStatisticFileName)
 
     private fun saveToCache() {
 //        searchMainDB()
@@ -253,9 +253,9 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
         saveObject(musicInfoIDToStatisticFile, musicInfoIDToStatistic)
     }
 
-    private fun loadFromCache(context: Context): Boolean {
+    private fun loadFromCache(): Boolean {
         try {
-            loadFromCache_(context)
+            loadFromCache_()
             if (musicIDToInfo.isEmpty())
                 return false
             if (musicNumberToFumenFile.isEmpty())
@@ -267,7 +267,7 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
         }
     }
 
-    private fun loadFromCache_(context: Context) {
+    private fun loadFromCache_() {
         loadFumenDBFileFromCache()
         musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicInfo>
         musicNumberToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
@@ -294,7 +294,7 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
         onFinish: () -> Unit
     ): Boolean {
         try {
-            if (loadFromCache(context) && !refresh) {
+            if (loadFromCache() && !refresh) {
                 for (musicInfo in musicIDToInfo.values.withIndex()) {
                     publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value, null)
                 }
@@ -480,7 +480,7 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
 
     // Music ID
     val parsedFumenCache: FileDataCache<Pair<musicID, TW5Difficulty>, OneMusic> =
-        FileDataCache(context.filesDir.resolve("parsedFumen").apply {
+        FileDataCache(filesDir.resolve("parsedFumen").apply {
             createNewFile()
         }) { key ->
             val musicInfo = musicIDToInfo[key.first] ?: return@FileDataCache null
@@ -830,19 +830,14 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
 
     //
     private fun initSkillAndLeaderSkillData() {
-        Log.d(TAG, "QueryToList Test start")
+        Timber.d("QueryToList Test start")
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
-        cardModels = queryToList(fumensDB, "card_data")
-        skillModels = queryToList(fumensDB, "skill_data")
-        leaderSkillModels = queryToList(fumensDB, "leader_skill_data")
-        skillBoostModels = queryToList(fumensDB, "skill_boost_type")
-//        initSkillToBoostModel()
         motifModels = queryToList(fumensDB, "skill_motif_value")
         motifModelsGrand = queryToList(fumensDB, "skill_motif_value_grand")
         lifeSparkleModels = queryToList(fumensDB, "skill_life_value")
         lifeSparkleModelsGrand = queryToList(fumensDB, "skill_life_value_grand")
-        Log.d(TAG, "QueryToList Test end")
+        Timber.d("QueryToList Test end")
     }
 
     fun motifBonus(appeal: Int, type: Int, isGrand: Boolean = false): Int {
@@ -914,26 +909,10 @@ class DereDatabaseHelper @Inject constructor(private val context: Context) {
         zos.close()
     }
 
-//    fun initSkillToBoostModel() {
-//        val values = skillBoostModels.map {
-//            it.skill_value
-//        }
-//        val maxValue = values.max() ?: 0
-//        skillValueToBoostModel = arrayOfNulls(maxValue)
-//        skillBoostModels.forEach {
-//            skillValueToBoostModel[it.skill_value] = it
-//        }
-//    }
 
-    lateinit var cardModels: List<CardModel>
-    lateinit var skillModels: List<SkillModel>
-    lateinit var leaderSkillModels: List<LeaderSkillModel>
-    lateinit var skillBoostModels: List<SkillBoostModel>
     lateinit var motifModels: List<SkillMotifValueModel>
     lateinit var motifModelsGrand: List<SkillMotifValueModel>
     lateinit var lifeSparkleModels: List<SkillLifeValueModel>
     lateinit var lifeSparkleModelsGrand: List<SkillLifeValueModel>
-//    lateinit var skillValueToBoostModel: Array<SkillBoostModel?>
-
 }
 
