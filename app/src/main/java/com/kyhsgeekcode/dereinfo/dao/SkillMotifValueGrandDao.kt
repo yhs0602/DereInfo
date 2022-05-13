@@ -7,5 +7,5 @@ import com.kyhsgeekcode.dereinfo.cardunit.SkillMotifValueGrandModel
 @Dao
 interface SkillMotifValueGrandDao {
     @Query("SELECT * FROM skill_motif_value_grand")
-    suspend fun getAllSkillLifeValueGrand(): List<SkillMotifValueGrandModel>
+    suspend fun getAllSkillMotifValueGrand(): List<SkillMotifValueGrandModel>
 }

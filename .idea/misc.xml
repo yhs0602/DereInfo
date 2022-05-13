@@ -9,6 +9,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/layout/activity_song_detail.xml" value="0.3541666666666667" />
+        <entry key="app/src/main/res/layout/activity_song_list.xml" value="0.3541666666666667" />
+        <entry key="app/src/main/res/layout/song_list.xml" value="0.3161231884057971" />
+        <entry key="app/src/main/res/layout/song_list_content.xml" value="0.3161231884057971" />
         <entry key="app/src/main/res/menu/main_menu.xml" value="0.3541666666666667" />
       </map>
     </option>

@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
-import com.kyhsgeekcode.dereinfo.model.MusicInfo
+import com.kyhsgeekcode.dereinfo.model.MusicData
 import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
 import com.kyhsgeekcode.dereinfo.viewmodel.FumenViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,10 +19,10 @@ import timber.log.Timber
 @AndroidEntryPoint
 class FumenFragment : Fragment() {
     companion object {
-        fun newInstance(musicInfo: MusicInfo, tW5Difficulty: TW5Difficulty) =
+        fun newInstance(musicData: MusicData, tW5Difficulty: TW5Difficulty) =
             FumenFragment().apply {
                 val args = Bundle()
-                args.putSerializable("musicInfo", musicInfo)
+                args.putSerializable("musicInfo", musicData)
                 args.putSerializable("tw5Difficulty", tW5Difficulty)
                 arguments = args
             }
@@ -37,17 +37,17 @@ class FumenFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fumen_fragment, container, false)
         val context = requireContext()
-        val musicInfo: MusicInfo
+        val musicData: MusicData
         val tw5Difficulty: TW5Difficulty
         requireArguments().let {
-            musicInfo = it.getSerializable("musicInfo") as MusicInfo
+            musicData = it.getSerializable("musicInfo") as MusicData
             tw5Difficulty = it.getSerializable("tw5Difficulty") as TW5Difficulty
-            Timber.d("musicInfo:$musicInfo, tw5Difficulty:$tw5Difficulty")
+            Timber.d("musicInfo:$musicData, tw5Difficulty:$tw5Difficulty")
         }
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
             DereDatabaseService.theInstance.parsedFumenCache[Pair(
-                musicInfo.id,
+                musicData.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
         if (oneDifficulty == null) {

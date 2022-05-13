@@ -1,10 +1,10 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import androidx.room.Entity
 import com.kyhsgeekcode.dereinfo.enums.CircleType
 
-@Entity(tableName = "card_data")
+
 class CardData(
+    val id: Int,
     val name: String,
     val type: CircleType,
     val rarity: Rarity,

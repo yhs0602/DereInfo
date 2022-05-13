@@ -14,7 +14,6 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.github.chrisbanes.photoview.PhotoView
-import com.kyhsgeekcode.dereinfo.FumenFragment
 import com.kyhsgeekcode.dereinfo.FumenRenderer
 import com.kyhsgeekcode.dereinfo.R
 import com.kyhsgeekcode.dereinfo.model.*
@@ -39,10 +38,6 @@ import java.util.zip.ZipOutputStream
  */
 @AndroidEntryPoint
 class SongDetailFragment : Fragment() {
-    private var item: MusicInfo? = null
-    private var oneMusic: OneMusic? = null
-    private var difficulty: TW5Difficulty = TW5Difficulty.Debut
-    private var bitmap: Bitmap? = null
     private val songDetailViewModel: SongDetailViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +49,7 @@ class SongDetailFragment : Fragment() {
                 // Load the dummy content specified by the fragment
                 // arguments. In a real-world scenario, use a Loader
                 // to load content from a content provider.
+                songDetailViewModel.initialize(it.getString(ARG_ITEM_ID))
                 item = DereDatabaseService.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
                 activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
                 activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
@@ -199,24 +195,24 @@ class SongDetailFragment : Fragment() {
     }
 
     private fun showFumen2(
-        musicInfo: MusicInfo,
+        musicData: MusicData,
         tw5Difficulty: TW5Difficulty
     ) {
         parentFragmentManager.beginTransaction()
             .replace(
                 R.id.song_detail_container,
-                FumenFragment.newInstance(musicInfo, tw5Difficulty)
+                FumenFragment.newInstance(musicData, tw5Difficulty)
             ).addToBackStack(null)
             .commit()
     }
 
 
-    private fun createFumenBitmap(musicInfo: MusicInfo, tw5Difficulty: TW5Difficulty): Bitmap? {
+    private fun createFumenBitmap(musicData: MusicData, tw5Difficulty: TW5Difficulty): Bitmap? {
         val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
             DereDatabaseService.theInstance.parsedFumenCache[Pair(
-                musicInfo.id,
+                musicData.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
         if (oneDifficulty == null) {
@@ -244,14 +240,14 @@ class SongDetailFragment : Fragment() {
     }
 
     private fun showFumen(
-        musicInfo: MusicInfo,
+        musicData: MusicData,
         tw5Difficulty: TW5Difficulty
     ) {
         val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
             DereDatabaseService.theInstance.parsedFumenCache[Pair(
-                musicInfo.id,
+                musicData.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
         if (oneDifficulty == null) {
@@ -278,7 +274,7 @@ class SongDetailFragment : Fragment() {
         val photoView = PhotoView(context)
         photoView.setImageBitmap(bitmap)
         val alertDialog = AlertDialog.Builder(context)
-            .setTitle("${musicInfo.name} (${oneDifficulty.difficulty})")
+            .setTitle("${musicData.name} (${oneDifficulty.difficulty})")
             .setView(photoView).show().setOnCancelListener {
                 bitmap.recycle()
             }

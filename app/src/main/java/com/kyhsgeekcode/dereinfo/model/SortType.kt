@@ -21,31 +21,31 @@ enum class SortType(val value: Int) {
     Total11(17)
     ;
 
-    fun condition(musicInfo: MusicInfo, difficulty: TW5Difficulty): Any {
-        val statistic =
-            DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(difficulty)
-        return when (this) {
-            Data -> musicInfo.id
-            Alphabetical -> if (musicInfo.nameKana.isBlank()) musicInfo.nameKana else musicInfo.name
-            TotalNote -> statistic?.get(StatisticIndex.Total) ?: 0.0f
-            LongRatio -> statistic?.get(StatisticIndex.Long) ?: 0.0f
-            FlickRatio -> statistic?.get(StatisticIndex.Flick) ?: 0.0f
-            SlideRatio -> statistic?.get(StatisticIndex.Slide) ?: 0.0f
-            Long7 -> statistic?.get(StatisticIndex.Long7) ?: 0.0f
-            Long9 -> statistic?.get(StatisticIndex.Long9) ?: 0.0f
-            Long11 -> statistic?.get(StatisticIndex.Long11) ?: 0.0f
-            Flick7 -> statistic?.get(StatisticIndex.Flick7) ?: 0.0f
-            Flick9 -> statistic?.get(StatisticIndex.Flick9) ?: 0.0f
-            Flick11 -> statistic?.get(StatisticIndex.Flick11) ?: 0.0f
-            Slide7 -> statistic?.get(StatisticIndex.Slide7) ?: 0.0f
-            Slide9 -> statistic?.get(StatisticIndex.Slide9) ?: 0.0f
-            Slide11 -> statistic?.get(StatisticIndex.Slide11) ?: 0.0f
-            Total7 -> statistic?.get(StatisticIndex.Total7) ?: 0.0f
-            Total9 -> statistic?.get(StatisticIndex.Total9) ?: 0.0f
-            Total11 -> statistic?.get(StatisticIndex.Total11) ?: 0.0f
-
-        }
-    }
+//    fun condition(musicData: MusicData, difficulty: TW5Difficulty): Any {
+//        val statistic =
+//            DereDatabaseService.theInstance.musicInfoIDToStatistic[musicData.id]?.get(difficulty)
+//        return when (this) {
+//            Data -> musicData.id
+//            Alphabetical -> if (musicData.name_kana.isBlank()) musicData.name_kana else musicData.name
+//            TotalNote -> statistic?.get(StatisticIndex.Total) ?: 0.0f
+//            LongRatio -> statistic?.get(StatisticIndex.Long) ?: 0.0f
+//            FlickRatio -> statistic?.get(StatisticIndex.Flick) ?: 0.0f
+//            SlideRatio -> statistic?.get(StatisticIndex.Slide) ?: 0.0f
+//            Long7 -> statistic?.get(StatisticIndex.Long7) ?: 0.0f
+//            Long9 -> statistic?.get(StatisticIndex.Long9) ?: 0.0f
+//            Long11 -> statistic?.get(StatisticIndex.Long11) ?: 0.0f
+//            Flick7 -> statistic?.get(StatisticIndex.Flick7) ?: 0.0f
+//            Flick9 -> statistic?.get(StatisticIndex.Flick9) ?: 0.0f
+//            Flick11 -> statistic?.get(StatisticIndex.Flick11) ?: 0.0f
+//            Slide7 -> statistic?.get(StatisticIndex.Slide7) ?: 0.0f
+//            Slide9 -> statistic?.get(StatisticIndex.Slide9) ?: 0.0f
+//            Slide11 -> statistic?.get(StatisticIndex.Slide11) ?: 0.0f
+//            Total7 -> statistic?.get(StatisticIndex.Total7) ?: 0.0f
+//            Total9 -> statistic?.get(StatisticIndex.Total9) ?: 0.0f
+//            Total11 -> statistic?.get(StatisticIndex.Total11) ?: 0.0f
+//
+//        }
+//    }
 
     fun hasStatisticCondition(): Boolean = when (this) {
         Data -> false

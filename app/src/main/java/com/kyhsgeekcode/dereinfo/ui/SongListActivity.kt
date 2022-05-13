@@ -5,28 +5,34 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.Menu
 import android.view.MenuItem
-import android.widget.SearchView
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.DialogFragment
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.*
+import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
-import com.kyhsgeekcode.dereinfo.R
 import com.kyhsgeekcode.dereinfo.R.id.*
-import com.kyhsgeekcode.dereinfo.SongRecyclerViewAdapter
 import com.kyhsgeekcode.dereinfo.enums.CircleType
 import com.kyhsgeekcode.dereinfo.enums.GameMode
-import com.kyhsgeekcode.dereinfo.model.MusicInfo
-import com.kyhsgeekcode.dereinfo.model.SortType
+import com.kyhsgeekcode.dereinfo.model.MusicData
 import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
 import com.kyhsgeekcode.dereinfo.viewmodel.SongListViewModel
 import com.tingyik90.snackprogressbar.SnackProgressBar
@@ -37,8 +43,6 @@ import kotlinx.android.synthetic.main.activity_song_list.*
 import kotlinx.android.synthetic.main.song_list.*
 import kotlinx.coroutines.*
 import timber.log.Timber
-import java.io.Serializable
-import kotlin.collections.set
 
 
 /**
@@ -50,11 +54,7 @@ import kotlin.collections.set
  * item details side-by-side using two vertical panes.
  */
 @AndroidEntryPoint
-class SongListActivity : AppCompatActivity(),
-    FilterAlertDialogFragment.FilterDialogListener,
-    SortAlertDialogFragment.SortDialogListener {
-    val TAG = "SongListActivity"
-
+class SongListActivity : AppCompatActivity() {
     private val songListViewModel: SongListViewModel by viewModels()
 
     private val snackProgressBarManager by lazy {
@@ -68,7 +68,6 @@ class SongListActivity : AppCompatActivity(),
             .setIsIndeterminate(false)
             .setAllowUserInput(false)
 
-    private lateinit var adapter: SongRecyclerViewAdapter
 
     val RC_ACTIVITY_FOR_RESULT = 101
     internal var deffered = CompletableDeferred<Instrumentation.ActivityResult>()
@@ -101,12 +100,12 @@ class SongListActivity : AppCompatActivity(),
      * device.
      */
     private var twoPane: Boolean = false
-    private val publisher: (Int, Int, MusicInfo?, String?) -> Unit =
+    private val publisher: (Int, Int, MusicData?, String?) -> Unit =
         { total, progress, info, message ->
             CoroutineScope(Dispatchers.Main).launch {
                 circularType.setProgressMax(total)
-                if (info != null)
-                    adapter.addItem(info)
+//                if (info != null)
+//                    adapter.addItem(info)
                 snackProgressBarManager.setProgress(progress)
                 if (message != null) {
                     circularType.setMessage(message)
@@ -115,32 +114,21 @@ class SongListActivity : AppCompatActivity(),
             }
         }
     val onFinish: () -> Unit = {
-        runOnUiThread {
-            adapter.notifyDataSetChanged()
-        }
         snackProgressBarManager.dismiss()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_song_list)
 
-        setSupportActionBar(toolbar)
-        toolbar.title = title
-
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "What to do?", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
-        if (twoPane) {
-            fab.hide()
-        } else {
-            fab.show()
-        }
-
-        pullToRefresh.setOnRefreshListener {
-            pullToRefresh.isRefreshing = false
-//            refreshCache(publisher, onFinish)
+        setContent {
+            Column {
+                TabTitles(songListViewModel.selectedTabIndex, songListViewModel::onTabClicked)
+                LazyColumn {
+                    items(songListViewModel.filteredSongs) { item ->
+                        OneSongRow(item, songListViewModel.currentDifficulty)
+                    }
+                }
+            }
         }
 
         tl_song_list_modes.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -157,16 +145,9 @@ class SongListActivity : AppCompatActivity(),
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
 
-        if (song_detail_container != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            twoPane = true
-        }
-        adapter = setupRecyclerView(song_list)
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
         try {
+            songListViewModel.loadDatabase(publisher, onFinish)
         } catch (e: Exception) {
             Timber.e(e, "Failed to find database")
             Toast.makeText(this, "Failed to find database", Toast.LENGTH_SHORT).show()
@@ -174,23 +155,23 @@ class SongListActivity : AppCompatActivity(),
             finish()
             return
         }
-        songListViewModel.loadDatabase(publisher, onFinish)
     }
 
-    private fun refreshMode(gamemode: GameMode) {
-        adapter.userFilter.shouldHaveGrand = gamemode == GameMode.GRAND
-        adapter.userFilter.shouldHaveMasterPlus = gamemode == GameMode.MASTERPLUS
-        adapter.userFilter.shouldHaveSmart = gamemode == GameMode.SMART
-        adapter.userFilter.shouldHaveWitch = gamemode == GameMode.WITCH
 
-        adapter.gameMode = gamemode
-        song_list.adapter = adapter
-        adapter.notifyDataSetChanged()
-        adapter.filter?.filter("")
+    private fun refreshMode(gamemode: GameMode) {
+//        adapter.userFilter.shouldHaveGrand = gamemode == GameMode.GRAND
+//        adapter.userFilter.shouldHaveMasterPlus = gamemode == GameMode.MASTERPLUS
+//        adapter.userFilter.shouldHaveSmart = gamemode == GameMode.SMART
+//        adapter.userFilter.shouldHaveWitch = gamemode == GameMode.WITCH
+//
+//        adapter.gameMode = gamemode
+//        song_list.adapter = adapter
+//        adapter.notifyDataSetChanged()
+//        adapter.filter?.filter("")
     }
 
     private fun refreshCache(
-        publisher: (Int, Int, MusicInfo?, String?) -> Unit,
+        publisher: (Int, Int, MusicData?, String?) -> Unit,
         onFinish: () -> Unit
     ) {
         snackProgressBarManager.show(circularType, SnackProgressBarManager.LENGTH_INDEFINITE)
@@ -236,28 +217,6 @@ class SongListActivity : AppCompatActivity(),
         snackProgressBarManager.disable()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean { // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main_menu, menu)
-        val search_item = menu.findItem(app_bar_search)
-        val searchView: SearchView = search_item.actionView as SearchView
-        searchView.isFocusable = false
-        searchView.queryHint = "Search"
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(s: String): Boolean {
-                constraint = s
-                adapter.filter?.filter(constraint)
-                return false
-            }
-
-            override fun onQueryTextChange(s: String?): Boolean {
-                constraint = s ?: ""
-                adapter.filter?.filter(constraint)
-                return false
-            }
-        })
-        return true
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -266,11 +225,11 @@ class SongListActivity : AppCompatActivity(),
         when (id) {
             app_bar_sort -> {
                 val sortAlertDialogFragment = SortAlertDialogFragment()
-                sortAlertDialogFragment.show(supportFragmentManager, "sortFragment")
+//                sortAlertDialogFragment.show(supportFragmentManager, "sortFragment")
             }
             app_bar_filter -> {
-                val filterAlertDialogFragment = FilterAlertDialogFragment(checkedFilters)
-                filterAlertDialogFragment.show(supportFragmentManager, "filterFragment")
+//                val filterAlertDialogFragment = FilterAlertDialogFragment(checkedFilters)
+//                filterAlertDialogFragment.show(supportFragmentManager, "filterFragment")
             }
             app_bar_refresh -> {
                 refreshCache(publisher, onFinish)
@@ -354,104 +313,149 @@ class SongListActivity : AppCompatActivity(),
         }
     }
 
-    private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
-        val adapter = SongRecyclerViewAdapter(this, twoPane)
-        adapter.userFilter.addFilter(
-            CircleType.All,
-            CircleType.Cute,
-            CircleType.Cool,
-            CircleType.Passion
-        )
-        recyclerView.adapter = adapter
-        recyclerView.addItemDecoration(
-            DividerItemDecoration(
-                this,
-                DividerItemDecoration.VERTICAL
-            )
-        )
-        return adapter
-    }
+//    private fun setupRecyclerView(recyclerView: RecyclerView): SongRecyclerViewAdapter {
+//        val adapter = SongRecyclerViewAdapter(this, twoPane)
+//        adapter.userFilter.addFilter(
+//            CircleType.All,
+//            CircleType.Cute,
+//            CircleType.Cool,
+//            CircleType.Passion
+//        )
+//        recyclerView.adapter = adapter
+//        recyclerView.addItemDecoration(
+//            DividerItemDecoration(
+//                this,
+//                DividerItemDecoration.VERTICAL
+//            )
+//        )
+//        return adapter
+//    }
 
-    private fun sortList() {
-        Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
-        adapter.sortBy(sortType, sortOrderAsc)
-    }
+//    private fun sortList() {
+//        Toast.makeText(this, "Sort by " + sortType.name, Toast.LENGTH_SHORT).show()
+//        adapter.sortBy(sortType, sortOrderAsc)
+//    }
 
-    override fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>) {
-        Timber.d("Permitted:" + checked.toList().joinToString())
-        checkedFilters = HashMap()
-        checkedFilters!!.putAll(checked)
-        val permittedType: MutableList<CircleType> = ArrayList()
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBAllType]!!) {
-            permittedType.add(CircleType.All)
-        }
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCute]!!) {
-            permittedType.add(CircleType.Cute)
-        }
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCool]!!) {
-            permittedType.add(CircleType.Cool)
-        }
-        if (checked[filterCBTypeAllCheck]!! || checked[filterCBPassion]!!) {
-            permittedType.add(CircleType.Passion)
-        }
-        Timber.d("Permitted2:" + permittedType.toTypedArray().joinToString())
-        adapter.userFilter.addFilter(*permittedType.toTypedArray())
-        adapter.userFilter.shouldHaveMasterPlus = checked[filterCBMasterPlus] ?: false
-        adapter.userFilter.shouldHaveSmart = checked[filterCBSmart] ?: false
-        adapter.userFilter.shouldHaveGrand = checked[filterCBGrand] ?: false
-        adapter.userFilter.shouldBeStarred = checked[filterCBStarred] ?: false
-        adapter.filter?.filter(constraint)
-        //sortList()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(SortType_KEY, sortType.value)
-        outState.putString(Constraint_KEY, constraint)
-        if (checkedFilters != null)
-            outState.putSerializable(Checked_KEY, checkedFilters as Serializable)
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        sortType = SortType.getByValue(savedInstanceState.getInt(SortType_KEY, 0))
-        constraint = savedInstanceState.getString(Constraint_KEY, "")
-        try {
-            checkedFilters =
-                savedInstanceState.getSerializable(Checked_KEY) as HashMap<Int, Boolean>?
-            if (checkedFilters == null)
-                checkedFilters = HashMap()
-            if (checkedFilters?.isEmpty() == true) {
-                checkedFilters!![filterCBTypeAllCheck] = true
-                checkedFilters!![filterCBCute] = true
-                checkedFilters!![filterCBCool] = true
-                checkedFilters!![filterCBPassion] = true
-                checkedFilters!![filterCBAllType] = true
-                checkedFilters!![filterCBMasterPlus] = true
-            }
-            onDialogPositiveClick(null, checkedFilters!!)
-            adapter.filter?.filter(constraint)
-        } catch (e: Exception) {
-            Log.e(TAG, "", e)
-        }
-    }
-
-    private var sortType: SortType = SortType.Data
-    private var sortOrderAsc: Boolean = true
-    private var constraint: String = ""
-    private var checkedFilters: HashMap<Int, Boolean>? = null
-    override fun onDialogPositiveClick(dialog: DialogFragment?, item: Int, ascending: Boolean) {
-        sortType = SortType.getByValue(item)
-        sortOrderAsc = ascending
-        sortList()
-    }
-
-    override fun onDialogNegativeClick(dialog: DialogFragment) {
-
-    }
-
+//    override fun onDialogPositiveClick(dialog: DialogFragment?, checked: Map<Int, Boolean>) {
+//        Timber.d("Permitted:" + checked.toList().joinToString())
+//        checkedFilters = HashMap()
+//        checkedFilters!!.putAll(checked)
+//        val permittedType: MutableList<CircleType> = ArrayList()
+//        if (checked[filterCBTypeAllCheck]!! || checked[filterCBAllType]!!) {
+//            permittedType.add(CircleType.All)
+//        }
+//        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCute]!!) {
+//            permittedType.add(CircleType.Cute)
+//        }
+//        if (checked[filterCBTypeAllCheck]!! || checked[filterCBCool]!!) {
+//            permittedType.add(CircleType.Cool)
+//        }
+//        if (checked[filterCBTypeAllCheck]!! || checked[filterCBPassion]!!) {
+//            permittedType.add(CircleType.Passion)
+//        }
+//        Timber.d("Permitted2:" + permittedType.toTypedArray().joinToString())
+//        adapter.userFilter.addFilter(*permittedType.toTypedArray())
+//        adapter.userFilter.shouldHaveMasterPlus = checked[filterCBMasterPlus] ?: false
+//        adapter.userFilter.shouldHaveSmart = checked[filterCBSmart] ?: false
+//        adapter.userFilter.shouldHaveGrand = checked[filterCBGrand] ?: false
+//        adapter.userFilter.shouldBeStarred = checked[filterCBStarred] ?: false
+//        adapter.filter?.filter(constraint)
+//        //sortList()
+//    }
+//
+//    override fun onSaveInstanceState(outState: Bundle) {
+//        super.onSaveInstanceState(outState)
+//        outState.putInt(SortType_KEY, sortType.value)
+//        outState.putString(Constraint_KEY, constraint)
+//        if (checkedFilters != null)
+//            outState.putSerializable(Checked_KEY, checkedFilters as Serializable)
+//    }
+//
+//    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+//        super.onRestoreInstanceState(savedInstanceState)
+//        sortType = SortType.getByValue(savedInstanceState.getInt(SortType_KEY, 0))
+//        constraint = savedInstanceState.getString(Constraint_KEY, "")
+//        try {
+//            checkedFilters =
+//                savedInstanceState.getSerializable(Checked_KEY) as HashMap<Int, Boolean>?
+//            if (checkedFilters == null)
+//                checkedFilters = HashMap()
+//            if (checkedFilters?.isEmpty() == true) {
+//                checkedFilters!![filterCBTypeAllCheck] = true
+//                checkedFilters!![filterCBCute] = true
+//                checkedFilters!![filterCBCool] = true
+//                checkedFilters!![filterCBPassion] = true
+//                checkedFilters!![filterCBAllType] = true
+//                checkedFilters!![filterCBMasterPlus] = true
+//            }
+//            onDialogPositiveClick(null, checkedFilters!!)
+//            adapter.filter?.filter(constraint)
+//        } catch (e: Exception) {
+//            Log.e(TAG, "", e)
+//        }
+//    }
+//
+//    override fun onDialogPositiveClick(dialog: DialogFragment?, item: Int, ascending: Boolean) {
+//        val sortType = SortType.getByValue(item)
+//        val sortOrderAsc = ascending
+//        songListViewModel.onChangeSortOption(sortType, sortOrderAsc)
+//        sortList()
+//    }
+//
+//    override fun onDialogNegativeClick(dialog: DialogFragment) {
+//
+//    }
 }
 
-const val SortType_KEY = "SortType"
-const val Constraint_KEY = "Constraint"
-const val Checked_KEY = "Checked"
+@Composable
+private fun TabTitles(selectedTabIndex: Int, onTabClicked: (Int) -> Unit) {
+    val titles = listOf("Normal", "Master+", "Witch", "Smart", "Grand")
+
+    TabRow(
+        selectedTabIndex = selectedTabIndex,
+        divider = {},
+//                backgroundColor = Colors.Grey[-1]!!,
+//                contentColor = Colors.Grey[7]!!,
+        indicator = { tabPositions ->
+            TabRowDefaults.Indicator(
+                Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+//                        color = Colors.SLBlue
+            )
+        }
+    ) {
+        titles.forEachIndexed { index, title ->
+            Tab(
+                text = {
+                    Text(
+                        title,
+                        fontSize = 16.sp,
+                        lineHeight = 24.sp,
+//                                color = Colors.Grey[7]!!,
+                        fontWeight = if (selectedTabIndex == index) FontWeight.W700 else FontWeight.W400
+                    )
+                },
+                selected = selectedTabIndex == index,
+                onClick = { onTabClicked(index) },
+            )
+        }
+    }
+}
+
+@Composable
+fun OneSongRow(item: MusicData, currentDifficulty: TW5Difficulty) {
+    Column {
+        Row {
+            Text(text = item.name, modifier = Modifier.weight(1f))
+//            Text(text = "lv ${item.}") // level
+            Icon(Icons.Default.Home, contentDescription = "Hello")
+//            Text(text = "${item.}") // note count
+        }
+        Text(text = item.composer)
+        DifficultyPane(item, currentDifficulty)
+    }
+}
+
+@Composable
+fun DifficultyPane(item: MusicData, currentDifficulty: TW5Difficulty) {
+
+}

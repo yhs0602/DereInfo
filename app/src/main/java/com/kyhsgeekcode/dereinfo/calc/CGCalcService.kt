@@ -4,10 +4,15 @@ import com.kyhsgeekcode.dereinfo.cardunit.*
 import com.kyhsgeekcode.dereinfo.enums.CircleType
 import com.kyhsgeekcode.dereinfo.equalsDelta
 import com.kyhsgeekcode.dereinfo.model.*
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
-object CGCalc {
+@Singleton
+class CGCalcService @Inject constructor(val dereDatabaseService: DereDatabaseService) {
 
     fun calculateBestUnit(
         cardPool: List<Card>,
@@ -85,7 +90,8 @@ object CGCalc {
         var life: Int = 0
         val skillsNow = HashSet<SkillModel>()
         val skillsEver = HashSet<SkillModel>()
-//        val skillsAll = liveParameter.unit.skills
+
+        //        val skillsAll = liveParameter.unit.skills
         var lastSkill: SkillModel? = null
         val maxScoreBonus: MutableMap<CGNoteType, Int> = mutableMapOf(
             CGNoteType.NORMAL to 0,
@@ -216,8 +222,7 @@ object CGCalc {
         val maxLife = life * 2
         val skillModels = arrayOfNulls<SkillModel>(5)
         for ((index, card) in unit.cards.withIndex()) {
-            skillModels[index] =
-                DereDatabaseService.theInstance.skillModels.find { it.id == card.cardData.skill_id }
+            skillModels[index] = dereDatabaseService.getSkillData(card.cardData.skill_id)
         }
         val isWorking = booleanArrayOf(false, false, false, false, false)
         val lastWorkTiming = floatArrayOf(0f, 0f, 0f, 0f, 0f)
@@ -351,19 +356,6 @@ object CGCalc {
         return totalScore
     }
 
-    private fun baseComboBonus(processedNotes: Int, totalNotes: Int): Float =
-        when ((processedNotes + 1) * 100 / totalNotes) {
-            in 0 until 5 -> 1.0f
-            in 5 until 10 -> 1.1f
-            in 10 until 25 -> 1.2f
-            in 25 until 50 -> 1.3f
-            in 50 until 70 -> 1.4f
-            in 70 until 80 -> 1.5f
-            in 80 until 90 -> 1.7f
-            in 90..100 -> 2.0f
-            else -> 2.0f
-        }
-
     private fun calculateBonus(
         note: Note,
         workingSkills: List<IndexedValue<SkillModel?>>,
@@ -415,17 +407,18 @@ object CGCalc {
         attributes: Array<Int>
     ): List<Triple<Int, Int, Int>> {
         return workingBoostSkills.map { boostSkill ->
-            DereDatabaseService.theInstance.skillBoostModels.asSequence().filter { boostModel ->
-                (boostModel.skill_value == boostSkill.value?.value)
-                        && (boostModel.target_type == skillModel.skill_type)
-                        && (boostModel.target_attribute == 0 || boostModel.target_attribute == attributes[boostSkill.index])
-            }.map { boostModel ->
-                Triple(
-                    boostModel.boost_value_1,
-                    boostModel.boost_value_2,
-                    boostModel.boost_value_3
-                )
-            }.firstOrNull() ?: Triple(100, 100, 0)
+//            dereDatabaseService.skillBoostModels.filter { boostModel ->
+//                (boostModel.skill_value == boostSkill.value?.value)
+//                        && (boostModel.target_type == skillModel.skill_type)
+//                        && (boostModel.target_attribute == 0 || boostModel.target_attribute == attributes[boostSkill.index])
+//            }.map { boostModel ->
+//                Triple(
+//                    boostModel.boost_value_1,
+//                    boostModel.boost_value_2,
+//                    boostModel.boost_value_3
+//                )
+//            }.firstOrNull() ?:
+            Triple(100, 100, 0)
         }
     }
 
@@ -572,4 +565,16 @@ object CGCalc {
 
 }
 
+fun baseComboBonus(processedNotes: Int, totalNotes: Int): Float =
+    when ((processedNotes + 1) * 100 / totalNotes) {
+        in 0 until 5 -> 1.0f
+        in 5 until 10 -> 1.1f
+        in 10 until 25 -> 1.2f
+        in 25 until 50 -> 1.3f
+        in 50 until 70 -> 1.4f
+        in 70 until 80 -> 1.5f
+        in 80 until 90 -> 1.7f
+        in 90..100 -> 2.0f
+        else -> 2.0f
+    }
 

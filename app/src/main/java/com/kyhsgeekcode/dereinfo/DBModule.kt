@@ -19,46 +19,46 @@ object DBModule {
     fun provideDatabase(
         @ApplicationContext context: Context,
         dbFile: File
-    ): AppDatabase = Room
-        .databaseBuilder(context, AppDatabase::class.java, dbFile.canonicalPath)
+    ): DeresuteDatabase = Room
+        .databaseBuilder(context, DeresuteDatabase::class.java, dbFile.canonicalPath)
         .createFromFile(dbFile)
         .build()
 
     @Singleton
     @Provides
-    fun provideCardDataDao(appDatabase: AppDatabase): CardDataDao = appDatabase.cardDataDao()
+    fun provideCardDataDao(deresuteDatabase: DeresuteDatabase): CardDataDao = deresuteDatabase.cardDataDao()
 
     @Singleton
     @Provides
-    fun provideSkillDataDao(appDatabase: AppDatabase): SkillDataDao = appDatabase.skillDataDao()
+    fun provideSkillDataDao(deresuteDatabase: DeresuteDatabase): SkillDataDao = deresuteDatabase.skillDataDao()
 
     @Singleton
     @Provides
-    fun provideLeaderSkillDataDao(appDatabase: AppDatabase): LeaderSkillDataDao =
-        appDatabase.leaderSkillDataDao()
+    fun provideLeaderSkillDataDao(deresuteDatabase: DeresuteDatabase): LeaderSkillDataDao =
+        deresuteDatabase.leaderSkillDataDao()
 
     @Singleton
     @Provides
-    fun provideSkillBoostTypeDao(appDatabase: AppDatabase): SkillBoostTypeDao =
-        appDatabase.skillBoostTypeDao()
+    fun provideSkillBoostTypeDao(deresuteDatabase: DeresuteDatabase): SkillBoostTypeDao =
+        deresuteDatabase.skillBoostTypeDao()
 
     @Singleton
     @Provides
-    fun provideSkillMotifValueDao(appDatabase: AppDatabase): SkillMotifValueDao =
-        appDatabase.skillMotifValueDao()
+    fun provideSkillMotifValueDao(deresuteDatabase: DeresuteDatabase): SkillMotifValueDao =
+        deresuteDatabase.skillMotifValueDao()
 
     @Singleton
     @Provides
-    fun provideSkillMotifValueGrandDao(appDatabase: AppDatabase): SkillMotifValueGrandDao =
-        appDatabase.skillMotifValueGrandDao()
+    fun provideSkillMotifValueGrandDao(deresuteDatabase: DeresuteDatabase): SkillMotifValueGrandDao =
+        deresuteDatabase.skillMotifValueGrandDao()
 
     @Singleton
     @Provides
-    fun provideSkillLifeValueDao(appDatabase: AppDatabase): SkillLifeValueDao =
-        appDatabase.skillLifeValueDao()
+    fun provideSkillLifeValueDao(deresuteDatabase: DeresuteDatabase): SkillLifeValueDao =
+        deresuteDatabase.skillLifeValueDao()
 
     @Singleton
     @Provides
-    fun provideSkillLifeValueGrandDao(appDatabase: AppDatabase): SkillLifeValueGrandDao =
-        appDatabase.skillLifeValueGrandDao()
+    fun provideSkillLifeValueGrandDao(deresuteDatabase: DeresuteDatabase): SkillLifeValueGrandDao =
+        deresuteDatabase.skillLifeValueGrandDao()
 }
