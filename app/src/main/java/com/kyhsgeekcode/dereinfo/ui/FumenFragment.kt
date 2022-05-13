@@ -1,32 +1,34 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
-import com.kyhsgeekcode.dereinfo.model.MusicInfo
+import androidx.fragment.app.viewModels
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
+import com.kyhsgeekcode.dereinfo.model.MusicData
 import com.kyhsgeekcode.dereinfo.model.TW5Difficulty
+import com.kyhsgeekcode.dereinfo.viewmodel.FumenViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fumen_fragment.view.*
+import timber.log.Timber
 
+@AndroidEntryPoint
 class FumenFragment : Fragment() {
-
     companion object {
-        fun newInstance(musicInfo: MusicInfo, tW5Difficulty: TW5Difficulty) =
+        fun newInstance(musicData: MusicData, tW5Difficulty: TW5Difficulty) =
             FumenFragment().apply {
                 val args = Bundle()
-                args.putSerializable("musicInfo", musicInfo)
+                args.putSerializable("musicInfo", musicData)
                 args.putSerializable("tw5Difficulty", tW5Difficulty)
                 arguments = args
             }
     }
 
-    private lateinit var viewModel: FumenViewModel
+    private val viewModel: FumenViewModel by viewModels()
 
     private var bitmap: Bitmap? = null
     override fun onCreateView(
@@ -35,17 +37,17 @@ class FumenFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fumen_fragment, container, false)
         val context = requireContext()
-        val musicInfo: MusicInfo
+        val musicData: MusicData
         val tw5Difficulty: TW5Difficulty
-        arguments!!.let {
-            musicInfo = it.getSerializable("musicInfo") as MusicInfo
+        requireArguments().let {
+            musicData = it.getSerializable("musicInfo") as MusicData
             tw5Difficulty = it.getSerializable("tw5Difficulty") as TW5Difficulty
-            Log.d("TAG", "musicInfo:$musicInfo, tw5Difficulty:$tw5Difficulty")
+            Timber.d("musicInfo:$musicData, tw5Difficulty:$tw5Difficulty")
         }
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
-            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
-                musicInfo.id,
+            DereDatabaseService.theInstance.parsedFumenCache[Pair(
+                musicData.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
         if (oneDifficulty == null) {
@@ -70,7 +72,7 @@ class FumenFragment : Fragment() {
             ).show()
             return root
         }
-        Log.d("TAG", "Bitmap: $bitmap")
+        Timber.d("Bitmap: $bitmap")
         root.pv_fumen.setImageBitmap(bitmap)
 //        saveImage(bitmap!!, requireContext(), "dereinfo")
         return root
@@ -80,11 +82,4 @@ class FumenFragment : Fragment() {
         super.onDestroy()
         bitmap?.recycle()
     }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(FumenViewModel::class.java)
-        // TODO: Use the ViewModel
-    }
-
 }

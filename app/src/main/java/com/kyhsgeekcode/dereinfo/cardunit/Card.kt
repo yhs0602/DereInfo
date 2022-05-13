@@ -1,16 +1,17 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.model.CircleType
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
 import kotlin.math.ceil
 
 class Card(
-    val cardData: CardModel,
+    val cardData: CardDataModel,
     var level: Int,
     var love: Int,
     var skillLevel: Int,
     var potential: Potential,
-    var owned: Boolean = false
+    var owned: Boolean = false,
+    val dereDatabaseService: DereDatabaseService
 ) {
     val theRarity = Rarity.fromInt(cardData.rarity)
     val maxLevel = theRarity.maxLevel
@@ -34,11 +35,10 @@ class Card(
     val life: Int
         get() = cardData.hp_min + if (isMaxLove) cardData.bonus_hp else 0
 
-    val skillModel: SkillModel? =
-        DereDatabaseHelper.theInstance.skillModels.find { it.id == cardData.skill_id }
+    val skillModel: SkillModel? = dereDatabaseService.getSkillData(cardData.skill_id)
 
     val leaderSkillModel: LeaderSkillModel? =
-        DereDatabaseHelper.theInstance.leaderSkillModels.find { it.id == cardData.leader_skill_id }
+        dereDatabaseService.getLeaderSkillData(cardData.leader_skill_id)
 
     val skillDuration: Float
         get() = if (skillModel == null) 0.0f else (skillModel.available_time_type + 1) * (1.0f + 0.05f * skillLevel)

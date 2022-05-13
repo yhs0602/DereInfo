@@ -1,16 +1,23 @@
 package com.kyhsgeekcode.dereinfo.model
 
-import android.content.Context
 import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import androidx.core.text.isDigitsOnly
 import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
-import com.kyhsgeekcode.dereinfo.*
+import com.kyhsgeekcode.dereinfo.FileDataCache
 import com.kyhsgeekcode.dereinfo.cardunit.*
+import com.kyhsgeekcode.dereinfo.checkIfDatabase
+import com.kyhsgeekcode.dereinfo.dao.SkillLifeValueDao
+import com.kyhsgeekcode.dereinfo.dao.SkillLifeValueGrandDao
+import com.kyhsgeekcode.dereinfo.dao.SkillMotifValueDao
+import com.kyhsgeekcode.dereinfo.dao.SkillMotifValueGrandDao
 import com.kyhsgeekcode.dereinfo.dereclient.AssetDownloader
-import com.kyhsgeekcode.dereinfo.model.CircleType.Companion.getColor
+import com.kyhsgeekcode.dereinfo.enums.CircleType.Companion.getColor
+import com.kyhsgeekcode.dereinfo.enums.FlickMode
+import com.kyhsgeekcode.dereinfo.loadObject
+import com.kyhsgeekcode.dereinfo.saveObject
 import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
@@ -18,37 +25,37 @@ import java.io.FileOutputStream
 import java.nio.charset.Charset
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.collections.set
 
 
 //This allows access to dere database
-class DereDatabaseHelper(context: Context) {
-    companion object {
-        lateinit var theInstance: DereDatabaseHelper
-
-
-    }
-
+@Singleton
+class DereDatabaseService @Inject constructor(
+    filesDir: File,
+    private val skillMotifValueDao: SkillMotifValueDao,
+    private val skillLifeValueDao: SkillLifeValueDao,
+    private val skillMotifValueGrandDao: SkillMotifValueGrandDao,
+    private val skillLifeValueGrandDao: SkillLifeValueGrandDao,
+) {
     val TAG = "DereDBHelper"
 
     //    val manifestFile: File
     var fumensDBFile: File = File("")
-    val fumenFolder: File
-    val musicFolder: File
+    val fumenFolder: File = File(filesDir, "a/")
+    val musicFolder: File = File(filesDir, "l/")
 
-    var musicIDToInfo: MutableMap<Int, MusicInfo> = HashMap()
+    var musicIDToInfo: MutableMap<Int, MusicData> = HashMap()
     var musicNumberToMusicID =
         HashMap<Int, Int>()  //SerializableSparseIntArray = SerializableSparseIntArray()
     var musicIDTomusicNumber = HashMap<Int, Int>() //  = SerializableSparseIntArray()
 
-    init {
-        val datadir =
-            "/sdcard/Android/data/" //context.getExternalFilesDir(null)!!.parentFile.parentFile
-        val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
-
-//        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
-        fumenFolder = File(dereFilesDir, "a/")
-        musicFolder = File(dereFilesDir, "l/")
+    //        val datadir =
+    //            "/sdcard/Android/data/" //context.getExternalFilesDir(null)!!.parentFile.parentFile
+    //        manifestFile = File(dereFilesDir, "manifest/").listFiles()[0]
+    //    val dereFilesDir = File(datadir, "jp.co.bandainamcoent.BNEI0242/files/")
+    suspend fun prepareDatabase() {
         AssetDownloader.download()
         try {
             loadFumenDBFileFromCache()
@@ -59,26 +66,14 @@ class DereDatabaseHelper(context: Context) {
     }
 
     private fun searchMainDB() {
-        var maxlen = 0L
-        var fumensDBFileTmp: File? = null
         Timber.d("fumenFolder:$fumenFolder")
-        for (file in fumenFolder.listFiles()) {
-            //Log.d(TAG, file.name)
-            val len = file.length()
-            if (len > maxlen) {
-                if (len > 10000000) {
-                    maxlen = len
-                    fumensDBFileTmp = file
-                    break
-                }
-            }
-            //Log.d(TAG, """$len""")
+        val fumensDBFileTmp = fumenFolder.listFiles()?.find {
+            it.length() > 1000_0000
         }
-        Timber.d("maxlen=" + maxlen / 1000)
         fumensDBFile = fumensDBFileTmp ?: error("No fumen file found")
     }
 
-    fun parseDatabases(publisher: (Int, Int, MusicInfo, String?) -> Unit) {
+    private fun parseDatabases(publisher: (Int, Int, MusicData, String?) -> Unit) {
         musicNumberToMusicID.clear()
         musicIDTomusicNumber.clear()
         musicIDToInfo.clear()
@@ -157,7 +152,7 @@ class DereDatabaseHelper(context: Context) {
             musicNumberToMusicID[liveDataId] = musicDataId
             musicIDTomusicNumber[musicDataId] = liveDataId
             //Log.w(TAG, "musicIDToMusicNumber[${musicDataId}]=${liveDataId}")
-            val musicInfo = MusicInfo(
+            val musicData = MusicData(
                 musicDataId,
                 name,
                 bpm,
@@ -168,16 +163,16 @@ class DereDatabaseHelper(context: Context) {
                 circleType,
                 nameKana
             )
-            musicIDToInfo[musicDataId] = musicInfo
+            musicIDToInfo[musicDataId] = musicData
             currentCount++
-            publisher(totalCount, currentCount, musicInfo, null)
+            publisher(totalCount, currentCount, musicData, null)
         }
         cursorLiveData.close()
         fumensDB.close()
     }
 
     var musicNumberToFumenFile: MutableMap<Int, File> = HashMap()
-    fun indexFumens(publisher: (Int, Int, MusicInfo?, String?) -> Unit) {
+    fun indexFumens(publisher: (Int, Int, MusicData?, String?) -> Unit) {
         musicNumberToFumenFile.clear()
         var cursorFumens: Cursor? = null
         val fileList = fumenFolder.listFiles()
@@ -227,17 +222,17 @@ class DereDatabaseHelper(context: Context) {
 
 
     val mainDBFileCachename = "maindb.dat"
-    val mainDBFileCacheFile = File(context.filesDir, mainDBFileCachename)
+    val mainDBFileCacheFile = File(filesDir, mainDBFileCachename)
     val musicInfoFilename = "musicIDToInfo.dat"
     val indexToFumenFileFilename = "indexToFumenFile.dat"
-    val musicInfoFile = File(context.filesDir, musicInfoFilename)
-    val indexToFumenFileFile = File(context.filesDir, indexToFumenFileFilename)
+    val musicInfoFile = File(filesDir, musicInfoFilename)
+    val indexToFumenFileFile = File(filesDir, indexToFumenFileFilename)
     val musicNumberToMusicIDFileName = "musicNumberToMusicID.dat"
-    val musicNumberToMusicIDFile = File(context.filesDir, musicNumberToMusicIDFileName)
+    val musicNumberToMusicIDFile = File(filesDir, musicNumberToMusicIDFileName)
     val musicIDToMusicNumberFileName = "musicIDToMusicNumber.dat"
-    val musicIDToMusicNumberFile = File(context.filesDir, musicIDToMusicNumberFileName)
+    val musicIDToMusicNumberFile = File(filesDir, musicIDToMusicNumberFileName)
     val musicInfoIDToStatisticFileName = "musicInfoIDToStatistic.dat"
-    val musicInfoIDToStatisticFile = File(context.filesDir, musicInfoIDToStatisticFileName)
+    val musicInfoIDToStatisticFile = File(filesDir, musicInfoIDToStatisticFileName)
 
     private fun saveToCache() {
 //        searchMainDB()
@@ -256,9 +251,9 @@ class DereDatabaseHelper(context: Context) {
         saveObject(musicInfoIDToStatisticFile, musicInfoIDToStatistic)
     }
 
-    private fun loadFromCache(context: Context): Boolean {
+    private fun loadFromCache(): Boolean {
         try {
-            loadFromCache_(context)
+            loadFromCache_()
             if (musicIDToInfo.isEmpty())
                 return false
             if (musicNumberToFumenFile.isEmpty())
@@ -270,9 +265,9 @@ class DereDatabaseHelper(context: Context) {
         }
     }
 
-    private fun loadFromCache_(context: Context) {
+    private fun loadFromCache_() {
         loadFumenDBFileFromCache()
-        musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicInfo>
+        musicIDToInfo = loadObject(musicInfoFile) as MutableMap<Int, MusicData>
         musicNumberToFumenFile = loadObject(indexToFumenFileFile) as MutableMap<Int, File>
         musicNumberToMusicID =
             loadObject(musicNumberToMusicIDFile) as HashMap<Int, Int> //as SerializableSparseIntArray
@@ -287,19 +282,17 @@ class DereDatabaseHelper(context: Context) {
     }
 
     suspend fun refreshCache(
-        context: Context,
-        publisher: (Int, Int, MusicInfo?, String?) -> Unit,
+        publisher: (Int, Int, MusicData?, String?) -> Unit,
         onFinish: () -> Unit
-    ): Boolean = load(context, true, publisher, onFinish)
+    ): Boolean = load(true, publisher, onFinish)
 
     suspend fun load(
-        context: Context,
         refresh: Boolean = false,
-        publisher: (Int, Int, MusicInfo?, String?) -> Unit,
+        publisher: (Int, Int, MusicData?, String?) -> Unit,
         onFinish: () -> Unit
     ): Boolean {
         try {
-            if (loadFromCache(context) && !refresh) {
+            if (loadFromCache() && !refresh) {
                 for (musicInfo in musicIDToInfo.values.withIndex()) {
                     publisher(musicIDToInfo.size, musicInfo.index, musicInfo.value, null)
                 }
@@ -369,7 +362,7 @@ class DereDatabaseHelper(context: Context) {
 //    }
 
     var musicInfoIDToStatistic = HashMap<Int, FumenStatistic>()
-    fun countFumens(publisher: (Int, Int, MusicInfo?, String?) -> Unit) {
+    fun countFumens(publisher: (Int, Int, MusicData?, String?) -> Unit) {
         musicInfoIDToStatistic.clear()
         for (musicInfo in musicIDToInfo.values.withIndex()) {
             musicInfoIDToStatistic[musicInfo.value.id] = countFumen(musicInfo.value)
@@ -378,13 +371,13 @@ class DereDatabaseHelper(context: Context) {
     }
 
     //Difficulty와 통계를 같이 낸다.
-    fun countFumen(musicInfo: MusicInfo): FumenStatistic {
+    fun countFumen(musicData: MusicData): FumenStatistic {
         val fumensDB =
             SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
-        val musicNumber = musicIDTomusicNumber[musicInfo.id]
+        val musicNumber = musicIDTomusicNumber[musicData.id]
         val fumenFile = musicNumberToFumenFile[musicNumber]
         if (fumenFile == null) {
-            Log.e(TAG, "fumenfile for id${musicInfo.id}(${musicInfo.name}) is null")
+            Log.e(TAG, "fumenfile for id${musicData.id}(${musicData.name}) is null")
             return HashMap()
         }
         val fumenDB =
@@ -485,7 +478,7 @@ class DereDatabaseHelper(context: Context) {
 
     // Music ID
     val parsedFumenCache: FileDataCache<Pair<musicID, TW5Difficulty>, OneMusic> =
-        FileDataCache(context.filesDir.resolve("parsedFumen").apply {
+        FileDataCache(filesDir.resolve("parsedFumen").apply {
             createNewFile()
         }) { key ->
             val musicInfo = musicIDToInfo[key.first] ?: return@FileDataCache null
@@ -494,15 +487,15 @@ class DereDatabaseHelper(context: Context) {
 
 
     //5개를 파싱해라.
-    fun parseFumen(musicInfo: MusicInfo, wantedDifficulty: TW5Difficulty): OneMusic? {
+    fun parseFumen(musicData: MusicData, wantedDifficulty: TW5Difficulty): OneMusic? {
         val fumenFile =
-            musicNumberToFumenFile[musicIDTomusicNumber[musicInfo.id]] ?: return null//wrong
+            musicNumberToFumenFile[musicIDTomusicNumber[musicData.id]] ?: return null//wrong
         val fumenDB =
             SQLiteDatabase.openDatabase(fumenFile.path, null, SQLiteDatabase.OPEN_READONLY)
         val cursorFumens =
             fumenDB.query("blobs", arrayOf("name", "data"), null, null, null, null, null)
         val difficulties: MutableMap<TW5Difficulty, OneDifficultyData> = HashMap()
-        val info = musicInfo
+        val info = musicData
         while (cursorFumens.moveToNext()) {
             var name = cursorFumens.getString(0)
             if (!name[name.length - 5].isDigit())
@@ -533,7 +526,7 @@ class DereDatabaseHelper(context: Context) {
         return OneMusic(difficulties, info)
     }
 
-    private fun parseDereFumenWitch(fumenStr: String, info: MusicInfo): List<Note> {
+    private fun parseDereFumenWitch(fumenStr: String, info: MusicData): List<Note> {
         val parsedFumen = csvReader().readAllWithHeader(fumenStr)
 //        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
 
@@ -607,7 +600,7 @@ class DereDatabaseHelper(context: Context) {
     // Flick note without group ID finishes a previous long note.
     private fun parseDereFumen(
         fumenStr: String,
-        musicInfo: MusicInfo
+        musicData: MusicData
     ): List<Note> {
         val parsedFumen = csvReader().readAllWithHeader(fumenStr)
 //        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
@@ -655,7 +648,7 @@ class DereDatabaseHelper(context: Context) {
             val theNote = Note(
                 currentNoteId,
                 0,
-                getColor(musicInfo.circleType),
+                getColor(musicData.circleType),
                 twMode,
                 flick,
                 row["sec"]!!.toFloat(),
@@ -677,10 +670,10 @@ class DereDatabaseHelper(context: Context) {
 
     private fun parseDereFumenGrand(
         fumenStr: String,
-        musicInfo: MusicInfo
+        musicData: MusicData
     ): List<Note> {
         val parsedFumen = csvReader().readAllWithHeader(fumenStr)
-        Log.d(TAG, "parsing Fumen; size ${parsedFumen.size}, fumenStr $fumenStr")
+        Timber.d("parsing Fumen; size " + parsedFumen.size + ", fumenStr " + fumenStr)
 
         val prevIDs = HashMap<Int, Int>()
         val longnoteIDs = HashMap<Float, Int>()
@@ -727,7 +720,7 @@ class DereDatabaseHelper(context: Context) {
             val theNote = Note(
                 idd,
                 width,
-                getColor(musicInfo.circleType),
+                getColor(musicData.circleType),
                 twMode,
                 flick,
                 row["sec"]!!.toFloat(),
@@ -834,30 +827,28 @@ class DereDatabaseHelper(context: Context) {
     }
 
     //
-    private fun initSkillAndLeaderSkillData() {
-        Log.d(TAG, "QueryToList Test start")
-        val fumensDB =
-            SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
-        cardModels = queryToList(fumensDB, "card_data")
-        skillModels = queryToList(fumensDB, "skill_data")
-        leaderSkillModels = queryToList(fumensDB, "leader_skill_data")
-        skillBoostModels = queryToList(fumensDB, "skill_boost_type")
-//        initSkillToBoostModel()
-        motifModels = queryToList(fumensDB, "skill_motif_value")
-        motifModelsGrand = queryToList(fumensDB, "skill_motif_value_grand")
-        lifeSparkleModels = queryToList(fumensDB, "skill_life_value")
-        lifeSparkleModelsGrand = queryToList(fumensDB, "skill_life_value_grand")
-        Log.d(TAG, "QueryToList Test end")
+    private suspend fun initSkillAndLeaderSkillData() {
+        Timber.d("QueryToList Test start")
+//        val fumensDB =
+//            SQLiteDatabase.openDatabase(fumensDBFile.path, null, SQLiteDatabase.OPEN_READONLY)
+        motifModels = skillMotifValueDao.getAllSkillMotifValue()
+        motifModelsGrand =
+            skillMotifValueGrandDao.getAllSkillMotifValueGrand() // queryToList(fumensDB, "skill_motif_value_grand")
+        lifeSparkleModels =
+            skillLifeValueDao.getAllSkillLifeValue() // queryToList(fumensDB, "skill_life_value")
+        lifeSparkleModelsGrand =
+            skillLifeValueGrandDao.getAllSkillLifeValueGrand() // queryToList(fumensDB, "skill_life_value_grand")
+        Timber.d("QueryToList Test end")
     }
 
     fun motifBonus(appeal: Int, type: Int, isGrand: Boolean = false): Int {
-        val model: SkillMotifValueModel
-        if (isGrand) {
-            model = motifModelsGrand.first {
+        val model: ISkillMotifValueModel
+        model = if (isGrand) {
+            motifModelsGrand.first {
                 appeal >= it.motif_value
             }
         } else {
-            model = motifModels.first {
+            motifModels.first {
                 appeal >= it.motif_value
             }
         }
@@ -869,13 +860,12 @@ class DereDatabaseHelper(context: Context) {
     }
 
     fun lifeSparkleBonus(life: Int, type: Int, isGrand: Boolean = false): Int {
-        val model: SkillLifeValueModel
-        if (isGrand) {
-            model = lifeSparkleModelsGrand.first {
+        val model: ISkillLifeValueModel = if (isGrand) {
+            lifeSparkleModelsGrand.first {
                 life >= it.life_value
             }
         } else {
-            model = lifeSparkleModels.first {
+            lifeSparkleModels.first {
                 life >= it.life_value
             }
         }
@@ -888,7 +878,7 @@ class DereDatabaseHelper(context: Context) {
 
 
     suspend fun exportTW(
-        musicList: List<MusicInfo>,
+        musicList: List<MusicData>,
         difficulties: List<TW5Difficulty>,
         fileOutputStream: FileOutputStream,
         progressHandler: suspend (Int, String?) -> Unit
@@ -898,18 +888,18 @@ class DereDatabaseHelper(context: Context) {
         var count = 0
         musicList.forEach { mi ->
             difficulties.forEach { diffi ->
-                val oneDifficulty = theInstance.parsedFumenCache[Pair(
+                val oneDifficulty = parsedFumenCache[Pair(
                     mi.id,
                     diffi
                 )]?.difficulties?.get(diffi)
-                oneDifficulty?.toJson(mi)?.run {
+                oneDifficulty?.toJson(mi, this)?.run {
                     val fileName = "${mi.id}___${mi.name}___${diffi.name}".replace("/", "-")
                         .replace("\\n", "-")
                     zos.putNextEntry(ZipEntry(fileName))
                     byteInputStream().copyTo(zos)
                     zos.closeEntry()
                 } ?: run {
-                    Log.d(TAG, "No such difficulty exists: ${diffi.name}")
+                    Timber.d("No such difficulty exists: " + diffi.name)
                     progressHandler(count, "No ${diffi.name} of ${mi.name}")
                 }
             }
@@ -919,26 +909,18 @@ class DereDatabaseHelper(context: Context) {
         zos.close()
     }
 
-//    fun initSkillToBoostModel() {
-//        val values = skillBoostModels.map {
-//            it.skill_value
-//        }
-//        val maxValue = values.max() ?: 0
-//        skillValueToBoostModel = arrayOfNulls(maxValue)
-//        skillBoostModels.forEach {
-//            skillValueToBoostModel[it.skill_value] = it
-//        }
-//    }
+    fun getSkillData(skillId: Int): SkillModel? {
+        TODO("Not yet implemented")
+    }
 
-    lateinit var cardModels: List<CardModel>
-    lateinit var skillModels: List<SkillModel>
-    lateinit var leaderSkillModels: List<LeaderSkillModel>
-    lateinit var skillBoostModels: List<SkillBoostModel>
+    fun getLeaderSkillData(leaderSkillId: Int): LeaderSkillModel? {
+        TODO("Not yet implemented")
+    }
+
+
     lateinit var motifModels: List<SkillMotifValueModel>
-    lateinit var motifModelsGrand: List<SkillMotifValueModel>
-    lateinit var lifeSparkleModels: List<SkillLifeValueModel>
-    lateinit var lifeSparkleModelsGrand: List<SkillLifeValueModel>
-//    lateinit var skillValueToBoostModel: Array<SkillBoostModel?>
-
+    lateinit var motifModelsGrand: List<SkillMotifValueGrandModel>
+    lateinit var lifeSparkleModels: List<ISkillLifeValueModel>
+    lateinit var lifeSparkleModelsGrand: List<ISkillLifeValueModel>
 }
 

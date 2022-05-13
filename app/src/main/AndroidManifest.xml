@@ -15,21 +15,22 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
+        android:name=".DereInfoApplication"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".UnitListActivity"
+            android:name=".ui.UnitListActivity"
             android:label="@string/title_unit_list"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".UnitDetailActivity"
+            android:name=".ui.UnitDetailActivity"
             android:label="@string/title_unit_detail"
-            android:parentActivityName=".UnitListActivity"
+            android:parentActivityName=".ui.UnitListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.kyhsgeekcode.dereinfo.UnitListActivity" />
+                android:value="com.kyhsgeekcode.dereinfo.ui.UnitListActivity" />
         </activity>
-        <activity android:name=".StartActivity">
+        <activity android:name=".ui.StartActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -37,7 +38,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SongListActivity"
+            android:name=".ui.SongListActivity"
             android:label="@string/title_song_list"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -49,13 +50,13 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".SongDetailActivity"
+            android:name=".ui.SongDetailActivity"
             android:label="@string/title_song_detail"
-            android:parentActivityName=".SongListActivity"
+            android:parentActivityName=".ui.SongListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.kyhsgeekcode.dereinfo.SongListActivity" />
+                android:value="com.kyhsgeekcode.dereinfo.ui.SongListActivity" />
         </activity>
         <provider
             android:name="androidx.core.content.FileProvider"

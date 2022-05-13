@@ -1,9 +1,12 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlin.math.max
 
+@Entity(tableName = "leader_skill_data")
 data class LeaderSkillModel(
-    val id: Int,
+    @PrimaryKey val id: Int,
     val name: String,
     val explain: String,
     val type: Int,  // 20: appeal 30: present, 40: fan 50: cross 60: unizon 70: resonance 80: yell 90: World level 100: Breath

@@ -1,11 +1,16 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.PrimaryKey
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
 import com.kyhsgeekcode.dereinfo.model.Judge
 import com.kyhsgeekcode.dereinfo.model.Note
+import javax.inject.Inject
 
+@Entity(tableName = "skill_data")
 data class SkillModel(
-    val id: Int,
+    @PrimaryKey val id: Int,
     val skill_name: String,
     val explain: String,
     val skill_type: Int,
@@ -20,6 +25,10 @@ data class SkillModel(
     val value_2: Int,
     val value_3: Int
 ) {
+    @Ignore
+    @Inject
+    lateinit var dereDatabaseService: DereDatabaseService
+
 //    fun getScoreBonus(
 //        note: Note,
 //        judge: Judge,
@@ -152,7 +161,7 @@ data class SkillModel(
             )
             25 -> Triple(
                 100f,
-                DereDatabaseHelper.theInstance.lifeSparkleBonus(life, value) * (boost1 ?: 1f),
+                dereDatabaseService.lifeSparkleBonus(life, value) * (boost1 ?: 1f),
                 0f
             )
             26 -> Triple(
@@ -185,19 +194,19 @@ data class SkillModel(
             )
             31 -> Triple(100f, value * (boost1 ?: 1f), 0f)
             35 -> Triple(
-                if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
+                if (judge == Judge.PERFECT) dereDatabaseService.motifBonus(
                     appeals[1],
                     value
                 ) * (boost1 ?: 1f) else 100f, 100f, 0f
             )
             36 -> Triple(
-                if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
+                if (judge == Judge.PERFECT) dereDatabaseService.motifBonus(
                     appeals[3],
                     value
                 ) * (boost1 ?: 1f) else 100f, 100f, 0f
             )
             37 -> Triple(
-                if (judge == Judge.PERFECT) DereDatabaseHelper.theInstance.motifBonus(
+                if (judge == Judge.PERFECT) dereDatabaseService.motifBonus(
                     appeals[2],
                     value
                 ) * (boost1 ?: 1f) else 100f, 100f, 0f

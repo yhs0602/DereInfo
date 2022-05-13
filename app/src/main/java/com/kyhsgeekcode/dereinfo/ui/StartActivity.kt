@@ -1,31 +1,23 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.Settings
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
+import com.kyhsgeekcode.dereinfo.R
+import com.kyhsgeekcode.dereinfo.launchActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_start.*
-import timber.log.Timber
 
 //asks permission, and go to main activity
+@AndroidEntryPoint
 class StartActivity : AppCompatActivity() {
     val MY_PERMISSIONS_REQUEST_READ_STORAGE = 1234
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (BuildConfig.DEBUG) {
-            Timber.plant(Timber.DebugTree())
-        } else {
-            Timber.plant(CrashReportingTree())
-        }
         setContentView(R.layout.activity_start)
 
         if (requestPermission())

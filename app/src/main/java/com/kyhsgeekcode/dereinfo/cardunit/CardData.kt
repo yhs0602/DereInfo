@@ -1,8 +1,10 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.model.CircleType
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+
 
 class CardData(
+    val id: Int,
     val name: String,
     val type: CircleType,
     val rarity: Rarity,

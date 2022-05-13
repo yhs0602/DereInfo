@@ -1,10 +1,12 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
+import com.kyhsgeekcode.dereinfo.R
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_song_detail.*
 
 /**
@@ -13,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_song_detail.*
  * item details are presented side-by-side with a list of items
  * in a [SongListActivity].
  */
+@AndroidEntryPoint
 class SongDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

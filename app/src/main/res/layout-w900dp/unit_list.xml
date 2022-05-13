@@ -10,7 +10,7 @@
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     android:showDividers="middle"
-    tools:context=".UnitListActivity">
+    tools:context=".ui.UnitListActivity">
 
     <!--
     This layout is a two-pane layout for the Units master/detail flow.
@@ -25,7 +25,7 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
-        tools:context="com.kyhsgeekcode.dereinfo.UnitListActivity"
+        tools:context="com.kyhsgeekcode.dereinfo.ui.UnitListActivity"
         tools:listitem="@layout/unit_list_content" />
 
     <FrameLayout

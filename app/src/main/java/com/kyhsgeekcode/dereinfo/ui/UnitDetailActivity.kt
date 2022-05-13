@@ -1,4 +1,4 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,6 +6,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.kyhsgeekcode.dereinfo.R
 
 /**
  * An activity representing a single Unit detail screen. This
