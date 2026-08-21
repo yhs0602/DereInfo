@@ -50,6 +50,19 @@ Maybe can be used as a reference when you hesitate whom with which `Act skill` t
 
 # References
 
+## Local extraction layout
+
+The nested `tw/` data repository contains the lossless game-resource backup
+and the DereInfo export:
+
+- `tw/tw/` contains the derived DereInfo v2 JSON chart files.
+- `tw/original/` contains ACB, BDB, raw chart CSV blobs, and metadata.
+- `original/audio/wav/` remains outside the data repository as a local-only backup.
+- `dere-tw-files` is a compatibility symlink to `tw/tw/`.
+
+Only the WAV backup is ignored because it is about 8.8 GB. ACB files are
+kept in `tw/original/audio/acb/` and are visible to the nested Git repository.
+
 ## Extract db files
 ```shell script
 IFS=$'\n'; (for name in $(file a/* | grep SQLite | cut -d: -f1); do echo $name; done) | cut -d: -f1 | tar -cvf db.tar -T -
