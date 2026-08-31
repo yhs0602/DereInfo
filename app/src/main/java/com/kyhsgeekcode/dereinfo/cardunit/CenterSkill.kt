@@ -1,6 +1,6 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.model.CircleType
+import com.kyhsgeekcode.dereinfo.enums.CircleType
 
 enum class ApplyType {
     Vo,

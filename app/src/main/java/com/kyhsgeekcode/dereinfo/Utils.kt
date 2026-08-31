@@ -12,13 +12,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.database.getBlobOrNull
 import androidx.core.database.getFloatOrNull
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import androidx.core.text.isDigitsOnly
-import androidx.work.Data
+import timber.log.Timber
 import java.io.*
 import java.io.File.separator
 import kotlin.math.abs
@@ -54,28 +53,26 @@ fun loadObject(file: File): Any {
 }
 
 val sqliteHeader = byteArrayOf(
-    'S'.toByte(),
-    'Q'.toByte(),
-    'L'.toByte(),
-    'i'.toByte(),
-    't'.toByte(),
-    'e'.toByte(),
-    ' '.toByte(),
-    'f'.toByte(),
-    'o'.toByte(),
-    'r'.toByte(),
-    'm'.toByte(),
-    'a'.toByte(),
-    't'.toByte(),
-    ' '.toByte(),
-    '3'.toByte(),
+    'S'.code.toByte(),
+    'Q'.code.toByte(),
+    'L'.code.toByte(),
+    'i'.code.toByte(),
+    't'.code.toByte(),
+    'e'.code.toByte(),
+    ' '.code.toByte(),
+    'f'.code.toByte(),
+    'o'.code.toByte(),
+    'r'.code.toByte(),
+    'm'.code.toByte(),
+    'a'.code.toByte(),
+    't'.code.toByte(),
+    ' '.code.toByte(),
+    '3'.code.toByte(),
     0
 )
 
 
 fun checkIfDatabase(file: File): Boolean {
-    if (file == null)
-        return false
     if (file.isDirectory)
         return false
     val byteArray = ByteArray(16)
@@ -127,12 +124,10 @@ fun saveImage(bitmap: Bitmap, context: Context, folderName: String) {
         val fileName = System.currentTimeMillis().toString() + ".png"
         val file = File(directory, fileName)
         saveImageToStream(bitmap, FileOutputStream(file))
-        if (file.absolutePath != null) {
-            val values = contentValues()
-            values.put(MediaStore.Images.Media.DATA, file.absolutePath)
-            // .DATA is deprecated in API 29
-            context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        }
+        val values = contentValues()
+        values.put(MediaStore.Images.Media.DATA, file.absolutePath)
+        // .DATA is deprecated in API 29
+        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
     }
 }
 
@@ -177,7 +172,7 @@ inline fun <reified T> cur2List(cursor: Cursor): List<T> {
             try {
                 paramToVal[iToParameter[i]!!] = converters[cursor.getType(i)](cursor, i)
             } catch (e: Exception) {
-                Log.d("CursorToList", "CurToList", e)
+                Timber.d(e, "CurToList")
             }
         }
 //        Log.w(
@@ -188,7 +183,7 @@ inline fun <reified T> cur2List(cursor: Cursor): List<T> {
                 T::class.constructors.toTypedArray()[0].callBy(paramToVal)
             resultList.add(theObject)
         } catch (e: Exception) {
-            Log.e("Cur", "Error ", e)
+            Timber.e(e, "Error ")
         }
         cursor.moveToNext()
     }
@@ -202,7 +197,7 @@ inline fun <reified T> queryToList(
     selection: String? = null,
     params: Array<String>? = null
 ): List<T> {
-    Log.d("QueryToList", "QueryToList Test 1")
+    Timber.d("QueryToList Test 1")
     val fields /*: Array<String>*/ = T::class.members.filter {
         it is KProperty<*>
     }.map { it.name }.filter { it ->
@@ -215,7 +210,7 @@ inline fun <reified T> queryToList(
             "TAG"
         ).contains(it))
     }.toTypedArray()
-    Log.d("QueryToList", "${fields.joinToString(",")}")
+    Timber.d(fields.joinToString(","))
     val cursor = database.query(table, fields, selection, params, null, null, null)
     cursor.use {
         return cur2List(it)

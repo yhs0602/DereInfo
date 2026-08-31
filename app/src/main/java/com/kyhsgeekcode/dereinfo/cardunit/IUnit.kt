@@ -1,7 +1,7 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.calc.CGCalc
-import com.kyhsgeekcode.dereinfo.model.CircleType
+import com.kyhsgeekcode.dereinfo.calc.CGCalcService
+import com.kyhsgeekcode.dereinfo.enums.CircleType
 
 interface IUnit {
     fun skills(): List<SkillModel>
@@ -12,5 +12,5 @@ interface IUnit {
     fun getLeader(): Card
     fun getCardCount(): Int
     fun listCards(): List<Card>
-    fun calculateAppeal(guest: Card, type: CircleType, roomBonus: CGCalc.RoomBonus): Array<Int>
+    fun calculateAppeal(guest: Card, type: CircleType, roomBonus: CGCalcService.RoomBonus): Array<Int>
 }

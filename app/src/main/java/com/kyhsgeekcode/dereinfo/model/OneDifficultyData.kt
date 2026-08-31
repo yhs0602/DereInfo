@@ -38,6 +38,9 @@ class OneDifficultyData(val difficulty: TW5Difficulty, val notes: List<Note>?) {
 //    }
 }
 
-fun OneDifficultyData.toJson(musicInfo: MusicInfo): String {
-    return TWWriter(musicInfo, this).write()
+fun OneDifficultyData.toJson(
+    musicData: MusicData,
+    dereDatabaseService: DereDatabaseService
+): String {
+    return TWWriter(musicData, this, dereDatabaseService = dereDatabaseService).write()
 }

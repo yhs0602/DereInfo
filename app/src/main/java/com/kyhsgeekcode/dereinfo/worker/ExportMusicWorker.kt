@@ -13,7 +13,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.kyhsgeekcode.dereinfo.ExportHelper
 import com.kyhsgeekcode.dereinfo.R
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber

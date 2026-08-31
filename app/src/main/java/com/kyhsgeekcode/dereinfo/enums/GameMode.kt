@@ -1,6 +1,6 @@
-package com.kyhsgeekcode.dereinfo.model
+package com.kyhsgeekcode.dereinfo.enums
 
-import android.util.Log
+import timber.log.Timber
 import java.util.*
 
 enum class GameMode {
@@ -12,8 +12,8 @@ enum class GameMode {
 
     companion object {
         fun fromLowercase(str: String): GameMode? {
-            Log.d("GameMode", str)
-            val upper = str.toUpperCase(Locale.ROOT)
+            Timber.d(str)
+            val upper = str.uppercase(Locale.ROOT)
             return values().find {
                 upper == it.name
             }

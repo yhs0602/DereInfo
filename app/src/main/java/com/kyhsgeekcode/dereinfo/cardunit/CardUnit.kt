@@ -1,8 +1,9 @@
 package com.kyhsgeekcode.dereinfo.cardunit
 
-import com.kyhsgeekcode.dereinfo.calc.CGCalc
-import com.kyhsgeekcode.dereinfo.model.CircleType
-import com.kyhsgeekcode.dereinfo.model.DereDatabaseHelper
+import com.kyhsgeekcode.dereinfo.calc.CGCalcService
+import com.kyhsgeekcode.dereinfo.enums.CircleType
+import com.kyhsgeekcode.dereinfo.model.DereDatabaseService
+import javax.inject.Inject
 
 class Appeal(
     val vocal: Int,
@@ -35,10 +36,13 @@ class Appeal(
 class CardUnit(
     val cards: MutableList<Card>
 ) : IUnit {
+    @Inject
+    lateinit var dereDatabaseService: DereDatabaseService
+
     override fun calculateAppeal(
         guest: Card,
         type: CircleType,
-        roomBonus: CGCalc.RoomBonus
+        roomBonus: CGCalcService.RoomBonus
     ): Array<Int> {
         val leader = cards[0]
         val leaderSkillModel = leader.leaderSkillModel
@@ -68,12 +72,9 @@ class CardUnit(
     fun countSkills(): Int = cards.groupBy { it.cardData.skill_id }.size
     fun isResonanceApplied(guest: Card): Boolean {
         val leader = cards[0]
-        val leaderSkillModel = DereDatabaseHelper.theInstance.leaderSkillModels.find {
-            it.id == leader.cardData.leader_skill_id
-        }
-        val guestSkillModel = DereDatabaseHelper.theInstance.leaderSkillModels.find {
-            it.id == guest.cardData.leader_skill_id
-        }
+        val leaderSkillModel =
+            dereDatabaseService.getLeaderSkillData(leader.cardData.leader_skill_id)
+        val guestSkillModel = dereDatabaseService.getLeaderSkillData(guest.cardData.leader_skill_id)
         if (LeaderSkillModel.RESONANCE_IDS.contains(leaderSkillModel?.id)) {
             if (leaderSkillModel?.canApply(this, guest) == true) {
                 return true

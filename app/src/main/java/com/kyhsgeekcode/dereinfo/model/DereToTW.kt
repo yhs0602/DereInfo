@@ -1,5 +1,7 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import com.kyhsgeekcode.dereinfo.enums.FlickMode
+
 //None left right up down
 fun getTW5Flick(status: Int): FlickMode {
     return when (status) {

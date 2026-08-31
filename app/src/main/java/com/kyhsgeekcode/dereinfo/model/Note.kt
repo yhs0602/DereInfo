@@ -1,5 +1,6 @@
 package com.kyhsgeekcode.dereinfo.model
 
+import com.kyhsgeekcode.dereinfo.enums.FlickMode
 import kotlin.math.abs
 
 class Note(

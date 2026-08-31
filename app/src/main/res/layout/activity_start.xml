@@ -5,6 +5,6 @@
     android:id="@+id/start_default"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".StartActivity">
+    tools:context=".ui.StartActivity">
 
 </androidx.constraintlayout.widget.ConstraintLayout>

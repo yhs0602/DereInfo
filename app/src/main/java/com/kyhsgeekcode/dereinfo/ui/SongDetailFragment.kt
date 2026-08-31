@@ -1,11 +1,10 @@
-package com.kyhsgeekcode.dereinfo
+package com.kyhsgeekcode.dereinfo.ui
 
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -13,10 +12,17 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.github.chrisbanes.photoview.PhotoView
+import com.kyhsgeekcode.dereinfo.FumenRenderer
+import com.kyhsgeekcode.dereinfo.R
 import com.kyhsgeekcode.dereinfo.model.*
+import com.kyhsgeekcode.dereinfo.saveImage
+import com.kyhsgeekcode.dereinfo.viewmodel.SongDetailViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_song_detail.*
 import kotlinx.android.synthetic.main.song_detail.view.*
+import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -30,13 +36,10 @@ import java.util.zip.ZipOutputStream
  * in two-pane mode (on tablets) or a [SongDetailActivity]
  * on handsets.
  */
+@AndroidEntryPoint
 class SongDetailFragment : Fragment() {
-    val TAG = "SongDetailFrag"
+    private val songDetailViewModel: SongDetailViewModel by viewModels()
 
-    private var item: MusicInfo? = null
-    private var oneMusic: OneMusic? = null
-    private var difficulty: TW5Difficulty = TW5Difficulty.Debut
-    private var bitmap: Bitmap? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -46,16 +49,17 @@ class SongDetailFragment : Fragment() {
                 // Load the dummy content specified by the fragment
                 // arguments. In a real-world scenario, use a Loader
                 // to load content from a content provider.
-                item = DereDatabaseHelper.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
+                songDetailViewModel.initialize(it.getString(ARG_ITEM_ID))
+                item = DereDatabaseService.theInstance.musicIDToInfo[it[ARG_ITEM_ID]]
                 activity?.toolbar_layout?.title = item?.name?.replace("\\n", " ")
                 activity?.toolbar_layout?.setBackgroundColor(item?.getColor() ?: 0xFFDDDDDD.toInt())
-                val musicNumber = DereDatabaseHelper.theInstance.musicIDTomusicNumber[item!!.id]
-                Log.w(TAG, "Item.id:${item!!.id}, musicNumber:${musicNumber}")
+                val musicNumber = DereDatabaseService.theInstance.musicIDTomusicNumber[item!!.id]
+                Timber.w("Item.id:${item!!.id}, musicNumber:$musicNumber")
                 //oneMusic = DereDatabaseHelper.theInstance.peekFumens(musicNumber!!)
             }
             if (it.containsKey(ARG_ITEM_DIFFICULTY)) {
                 difficulty = it[ARG_ITEM_DIFFICULTY] as TW5Difficulty
-                Log.d(TAG, "Contains key, key is:${difficulty.name}")
+                Timber.d("Contains key, key is:" + difficulty.name)
                 //spinnerDifficulty.setSelection(difficulty.ordinal)
             }
         }
@@ -71,7 +75,7 @@ class SongDetailFragment : Fragment() {
         item?.let { musicInfo ->
             rootView.song_detail.text = musicInfo.toString()
             val adapter: ArrayAdapter<String> = ArrayAdapter(
-                context!!,
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 resources.getStringArray(R.array.difficulties)
             )
@@ -90,7 +94,7 @@ class SongDetailFragment : Fragment() {
                     ) {
                         difficulty = TW5Difficulty.fromIndex(position)
                         val statistic =
-                            DereDatabaseHelper.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(
+                            DereDatabaseService.theInstance.musicInfoIDToStatistic[musicInfo.id]?.get(
                                 difficulty
                             )
                                 ?: return
@@ -191,24 +195,24 @@ class SongDetailFragment : Fragment() {
     }
 
     private fun showFumen2(
-        musicInfo: MusicInfo,
+        musicData: MusicData,
         tw5Difficulty: TW5Difficulty
     ) {
         parentFragmentManager.beginTransaction()
             .replace(
                 R.id.song_detail_container,
-                FumenFragment.newInstance(musicInfo, tw5Difficulty)
+                FumenFragment.newInstance(musicData, tw5Difficulty)
             ).addToBackStack(null)
             .commit()
     }
 
 
-    private fun createFumenBitmap(musicInfo: MusicInfo, tw5Difficulty: TW5Difficulty): Bitmap? {
+    private fun createFumenBitmap(musicData: MusicData, tw5Difficulty: TW5Difficulty): Bitmap? {
         val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
-            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
-                musicInfo.id,
+            DereDatabaseService.theInstance.parsedFumenCache[Pair(
+                musicData.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
         if (oneDifficulty == null) {
@@ -236,14 +240,14 @@ class SongDetailFragment : Fragment() {
     }
 
     private fun showFumen(
-        musicInfo: MusicInfo,
+        musicData: MusicData,
         tw5Difficulty: TW5Difficulty
     ) {
         val context = requireContext()
         //FumenRenderer(5).render(DereDatabaseHelper.theInstance.parsed)
         val oneDifficulty =
-            DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
-                musicInfo.id,
+            DereDatabaseService.theInstance.parsedFumenCache[Pair(
+                musicData.id,
                 tw5Difficulty
             )]?.difficulties?.get(tw5Difficulty)
         if (oneDifficulty == null) {
@@ -270,7 +274,7 @@ class SongDetailFragment : Fragment() {
         val photoView = PhotoView(context)
         photoView.setImageBitmap(bitmap)
         val alertDialog = AlertDialog.Builder(context)
-            .setTitle("${musicInfo.name} (${oneDifficulty.difficulty})")
+            .setTitle("${musicData.name} (${oneDifficulty.difficulty})")
             .setView(photoView).show().setOnCancelListener {
                 bitmap.recycle()
             }
@@ -295,10 +299,10 @@ class SongDetailFragment : Fragment() {
                 Toast.makeText(requireActivity(), "No Item", Toast.LENGTH_SHORT).show()
 
             } else {
-                Log.d(TAG, "id:${this.item?.id}")
+                Timber.d("id:" + this.item?.id)
                 val file =
-                    DereDatabaseHelper.theInstance.musicNumberToFumenFile[DereDatabaseHelper.theInstance.musicIDTomusicNumber[this.item?.id]]
-                Log.d(TAG, "Size=${DereDatabaseHelper.theInstance.musicNumberToFumenFile.size}")
+                    DereDatabaseService.theInstance.musicNumberToFumenFile[DereDatabaseService.theInstance.musicIDTomusicNumber[this.item?.id]]
+                Timber.d("Size=" + DereDatabaseService.theInstance.musicNumberToFumenFile.size)
                 if (file == null) {
                     Toast.makeText(requireActivity(), "No db file", Toast.LENGTH_SHORT).show()
                 } else {
@@ -310,13 +314,13 @@ class SongDetailFragment : Fragment() {
 
             } else {
                 val oneDifficulty =
-                    DereDatabaseHelper.theInstance.parsedFumenCache[Pair(
+                    DereDatabaseService.theInstance.parsedFumenCache[Pair(
                         this.item!!.id,
                         difficulty
                     )]?.difficulties?.get(difficulty)
                 val json = oneDifficulty!!.toJson(this.item!!)
                 val fileName = "${this.item?.name}-${difficulty.name}___"
-                val temp = File.createTempFile(fileName, ".txt", context!!.cacheDir)
+                val temp = File.createTempFile(fileName, ".txt", requireContext().cacheDir)
                 temp.printWriter().use {
                     it.print(json)
                 }
@@ -329,7 +333,7 @@ class SongDetailFragment : Fragment() {
 
     private fun shareAsZip(file: File, message: String) {
         val temp =
-            File.createTempFile(this.item?.name ?: "temp", ".zip", context!!.cacheDir)
+            File.createTempFile(this.item?.name ?: "temp", ".zip", requireContext().cacheDir)
         val out = ZipOutputStream(BufferedOutputStream(FileOutputStream(temp)))
         val entry = ZipEntry(file.name)
         out.putNextEntry(entry)
